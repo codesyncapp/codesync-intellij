@@ -1,0 +1,55 @@
+// Copyright 2000-2020 JetBrains s.r.o. and other contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+
+plugins {
+  id 'java'
+  id 'org.jetbrains.intellij' version '0.6.5'
+}
+
+group 'org.intellij.sdk'
+version '2.1.0'
+
+sourceCompatibility = 1.8
+
+repositories {
+  mavenCentral()
+}
+
+// See https://github.com/JetBrains/gradle-intellij-plugin/
+intellij {
+  version = '2020.2'
+}
+
+buildSearchableOptions {
+  enabled = false
+}
+
+patchPluginXml {
+  version = project.version
+  sinceBuild = '202'
+  untilBuild = '203.*'
+}
+
+
+dependencies {
+  // Dependency on a local library module
+  // Dependency on a remote binary
+//    compile 'name.fraser.neil.plaintext.diff_match_patch:1.+'
+//    compile group: 'com.madgag', name: 'util-diff', version: '1.35'
+//  compile group: 'diff_match_patch', name: 'diff_match_patch', version: '1.22'
+  // https://mvnrepository.com/artifact/org.webjars/google-diff-match-patch
+//  compile group: 'org.webjars', name: 'google-diff-match-patch', version: '895a9512bb'
+
+//  compile group: 'com.madgag', name: 'util-diff', version: '1.33'
+  //Thanks for using https://jar-download.com
+//  implementation 'org.bitbucket.cowwoc:diff-match-patch:1.2'
+//  implementation "io.github.java-diff-utils:java-diff-utils:4.5"
+  implementation files('libs/diff_match_patch.jar')
+//  implementation files('libs/google-diff-match-patch.jar')
+//  runtime files('libs/google-diff-match-patch.jar')
+//  compile files('libs/google-diff-match-patch.jar')
+//  compile fileTree(dir: 'libs', include: ['*.jar'])
+//  compile group: 'org.webjars.npm', name: 'diff-match-patch', version: '1.0.5'
+//Thanks for using https://jar-download.com
+
+
+}
