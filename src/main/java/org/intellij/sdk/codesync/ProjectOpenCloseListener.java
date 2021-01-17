@@ -17,9 +17,7 @@ import name.fraser.neil.plaintext.diff_match_patch.Patch;
 import org.jetbrains.annotations.NotNull;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -37,7 +35,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
   String CODESYNC_ROOT = "/usr/local/bin/.codesync";
   String DIFFS_REPO = String.format("%s/.diffs", CODESYNC_ROOT);
   String MAGIC_STRING = "IntellijIdeaRulezzz";
-
+  String CURRENT_GIT_BRANCH_COMMAND = "git rev-parse --abbrev-ref HEAD";
   @Override
   public void projectOpened(@NotNull Project project) {
     // Ensure this isn't part of testing
@@ -50,27 +48,62 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       public void documentChanged(@NotNull DocumentEvent event) {
         Document document = event.getDocument();
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
-        String file_path = file.getPath();
-        String currentText = document.getText();
-        currentText = currentText.replace( MAGIC_STRING, "").trim();
-        // TODO: Get on run time
-        String branch = "plugins";
+        String filePath = file.getPath();
         String repoName = project.getName();
         String repoPath = project.getBasePath();
-        String s = String.format("%s/", repoPath);
-        String[] rel_path_arr = file_path.split(s);
-        String relPath = rel_path_arr[rel_path_arr.length - 1];
-        if (relPath.startsWith("/")) {
-          relPath = relPath.replace("/", "");
+        String branch = "default";
+        if (repoPath == null) { return; }
+        System.out.println("Event...");
+        // Get current git branch name
+        ProcessBuilder processBuilder = new ProcessBuilder().directory(new File(repoPath));
+        // Run a shell command
+        processBuilder.command("/bin/bash", "-c", CURRENT_GIT_BRANCH_COMMAND);
+        try {
+          Process process = processBuilder.start();
+          StringBuilder output = new StringBuilder();
+          BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+          String line;
+          while ((line = reader.readLine()) != null) {
+            output.append(line);
+          }
+          int exitVal = process.waitFor();
+          if (exitVal == 0) {
+            branch = output.toString();
+          }
+        } catch (IOException e) {
+          e.printStackTrace();
+        } catch (InterruptedException e) {
+          e.printStackTrace();
         }
+
+        // Skipping duplicate events for key press
+        if (!filePath.contains(repoPath)) {
+          return;
+        }
+
+        String currentText = document.getText();
+        currentText = currentText.replace(MAGIC_STRING, "").trim();
+
+        String s = String.format("%s/", repoPath);
+        String[] rel_path_arr = filePath.split(s);
+        String relPath = rel_path_arr[rel_path_arr.length - 1];
+
+
         String shadowPath = String.format("%s/%s/%s/%s", CODESYNC_ROOT, repoName, branch, relPath);
         File f = new File(shadowPath);
         if (!f.exists()) {
           // TODO: Create shadow file?
           return;
         }
+
         // Read shadow file
         String shadowText = ReadFileToString.readLineByLineJava8(shadowPath);
+        // If shadow text is same as current content, no need to compute diffs
+        if (shadowText.equals(currentText)) {
+          return;
+        }
+//         System.out.println(String.format("%s, %s, %s, %s", System.currentTimeMillis(), filePath, currentText, shadowText));
+        // Update shadow file
         try {
           FileWriter myWriter = new FileWriter(shadowPath);
           myWriter.write(currentText);
@@ -80,8 +113,11 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
         }
         diff_match_patch dmp = new diff_match_patch();
         LinkedList<Patch> patches = dmp.patch_make(shadowText, currentText);
+
         // Create text representation of patches objects
         String diffs = dmp.patch_toText(patches);
+
+//        System.out.println(diffs);
         // Create YAML dump
         Map<String, String> data = new HashMap<String, String>();
         data.put("repo", repoName);
@@ -103,6 +139,19 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
           e.printStackTrace();
         }
         yaml.dump(data, writer);
+
+//        // TODO: Look into following events for bew file/deleted file
+//        VirtualFileManager.getInstance().addVirtualFileListener(new VirtualFileAdapter() {
+//          @Override
+//          public void fileCreated(VirtualFileEvent event) {
+//            System.out.println(event);
+//          }
+//
+//          @Override
+//          public void fileDeleted(VirtualFileEvent event) {
+//            System.out.println(event);
+//          }
+//        });
       }
     }, Disposer.newDisposable());
   }
