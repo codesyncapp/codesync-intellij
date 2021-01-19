@@ -53,7 +53,8 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
         String repoPath = project.getBasePath();
         String branch = "default";
         if (repoPath == null) { return; }
-        System.out.println("Event...");
+        float time = System.currentTimeMillis();
+        System.out.println(String.format("Event: %s", time));
         // Get current git branch name
         ProcessBuilder processBuilder = new ProcessBuilder().directory(new File(repoPath));
         // Run a shell command
