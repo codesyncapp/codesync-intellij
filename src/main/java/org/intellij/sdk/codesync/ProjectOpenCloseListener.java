@@ -24,6 +24,7 @@ import java.util.*;
 /**
  * Listener to detect project open and close.
  */
+
 public class ProjectOpenCloseListener implements ProjectManagerListener {
 
   /**
@@ -34,12 +35,36 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
 
   String CODESYNC_ROOT = "/usr/local/bin/.codesync";
   String DIFFS_REPO = String.format("%s/.diffs", CODESYNC_ROOT);
+  String CONFIG_PATH = String.format("%s/config.yml", CODESYNC_ROOT);
+
   String MAGIC_STRING = "IntellijIdeaRulezzz";
   String CURRENT_GIT_BRANCH_COMMAND = "git rev-parse --abbrev-ref HEAD";
+
   @Override
   public void projectOpened(@NotNull Project project) {
     // Ensure this isn't part of testing
     if (ApplicationManager.getApplication().isUnitTestMode()) {
+      return;
+    }
+
+    String repoName = project.getName();
+    String repoPath = project.getBasePath();
+
+    // Skip if config does not exist
+    File config = new File(CONFIG_PATH);
+    if (!config.exists()) {
+      return;
+    }
+    // Ensure repo is synced
+    Yaml yaml = new Yaml();
+    InputStream inputStream;
+    try {
+      inputStream = new FileInputStream(CONFIG_PATH);
+    } catch (FileNotFoundException e) {
+      return;
+    }
+    Map<String, Map<String, Map<String, Object>>> obj = yaml.load(inputStream);
+    if (!obj.get("repos").keySet().contains(repoName) || !obj.get("repos").get(repoName).get("path").equals(repoPath)) {
       return;
     }
 
