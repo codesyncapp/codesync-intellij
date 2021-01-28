@@ -89,18 +89,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       @Override
       public void documentChanged(@NotNull DocumentEvent event) {
         ChangesHandler(event, project);
-//        // TODO: Look into following events for bew file/deleted file
-//        VirtualFileManager.getInstance().addVirtualFileListener(new VirtualFileAdapter() {
-//          @Override
-//          public void fileCreated(VirtualFileEvent event) {
-//            System.out.println(event);
-//          }
-//
-//          @Override
-//          public void fileDeleted(VirtualFileEvent event) {
-//            System.out.println(event);
-//          }
-//        });
       }
     }, Disposer.newDisposable());
   }
