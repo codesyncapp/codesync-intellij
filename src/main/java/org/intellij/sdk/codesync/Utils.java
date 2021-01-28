@@ -1,20 +1,27 @@
 package org.intellij.sdk.codesync;
 
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import name.fraser.neil.plaintext.diff_match_patch;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
+
+import static org.intellij.sdk.codesync.Constants.*;
 
 public class Utils {
 
     public static String GetGitBranch(String repoPath) {
-        String branch = "default";
-        String CURRENT_GIT_BRANCH_COMMAND = "git rev-parse --abbrev-ref HEAD";
+        String branch = DEFAULT_BRANCH;
 
         // Get current git branch name
         ProcessBuilder processBuilder = new ProcessBuilder().directory(new File(repoPath));
@@ -40,10 +47,9 @@ public class Utils {
         return branch;
     }
 
-    public static void WriteDiffToYml(String repoName, String branch, String relPath, String diffs, Boolean isNewFile) {
+    public static void WriteDiffToYml(String repoName, String branch, String relPath, String diffs,
+                                      Boolean isNewFile, Boolean isDeleted) {
         String DIFF_SOURCE = "intellij";
-        String CODESYNC_ROOT = "/usr/local/bin/.codesync";
-        String DIFFS_REPO = String.format("%s/.diffs", CODESYNC_ROOT);
 
         final Date currentTime = new Date();
         final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -57,7 +63,10 @@ public class Utils {
             data.put("diff", diffs);
         }
         if (isNewFile) {
-            data.put("is_new_file", "true");
+            data.put("is_new_file", "1");
+        }
+        if (isDeleted) {
+            data.put("is_deleted", "1");
         }
         data.put("source", DIFF_SOURCE);
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -79,4 +88,149 @@ public class Utils {
         }
         yaml.dump(data, writer);
     }
+
+    public static void FileCreateHandler(VFileEvent event, String repoName, String repoPath) {
+        String filePath = event.getFile().getPath();
+        String s = String.format("%s/", repoPath);
+        String[] rel_path_arr = filePath.split(s);
+        String relPath = rel_path_arr[rel_path_arr.length - 1];
+        if (relPath.startsWith("/")) {
+            System.out.println(String.format("Skipping New File: %s, %s", filePath, repoPath));
+            return;
+        }
+        String branch = Utils.GetGitBranch(repoPath);
+
+        String destOriginals = String.format("%s/%s/%s/%s", ORIGINALS_REPO, repoName, branch, relPath);
+        String[] destOriginalsPathSplit = destOriginals.split("/");
+        String[] newArray = Arrays.copyOfRange(destOriginalsPathSplit, 0, destOriginalsPathSplit.length-1);
+        String destOriginalsBasePath = String.join("/", newArray);
+
+        String destShadow = String.format("%s/%s/%s/%s", CODESYNC_ROOT, repoName, branch, relPath);
+        String[] destShadowPathSplit = destShadow.split("/");
+        newArray = Arrays.copyOfRange(destShadowPathSplit, 0, destShadowPathSplit.length-1);
+        String destShadowBasePath = String.join("/", newArray);
+
+        File f_originals_base = new File(destOriginalsBasePath);
+        f_originals_base.mkdirs();
+        File f_shadow_base = new File(destShadowBasePath);
+        f_shadow_base.mkdirs();
+
+        File file = new File(filePath);
+        File f_originals = new File(destOriginals);
+        File f_shadow = new File(destShadow);
+
+        try {
+            Files.copy(file.toPath(), f_originals.toPath());
+        } catch (FileAlreadyExistsException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            Files.copy(file.toPath(), f_shadow.toPath());
+        } catch (FileAlreadyExistsException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Utils.WriteDiffToYml(repoName, branch, relPath, "", true, false);
+        System.out.println(String.format("FileCreated: %s", filePath));
+
+    }
+
+    public static void FileDeleteHandler(VFileEvent event, String repoName, String repoPath) {
+        String filePath = event.getFile().getPath();
+        System.out.println(filePath);
+        String s = String.format("%s/", repoPath);
+        String[] rel_path_arr = filePath.split(s);
+        String relPath = rel_path_arr[rel_path_arr.length - 1];
+        if (relPath.startsWith("/")) {
+            System.out.println(String.format("Skipping New File: %s, %s", filePath, repoPath));
+            return;
+        }
+        String branch = Utils.GetGitBranch(repoPath);
+        Utils.WriteDiffToYml(repoName, branch, relPath, "", false, true);
+        System.out.println(String.format("FileDeleted: %s", filePath));
+    }
+
+    public static void ChangesHandler(DocumentEvent event, Project project) {
+        Document document = event.getDocument();
+        VirtualFile file = FileDocumentManager.getInstance().getFile(document);
+        if (file == null) {
+            return;
+        }
+        String filePath = file.getPath();
+        String repoName = project.getName();
+        String repoPath = project.getBasePath();
+        String branch = Utils.GetGitBranch(repoPath);
+        if (repoPath == null) { return; }
+        float time = System.currentTimeMillis();
+        System.out.println(String.format("Event: %s", time));
+        // Get current git branch name
+        ProcessBuilder processBuilder = new ProcessBuilder().directory(new File(repoPath));
+        // Run a shell command
+        processBuilder.command("/bin/bash", "-c", CURRENT_GIT_BRANCH_COMMAND);
+        try {
+            Process process = processBuilder.start();
+            StringBuilder output = new StringBuilder();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line);
+            }
+            int exitVal = process.waitFor();
+            if (exitVal == 0) {
+                branch = output.toString();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // Skipping duplicate events for key press
+        if (!filePath.contains(repoPath)) {
+            return;
+        }
+
+        String currentText = document.getText();
+        currentText = currentText.replace(MAGIC_STRING, "").trim();
+
+        String s = String.format("%s/", repoPath);
+        String[] rel_path_arr = filePath.split(s);
+        String relPath = rel_path_arr[rel_path_arr.length - 1];
+
+
+        String shadowPath = String.format("%s/%s/%s/%s", CODESYNC_ROOT, repoName, branch, relPath);
+        File f = new File(shadowPath);
+        if (!f.exists()) {
+            // TODO: Create shadow file?
+            return;
+        }
+
+        // Read shadow file
+        String shadowText = ReadFileToString.readLineByLineJava8(shadowPath);
+        // If shadow text is same as current content, no need to compute diffs
+        if (shadowText.equals(currentText)) {
+            return;
+        }
+//         System.out.println(String.format("%s, %s, %s, %s", System.currentTimeMillis(), filePath, currentText, shadowText));
+        // Update shadow file
+        try {
+            FileWriter myWriter = new FileWriter(shadowPath);
+            myWriter.write(currentText);
+            myWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        diff_match_patch dmp = new diff_match_patch();
+        LinkedList<diff_match_patch.Patch> patches = dmp.patch_make(shadowText, currentText);
+
+        // Create text representation of patches objects
+        String diffs = dmp.patch_toText(patches);
+//        System.out.println(diffs);
+        Utils.WriteDiffToYml(repoName, branch, relPath, diffs, false, false);
+    }
+
 }
