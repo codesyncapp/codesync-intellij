@@ -12,6 +12,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import org.jetbrains.annotations.NotNull;
 import org.yaml.snakeyaml.Yaml;
 
@@ -60,6 +61,11 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
             FileDeleteHandler(event, repoName, repoPath);
             return;
           }
+          if (event.toString().startsWith(FILE_RENAME_EVENT)) {
+            FileRenameHandler(event, repoName, repoPath);
+            return;
+          }
+
         }
       }
     });

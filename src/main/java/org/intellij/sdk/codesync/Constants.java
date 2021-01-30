@@ -17,5 +17,6 @@ public final class Constants {
     public static String MAGIC_STRING = "IntellijIdeaRulezzz";
     public static String FILE_CREATE_EVENT = "VfsEvent[create file";
     public static String FILE_DELETE_EVENT = "VfsEvent[deleted: file";
+    public static String FILE_RENAME_EVENT = "VfsEvent[property(name) changed";
 
 }

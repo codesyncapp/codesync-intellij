@@ -6,7 +6,9 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import name.fraser.neil.plaintext.diff_match_patch;
+import org.json.simple.JSONObject;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -48,7 +50,7 @@ public class Utils {
     }
 
     public static void WriteDiffToYml(String repoName, String branch, String relPath, String diffs,
-                                      Boolean isNewFile, Boolean isDeleted) {
+                                      Boolean isNewFile, Boolean isDeleted, Boolean isRename) {
         String DIFF_SOURCE = "intellij";
 
         final Date currentTime = new Date();
@@ -67,6 +69,9 @@ public class Utils {
         }
         if (isDeleted) {
             data.put("is_deleted", "1");
+        }
+        if (isRename) {
+            data.put("is_rename", "1");
         }
         data.put("source", DIFF_SOURCE);
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -134,7 +139,7 @@ public class Utils {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Utils.WriteDiffToYml(repoName, branch, relPath, "", true, false);
+        Utils.WriteDiffToYml(repoName, branch, relPath, "", true, false, false);
         System.out.println(String.format("FileCreated: %s", filePath));
 
     }
@@ -150,8 +155,27 @@ public class Utils {
             return;
         }
         String branch = Utils.GetGitBranch(repoPath);
-        Utils.WriteDiffToYml(repoName, branch, relPath, "", false, true);
+        Utils.WriteDiffToYml(repoName, branch, relPath, "", false, true, false);
         System.out.println(String.format("FileDeleted: %s", filePath));
+    }
+
+    public static void FileRenameHandler(VFileEvent event, String repoName, String repoPath) {
+        String old_abs_path = ((VFilePropertyChangeEvent) event).getOldPath();
+        String new_abs_path = ((VFilePropertyChangeEvent) event).getNewPath();
+        String branch = Utils.GetGitBranch(repoPath);
+
+        String s = String.format("%s/", repoPath);
+        String[] old_rel_path_arr = old_abs_path.split(s);
+        String old_rel_path = old_rel_path_arr[old_rel_path_arr.length - 1];
+        String[] new_rel_path_arr = new_abs_path.split(s);
+        String new_rel_path = new_rel_path_arr[new_rel_path_arr.length - 1];
+        JSONObject diff = new JSONObject();
+        diff.put("old_abs_path", old_abs_path);
+        diff.put("new_abs_path", new_abs_path);
+        diff.put("old_rel_path", old_rel_path);
+        diff.put("new_rel_path", new_rel_path);
+        Utils.WriteDiffToYml(repoName, branch, new_rel_path, diff.toJSONString(),
+                false, false, true);
     }
 
     public static void ChangesHandler(DocumentEvent event, Project project) {
@@ -230,7 +254,7 @@ public class Utils {
         // Create text representation of patches objects
         String diffs = dmp.patch_toText(patches);
 //        System.out.println(diffs);
-        Utils.WriteDiffToYml(repoName, branch, relPath, diffs, false, false);
+        Utils.WriteDiffToYml(repoName, branch, relPath, diffs, false, false, false);
     }
 
 }
