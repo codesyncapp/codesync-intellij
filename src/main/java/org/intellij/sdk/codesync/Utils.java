@@ -22,6 +22,10 @@ import static org.intellij.sdk.codesync.Constants.*;
 
 public class Utils {
 
+    public static Boolean IsGitFile(String path) {
+        return path.startsWith(GIT_REPO);
+    }
+
     public static String GetGitBranch(String repoPath) {
         String branch = DEFAULT_BRANCH;
 
@@ -99,6 +103,7 @@ public class Utils {
         String s = String.format("%s/", repoPath);
         String[] rel_path_arr = filePath.split(s);
         String relPath = rel_path_arr[rel_path_arr.length - 1];
+        if (Utils.IsGitFile(relPath)) { return; }
         if (relPath.startsWith("/")) {
             System.out.println(String.format("Skipping New File: %s, %s", filePath, repoPath));
             return;
@@ -150,6 +155,7 @@ public class Utils {
         String s = String.format("%s/", repoPath);
         String[] rel_path_arr = filePath.split(s);
         String relPath = rel_path_arr[rel_path_arr.length - 1];
+        if (Utils.IsGitFile(relPath)) { return; }
         if (relPath.startsWith("/")) {
             System.out.println(String.format("Skipping New File: %s, %s", filePath, repoPath));
             return;
@@ -160,21 +166,23 @@ public class Utils {
     }
 
     public static void FileRenameHandler(VFileEvent event, String repoName, String repoPath) {
-        String old_abs_path = ((VFilePropertyChangeEvent) event).getOldPath();
-        String new_abs_path = ((VFilePropertyChangeEvent) event).getNewPath();
-        String branch = Utils.GetGitBranch(repoPath);
-
+        String oldAbsPath = ((VFilePropertyChangeEvent) event).getOldPath();
+        String newAbsPath = ((VFilePropertyChangeEvent) event).getNewPath();
         String s = String.format("%s/", repoPath);
-        String[] old_rel_path_arr = old_abs_path.split(s);
-        String old_rel_path = old_rel_path_arr[old_rel_path_arr.length - 1];
-        String[] new_rel_path_arr = new_abs_path.split(s);
-        String new_rel_path = new_rel_path_arr[new_rel_path_arr.length - 1];
+        String[] oldRelPathArr = oldAbsPath.split(s);
+        String oldRelPath = oldRelPathArr[oldRelPathArr.length - 1];
+        String[] newRelPathArr = newAbsPath.split(s);
+        String newRelPath = newRelPathArr[newRelPathArr.length - 1];
+
+        if (Utils.IsGitFile(oldRelPath)) { return; }
+
+        String branch = Utils.GetGitBranch(repoPath);
         JSONObject diff = new JSONObject();
-        diff.put("old_abs_path", old_abs_path);
-        diff.put("new_abs_path", new_abs_path);
-        diff.put("old_rel_path", old_rel_path);
-        diff.put("new_rel_path", new_rel_path);
-        Utils.WriteDiffToYml(repoName, branch, new_rel_path, diff.toJSONString(),
+        diff.put("old_abs_path", oldAbsPath);
+        diff.put("new_abs_path", newAbsPath);
+        diff.put("old_rel_path", oldRelPath);
+        diff.put("new_rel_path", newRelPath);
+        Utils.WriteDiffToYml(repoName, branch, newRelPath, diff.toJSONString(),
                 false, false, true);
     }
 
@@ -184,13 +192,17 @@ public class Utils {
         if (file == null) {
             return;
         }
+        float time = System.currentTimeMillis();
+        System.out.println(String.format("Event: %s", time));
         String filePath = file.getPath();
         String repoName = project.getName();
         String repoPath = project.getBasePath();
         String branch = Utils.GetGitBranch(repoPath);
         if (repoPath == null) { return; }
-        float time = System.currentTimeMillis();
-        System.out.println(String.format("Event: %s", time));
+        String s = String.format("%s/", repoPath);
+        String[] rel_path_arr = filePath.split(s);
+        String relPath = rel_path_arr[rel_path_arr.length - 1];
+        if (Utils.IsGitFile(relPath)) { return; }
         // Get current git branch name
         ProcessBuilder processBuilder = new ProcessBuilder().directory(new File(repoPath));
         // Run a shell command
@@ -220,11 +232,6 @@ public class Utils {
 
         String currentText = document.getText();
         currentText = currentText.replace(MAGIC_STRING, "").trim();
-
-        String s = String.format("%s/", repoPath);
-        String[] rel_path_arr = filePath.split(s);
-        String relPath = rel_path_arr[rel_path_arr.length - 1];
-
 
         String shadowPath = String.format("%s/%s/%s/%s", CODESYNC_ROOT, repoName, branch, relPath);
         File f = new File(shadowPath);

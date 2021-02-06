@@ -12,6 +12,7 @@ public final class Constants {
     public static String CONFIG_PATH = String.format("%s/config.yml", CODESYNC_ROOT);
 
     public static String DEFAULT_BRANCH = "default";
+    public static String GIT_REPO = ".git";
     public static String CURRENT_GIT_BRANCH_COMMAND = "git rev-parse --abbrev-ref HEAD";
 
     public static String MAGIC_STRING = "IntellijIdeaRulezzz";
