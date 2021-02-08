@@ -115,7 +115,7 @@ public class Utils {
         String[] newArray = Arrays.copyOfRange(destOriginalsPathSplit, 0, destOriginalsPathSplit.length-1);
         String destOriginalsBasePath = String.join("/", newArray);
 
-        String destShadow = String.format("%s/%s/%s/%s", CODESYNC_ROOT, repoName, branch, relPath);
+        String destShadow = String.format("%s/%s/%s/%s", SHADOW_REPO, repoName, branch, relPath);
         String[] destShadowPathSplit = destShadow.split("/");
         newArray = Arrays.copyOfRange(destShadowPathSplit, 0, destShadowPathSplit.length-1);
         String destShadowBasePath = String.join("/", newArray);
@@ -140,9 +140,10 @@ public class Utils {
         try {
             Files.copy(file.toPath(), f_shadow.toPath());
         } catch (FileAlreadyExistsException e) {
-            e.printStackTrace();
+            return;
         } catch (IOException e) {
             e.printStackTrace();
+            return;
         }
         Utils.WriteDiffToYml(repoName, branch, relPath, "", true, false, false);
         System.out.println(String.format("FileCreated: %s", filePath));
@@ -233,7 +234,7 @@ public class Utils {
         String currentText = document.getText();
         currentText = currentText.replace(MAGIC_STRING, "").trim();
 
-        String shadowPath = String.format("%s/%s/%s/%s", CODESYNC_ROOT, repoName, branch, relPath);
+        String shadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoName, branch, relPath);
         File f = new File(shadowPath);
         if (!f.exists()) {
             // TODO: Create shadow file?

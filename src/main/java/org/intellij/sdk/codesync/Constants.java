@@ -9,6 +9,7 @@ public final class Constants {
     public static String CODESYNC_ROOT = "/usr/local/bin/.codesync";
     public static String DIFFS_REPO = String.format("%s/.diffs", CODESYNC_ROOT);
     public static String ORIGINALS_REPO = String.format("%s/.originals", CODESYNC_ROOT);
+    public static String SHADOW_REPO = String.format("%s/.shadow", CODESYNC_ROOT);
     public static String CONFIG_PATH = String.format("%s/config.yml", CODESYNC_ROOT);
 
     public static String DEFAULT_BRANCH = "default";
