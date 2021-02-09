@@ -129,6 +129,8 @@ public class Utils {
         File f_originals = new File(destOriginals);
         File f_shadow = new File(destShadow);
 
+        if (f_originals.exists()) { return; }
+
         try {
             Files.copy(file.toPath(), f_originals.toPath());
         } catch (FileAlreadyExistsException e) {
