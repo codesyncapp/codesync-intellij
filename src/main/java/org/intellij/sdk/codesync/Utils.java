@@ -178,8 +178,29 @@ public class Utils {
         String newRelPath = newRelPathArr[newRelPathArr.length - 1];
 
         if (Utils.IsGitFile(oldRelPath)) { return; }
-
         String branch = Utils.GetGitBranch(repoPath);
+
+        // Copy file to shadow reop
+        String shadowPath= String.format("%s/%s/%s/%s", SHADOW_REPO, repoName, branch, newRelPath);
+        String[] shadowPathSplit = shadowPath.split("/");
+        String[] newArray = Arrays.copyOfRange(shadowPathSplit, 0, shadowPathSplit.length-1);
+        String shadowBasePath = String.join("/", newArray);
+
+        File f_shadow_base = new File(shadowBasePath);
+        f_shadow_base.mkdirs();
+
+        File file = new File(newAbsPath);
+        File f_shadow = new File(shadowPath);
+
+        try {
+            Files.copy(file.toPath(), f_shadow.toPath());
+        } catch (FileAlreadyExistsException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Create diff
         JSONObject diff = new JSONObject();
         diff.put("old_abs_path", oldAbsPath);
         diff.put("new_abs_path", newAbsPath);
