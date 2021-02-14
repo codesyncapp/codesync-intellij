@@ -12,9 +12,9 @@ import org.json.simple.JSONObject;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
+
 import java.io.*;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
+import java.nio.file.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -24,6 +24,46 @@ public class Utils {
 
     public static Boolean IsGitFile(String path) {
         return path.startsWith(GIT_REPO);
+    }
+
+    public static boolean match(String path, String pattern) {
+        PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(String.format("glob:%s", pattern));
+        return pathMatcher.matches(Paths.get(path));
+    }
+
+    public static boolean shouldIgnoreFile(String relPath, String repoPath) {
+        if (relPath.startsWith("/") || Utils.IsGitFile(relPath)) {  return true; }
+        String syncIgnorePath = String.format("%s/.syncignore", repoPath);
+        File f = new File(syncIgnorePath);
+        if (!f.exists()) {
+            return false;
+        }
+        String[] basePathArr = relPath.split("/");
+        String baseDir = basePathArr[0];
+        // Read file
+        String syncIgnore = ReadFileToString.readLineByLineJava8(syncIgnorePath);
+        String[] patterns = syncIgnore.split("\n");
+        List<String> syncIgnoreDirectories = new ArrayList<String>();
+        for (String pattern : patterns)
+        {
+            Boolean shouldIgnore = match(relPath, pattern);
+            if (shouldIgnore) {
+                System.out.println(String.format("Skipping : %s/%s", repoPath, relPath));
+                return true;
+            }
+            String dirPattern = pattern.replace("/", "");
+            File file = new File(String.format("%s/%s", repoPath, dirPattern));
+            if (file.exists() && file.isDirectory()) {
+                syncIgnoreDirectories.add(dirPattern);
+            }
+        }
+        // Also ignore top level directories present in .syncignore e.g. node_modules/, .git/, .idea/
+        Boolean shouldIgnore = basePathArr.length > 1 && syncIgnoreDirectories.contains(baseDir);
+        if (shouldIgnore) {
+            System.out.println(String.format("Skipping : %s/%s", repoPath, relPath));
+        }
+        return shouldIgnore;
+        // TODO: Handle case of tests/ with !tests/b.py
     }
 
     public static String GetGitBranch(String repoPath) {
@@ -103,11 +143,8 @@ public class Utils {
         String s = String.format("%s/", repoPath);
         String[] rel_path_arr = filePath.split(s);
         String relPath = rel_path_arr[rel_path_arr.length - 1];
-        if (Utils.IsGitFile(relPath)) { return; }
-        if (relPath.startsWith("/")) {
-            System.out.println(String.format("Skipping New File: %s, %s", filePath, repoPath));
-            return;
-        }
+        Boolean shouldIgnore = shouldIgnoreFile(relPath, repoPath);
+        if (shouldIgnore) { return; }
         String branch = Utils.GetGitBranch(repoPath);
 
         String destOriginals = String.format("%s/%s/%s/%s", ORIGINALS_REPO, repoName, branch, relPath);
@@ -154,15 +191,12 @@ public class Utils {
 
     public static void FileDeleteHandler(VFileEvent event, String repoName, String repoPath) {
         String filePath = event.getFile().getPath();
-        System.out.println(filePath);
         String s = String.format("%s/", repoPath);
         String[] rel_path_arr = filePath.split(s);
         String relPath = rel_path_arr[rel_path_arr.length - 1];
-        if (Utils.IsGitFile(relPath)) { return; }
-        if (relPath.startsWith("/")) {
-            System.out.println(String.format("Skipping New File: %s, %s", filePath, repoPath));
-            return;
-        }
+        Boolean shouldIgnore = shouldIgnoreFile(relPath, repoPath);
+        if (shouldIgnore) { return; }
+
         String branch = Utils.GetGitBranch(repoPath);
         Utils.WriteDiffToYml(repoName, branch, relPath, "", false, true, false);
         System.out.println(String.format("FileDeleted: %s", filePath));
@@ -176,8 +210,9 @@ public class Utils {
         String oldRelPath = oldRelPathArr[oldRelPathArr.length - 1];
         String[] newRelPathArr = newAbsPath.split(s);
         String newRelPath = newRelPathArr[newRelPathArr.length - 1];
+        Boolean shouldIgnore = shouldIgnoreFile(newRelPath, repoPath);
+        if (shouldIgnore) { return; }
 
-        if (Utils.IsGitFile(oldRelPath)) { return; }
         String branch = Utils.GetGitBranch(repoPath);
 
         // Copy file to shadow reop
@@ -219,6 +254,7 @@ public class Utils {
         float time = System.currentTimeMillis();
         System.out.println(String.format("Event: %s", time));
         String filePath = file.getPath();
+
         String repoName = project.getName();
         String repoPath = project.getBasePath();
         String branch = Utils.GetGitBranch(repoPath);
@@ -226,7 +262,9 @@ public class Utils {
         String s = String.format("%s/", repoPath);
         String[] rel_path_arr = filePath.split(s);
         String relPath = rel_path_arr[rel_path_arr.length - 1];
-        if (Utils.IsGitFile(relPath)) { return; }
+        Boolean shouldIgnore = shouldIgnoreFile(relPath, repoPath);
+        if (shouldIgnore) { return; }
+
         // Get current git branch name
         ProcessBuilder processBuilder = new ProcessBuilder().directory(new File(repoPath));
         // Run a shell command

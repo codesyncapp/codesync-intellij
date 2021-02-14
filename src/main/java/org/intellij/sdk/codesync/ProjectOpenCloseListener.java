@@ -22,6 +22,11 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
+import java.io.*;
+import java.nio.file.FileSystems;
+import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
+
 import static org.intellij.sdk.codesync.Constants.*;
 import static org.intellij.sdk.codesync.Utils.*;
 
@@ -64,7 +69,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
             FileRenameHandler(event, repoName, repoPath);
             return;
           }
-          System.out.println(event.toString());
+//          System.out.println(event.toString());
         }
       }
     });
