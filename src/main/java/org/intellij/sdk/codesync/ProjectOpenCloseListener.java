@@ -44,7 +44,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
 
   @Override
   public void projectOpened(@NotNull Project project) {
-    // Ensure this isn't part of testing
+    // TODO: Might not need this => Ensure this isn't part of testing
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return;
     }
@@ -73,27 +73,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
         }
       }
     });
-
-    String repoName = project.getName();
-    String repoPath = project.getBasePath();
-
-    // Skip if config does not exist
-    File config = new File(CONFIG_PATH);
-    if (!config.exists()) {
-      return;
-    }
-    // Ensure repo is synced
-    Yaml yaml = new Yaml();
-    InputStream inputStream;
-    try {
-      inputStream = new FileInputStream(CONFIG_PATH);
-    } catch (FileNotFoundException e) {
-      return;
-    }
-    Map<String, Map<String, Map<String, Object>>> obj = yaml.load(inputStream);
-    if (!obj.get("repos").keySet().contains(repoName) || !obj.get("repos").get(repoName).get("path").equals(repoPath)) {
-      return;
-    }
 
     EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new DocumentListener() {
       @Override
