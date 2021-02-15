@@ -56,32 +56,53 @@ public class Utils {
         if (!f.exists()) {
             return false;
         }
+        Boolean shouldIgnoreByMatch = false;
         String[] basePathArr = relPath.split("/");
         String baseDir = basePathArr[0];
+
+        String relBaseDir = String.join("/", Arrays.copyOfRange(basePathArr, 0, basePathArr.length-1));
         // Read file
         String syncIgnore = ReadFileToString.readLineByLineJava8(syncIgnorePath);
         String[] patterns = syncIgnore.split("\n");
         List<String> syncIgnoreDirectories = new ArrayList<String>();
+        List<String> excludePaths = new ArrayList<String>();
         for (String pattern : patterns)
         {
-            Boolean shouldIgnore = match(relPath, pattern);
-            if (shouldIgnore) {
-                System.out.println(String.format("Skipping : %s/%s", repoPath, relPath));
-                return true;
+            if (pattern.startsWith("!") || pattern.startsWith(REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION)) {
+                pattern = pattern
+                        .replace(REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION, "")
+                        .replace("!", "");
+                if (pattern.endsWith("/")) {
+                    pattern = pattern.substring(0, pattern.length() - 1);
+                }
+                excludePaths.add(pattern);
+                continue;
             }
+            shouldIgnoreByMatch = match(relPath, pattern) || shouldIgnoreByMatch;
             String dirPattern = pattern.replace("/", "");
+            if (dirPattern.endsWith("*")) {
+                dirPattern = dirPattern.substring(0, dirPattern.length() - 1);
+            }
             File file = new File(String.format("%s/%s", repoPath, dirPattern));
             if (file.exists() && file.isDirectory()) {
                 syncIgnoreDirectories.add(dirPattern);
             }
         }
+
         // Also ignore top level directories present in .syncignore e.g. node_modules/, .git/, .idea/
-        Boolean shouldIgnore = basePathArr.length > 1 && syncIgnoreDirectories.contains(baseDir);
-        if (shouldIgnore) {
+        Boolean shouldIgnoreBaseDir = basePathArr.length > 1 && syncIgnoreDirectories.contains(baseDir);
+        // Handle case of tests/ with !tests/b.py
+        // Skip if base path is in ignorePaths OR relPath is in ignorePaths
+        if (excludePaths.contains(relPath) || excludePaths.contains(relBaseDir)) {
+            shouldIgnoreBaseDir = false;
+            shouldIgnoreByMatch = false;
+        }
+
+        if (shouldIgnoreByMatch || shouldIgnoreBaseDir) {
             System.out.println(String.format("Skipping : %s/%s", repoPath, relPath));
         }
-        return shouldIgnore;
-        // TODO: Handle case of tests/ with !tests/b.py
+
+        return shouldIgnoreByMatch || shouldIgnoreBaseDir;
     }
 
     public static String GetGitBranch(String repoPath) {

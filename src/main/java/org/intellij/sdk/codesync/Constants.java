@@ -21,4 +21,6 @@ public final class Constants {
     public static String FILE_DELETE_EVENT = "VfsEvent[deleted: file";
     public static String FILE_RENAME_EVENT = "VfsEvent[property(name) changed";
 
+    public static String REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION = "/^\\!/";
+
 }
