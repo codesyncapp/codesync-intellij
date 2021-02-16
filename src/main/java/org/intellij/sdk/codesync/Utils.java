@@ -133,7 +133,7 @@ public class Utils {
     }
 
     public static void WriteDiffToYml(String repoName, String branch, String relPath, String diffs,
-                                      Boolean isNewFile, Boolean isDeleted, Boolean isRename) {
+                                      Boolean isNewFile, Boolean isDeleted, Boolean isRename, Boolean isDirRename) {
         String DIFF_SOURCE = "intellij";
 
         final Date currentTime = new Date();
@@ -155,6 +155,9 @@ public class Utils {
         }
         if (isRename) {
             data.put("is_rename", "1");
+        }
+        if (isDirRename) {
+            data.put("is_dir_rename", "1");
         }
         data.put("source", DIFF_SOURCE);
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -222,7 +225,8 @@ public class Utils {
             e.printStackTrace();
             return;
         }
-        Utils.WriteDiffToYml(repoName, branch, relPath, "", true, false, false);
+        Utils.WriteDiffToYml(repoName, branch, relPath, "", true,
+                false, false, false);
         System.out.println(String.format("FileCreated: %s", filePath));
     }
 
@@ -233,7 +237,8 @@ public class Utils {
         String relPath = rel_path_arr[rel_path_arr.length - 1];
         if (shouldSkipEvent(repoName, repoPath) || shouldIgnoreFile(relPath, repoPath)) { return; }
         String branch = Utils.GetGitBranch(repoPath);
-        Utils.WriteDiffToYml(repoName, branch, relPath, "", false, true, false);
+        Utils.WriteDiffToYml(repoName, branch, relPath, "", false,
+                true, false, false);
         System.out.println(String.format("FileDeleted: %s", filePath));
     }
 
@@ -249,53 +254,34 @@ public class Utils {
         String branch = Utils.GetGitBranch(repoPath);
         // See if it is for directory or a file
         File file = new File(newAbsPath);
-        if (file.isDirectory()) {
-            File f = new File(newAbsPath);
-            String[] pathnames;
-            // Populates the array with names of files and directories
-            pathnames = f.list();
-            // For each pathname in the pathnames array
-            for (String pathname : pathnames) {
-                // Print the names of files and directories
-                String oldFilePath = String.format("%s/%s", oldAbsPath, pathname);
-                String newFilePath = String.format("%s/%s", newAbsPath, pathname);
-                handleRename(repoName, repoPath, branch, oldFilePath, newFilePath);
-            }
-            return;
-        }
-        if (file.isFile()) {
-            handleRename(repoName, repoPath, branch, oldAbsPath, newAbsPath);
-        }
+        handleRename(repoName, repoPath, branch, oldAbsPath, newAbsPath, file.isFile());
     }
 
     public static void handleRename(String repoName, String repoPath, String branch,
-                                    String oldAbsPath, String newAbsPath) {
+                                    String oldAbsPath, String newAbsPath, Boolean isFile) {
         String s = String.format("%s/", repoPath);
         String[] oldRelPathArr = oldAbsPath.split(s);
         String oldRelPath = oldRelPathArr[oldRelPathArr.length - 1];
         String[] newRelPathArr = newAbsPath.split(s);
         String newRelPath = newRelPathArr[newRelPathArr.length - 1];
-        System.out.println(String.format("FileRenamed: %s, %s", oldAbsPath, newAbsPath));
-        // Copy file to shadow repo
-        String shadowPath= String.format("%s/%s/%s/%s", SHADOW_REPO, repoName, branch, newRelPath);
-        String[] shadowPathSplit = shadowPath.split("/");
-        String[] newArray = Arrays.copyOfRange(shadowPathSplit, 0, shadowPathSplit.length-1);
-        String shadowBasePath = String.join("/", newArray);
+        // Rename shadow path
+        String oldShadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoName, branch, oldRelPath);
+        String newShadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoName, branch, newRelPath);
+        File oldShadow = new File(oldShadowPath);
+        File newShadow = new File(newShadowPath);
+        oldShadow.renameTo(newShadow);
 
-        File f_shadow_base = new File(shadowBasePath);
-        f_shadow_base.mkdirs();
-
-        File file = new File(newAbsPath);
-        File f_shadow = new File(shadowPath);
-
-        try {
-            Files.copy(file.toPath(), f_shadow.toPath());
-        } catch (FileAlreadyExistsException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (!isFile) {
+            System.out.println(String.format("RepoRenamed: %s, %s", oldAbsPath, newAbsPath));
+            // Create diff
+            JSONObject diff = new JSONObject();
+            diff.put("old_path", oldAbsPath);
+            diff.put("new_path", newAbsPath);
+            Utils.WriteDiffToYml(repoName, branch, newRelPath, diff.toJSONString(),
+                    false, false, false, true);
+            return;
         }
-
+        System.out.println(String.format("FileRenamed: %s, %s", oldAbsPath, newAbsPath));
         // Create diff
         JSONObject diff = new JSONObject();
         diff.put("old_abs_path", oldAbsPath);
@@ -303,7 +289,7 @@ public class Utils {
         diff.put("old_rel_path", oldRelPath);
         diff.put("new_rel_path", newRelPath);
         Utils.WriteDiffToYml(repoName, branch, newRelPath, diff.toJSONString(),
-                false, false, true);
+                false, false, true, false);
     }
 
     public static void ChangesHandler(DocumentEvent event, Project project) {
@@ -383,7 +369,8 @@ public class Utils {
         // Create text representation of patches objects
         String diffs = dmp.patch_toText(patches);
 //        System.out.println(diffs);
-        Utils.WriteDiffToYml(repoName, branch, relPath, diffs, false, false, false);
+        Utils.WriteDiffToYml(repoName, branch, relPath, diffs, false,
+                false, false, false);
     }
 
 }
