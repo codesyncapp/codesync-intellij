@@ -14,6 +14,7 @@ import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.intellij.sdk.codesync.Constants.*;
@@ -55,7 +56,11 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
             return;
           }
           if (event.toString().startsWith(FILE_RENAME_EVENT)) {
-            FileRenameHandler(event, repoName, repoPath);
+            try {
+              FileRenameHandler(event, repoName, repoPath);
+            } catch (IOException e) {
+              e.printStackTrace();
+            }
             return;
           }
 //          System.out.println(event.toString());

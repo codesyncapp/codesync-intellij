@@ -224,7 +224,6 @@ public class Utils {
         }
         Utils.WriteDiffToYml(repoName, branch, relPath, "", true, false, false);
         System.out.println(String.format("FileCreated: %s", filePath));
-
     }
 
     public static void FileDeleteHandler(VFileEvent event, String repoName, String repoPath) {
@@ -238,19 +237,46 @@ public class Utils {
         System.out.println(String.format("FileDeleted: %s", filePath));
     }
 
-    public static void FileRenameHandler(VFileEvent event, String repoName, String repoPath) {
+    public static void FileRenameHandler(VFileEvent event, String repoName, String repoPath) throws IOException {
         String oldAbsPath = ((VFilePropertyChangeEvent) event).getOldPath();
         String newAbsPath = ((VFilePropertyChangeEvent) event).getNewPath();
         String s = String.format("%s/", repoPath);
-        String[] oldRelPathArr = oldAbsPath.split(s);
-        String oldRelPath = oldRelPathArr[oldRelPathArr.length - 1];
         String[] newRelPathArr = newAbsPath.split(s);
         String newRelPath = newRelPathArr[newRelPathArr.length - 1];
 
         if (shouldSkipEvent(repoName, repoPath) || shouldIgnoreFile(newRelPath, repoPath)) { return; }
 
         String branch = Utils.GetGitBranch(repoPath);
-        // Copy file to shadow reop
+        // See if it is for directory or a file
+        File file = new File(newAbsPath);
+        if (file.isDirectory()) {
+            File f = new File(newAbsPath);
+            String[] pathnames;
+            // Populates the array with names of files and directories
+            pathnames = f.list();
+            // For each pathname in the pathnames array
+            for (String pathname : pathnames) {
+                // Print the names of files and directories
+                String oldFilePath = String.format("%s/%s", oldAbsPath, pathname);
+                String newFilePath = String.format("%s/%s", newAbsPath, pathname);
+                handleRename(repoName, repoPath, branch, oldFilePath, newFilePath);
+            }
+            return;
+        }
+        if (file.isFile()) {
+            handleRename(repoName, repoPath, branch, oldAbsPath, newAbsPath);
+        }
+    }
+
+    public static void handleRename(String repoName, String repoPath, String branch,
+                                    String oldAbsPath, String newAbsPath) {
+        String s = String.format("%s/", repoPath);
+        String[] oldRelPathArr = oldAbsPath.split(s);
+        String oldRelPath = oldRelPathArr[oldRelPathArr.length - 1];
+        String[] newRelPathArr = newAbsPath.split(s);
+        String newRelPath = newRelPathArr[newRelPathArr.length - 1];
+        System.out.println(String.format("FileRenamed: %s, %s", oldAbsPath, newAbsPath));
+        // Copy file to shadow repo
         String shadowPath= String.format("%s/%s/%s/%s", SHADOW_REPO, repoName, branch, newRelPath);
         String[] shadowPathSplit = shadowPath.split("/");
         String[] newArray = Arrays.copyOfRange(shadowPathSplit, 0, shadowPathSplit.length-1);
