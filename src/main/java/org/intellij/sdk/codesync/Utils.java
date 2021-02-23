@@ -235,9 +235,6 @@ public class Utils {
 
     public static void FileDeleteHandler(VFileEvent event, String repoName, String repoPath) {
         String filePath = event.getFile().getPath();
-        // Skip in case of directory
-        File eventFile = new File(filePath);
-        if (eventFile.isDirectory()) { return; }
         String s = String.format("%s/", repoPath);
         String[] rel_path_arr = filePath.split(s);
         String relPath = rel_path_arr[rel_path_arr.length - 1];
