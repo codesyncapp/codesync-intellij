@@ -240,6 +240,30 @@ public class Utils {
         String relPath = rel_path_arr[rel_path_arr.length - 1];
         if (shouldSkipEvent(repoName, repoPath) || shouldIgnoreFile(relPath, repoPath)) { return; }
         String branch = Utils.GetGitBranch(repoPath);
+
+        String destDeleted = String.format("%s/%s/%s/%s", DELETED_REPO, repoName, branch, relPath);
+        String[] destDeletedPathSplit = destDeleted.split("/");
+        String[] newArray = Arrays.copyOfRange(destDeletedPathSplit, 0, destDeletedPathSplit.length-1);
+        String destDeletedBasePath = String.join("/", newArray);
+
+        String shadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoName, branch, relPath);
+
+        File f_deleted_base = new File(destDeletedBasePath);
+        f_deleted_base.mkdirs();
+
+        File f_deleted = new File(destDeleted);
+        File f_shadow = new File(shadowPath);
+
+        if (f_deleted.exists()) { return; }
+
+        try {
+            Files.copy(f_shadow.toPath(), f_deleted.toPath());
+        } catch (FileAlreadyExistsException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         Utils.WriteDiffToYml(repoName, branch, relPath, "", false,
                 true, false, false);
         System.out.println(String.format("FileDeleted: %s", filePath));
