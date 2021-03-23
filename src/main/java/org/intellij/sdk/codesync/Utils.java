@@ -37,7 +37,7 @@ public class Utils {
             return true;
         }
         Map<String, Map<String, Map<String, Object>>> obj = yaml.load(inputStream);
-        return !obj.get("repos").keySet().contains(repoName) || !obj.get("repos").get(repoName).get("path").equals(repoPath);
+        return !obj.get("repos").containsKey(repoPath);
     }
 
     public static Boolean IsGitFile(String path) {
@@ -255,6 +255,7 @@ public class Utils {
         File f_shadow = new File(shadowPath);
 
         if (f_deleted.exists()) { return; }
+        if (!f_shadow.exists()) { return; }
 
         try {
             Files.copy(f_shadow.toPath(), f_deleted.toPath());
