@@ -132,7 +132,7 @@ public class Utils {
         return branch;
     }
 
-    public static void WriteDiffToYml(String repoName, String branch, String relPath, String diffs,
+    public static void WriteDiffToYml(String repoPath, String branch, String relPath, String diffs,
                                       Boolean isNewFile, Boolean isDeleted, Boolean isRename, Boolean isDirRename) {
         String DIFF_SOURCE = "intellij";
 
@@ -141,7 +141,7 @@ public class Utils {
 
         // Create YAML dump
         Map<String, String > data = new HashMap<>();
-        data.put("repo", repoName);
+        data.put("repo_path", repoPath);
         data.put("branch", branch);
         data.put("file_relative_path", relPath);
         if (!diffs.isEmpty()) {
@@ -228,7 +228,7 @@ public class Utils {
             e.printStackTrace();
             return;
         }
-        Utils.WriteDiffToYml(repoName, branch, relPath, "", true,
+        Utils.WriteDiffToYml(repoPath, branch, relPath, "", true,
                 false, false, false);
         System.out.println(String.format("FileCreated: %s", filePath));
     }
@@ -264,7 +264,7 @@ public class Utils {
             e.printStackTrace();
         }
 
-        Utils.WriteDiffToYml(repoName, branch, relPath, "", false,
+        Utils.WriteDiffToYml(repoPath, branch, relPath, "", false,
                 true, false, false);
         System.out.println(String.format("FileDeleted: %s", filePath));
     }
@@ -304,7 +304,7 @@ public class Utils {
             JSONObject diff = new JSONObject();
             diff.put("old_path", oldAbsPath);
             diff.put("new_path", newAbsPath);
-            Utils.WriteDiffToYml(repoName, branch, newRelPath, diff.toJSONString(),
+            Utils.WriteDiffToYml(repoPath, branch, newRelPath, diff.toJSONString(),
                     false, false, false, true);
             return;
         }
@@ -315,7 +315,7 @@ public class Utils {
         diff.put("new_abs_path", newAbsPath);
         diff.put("old_rel_path", oldRelPath);
         diff.put("new_rel_path", newRelPath);
-        Utils.WriteDiffToYml(repoName, branch, newRelPath, diff.toJSONString(),
+        Utils.WriteDiffToYml(repoPath, branch, newRelPath, diff.toJSONString(),
                 false, false, true, false);
     }
 
@@ -396,7 +396,7 @@ public class Utils {
         // Create text representation of patches objects
         String diffs = dmp.patch_toText(patches);
 //        System.out.println(diffs);
-        Utils.WriteDiffToYml(repoName, branch, relPath, diffs, false,
+        Utils.WriteDiffToYml(repoPath, branch, relPath, diffs, false,
                 false, false, false);
     }
 
