@@ -48,16 +48,16 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
         // handle the events
         for (VFileEvent event : events) {
           if (event.toString().startsWith(FILE_CREATE_EVENT)) {
-            FileCreateHandler(event, repoName, repoPath);
+            FileCreateHandler(event, repoPath);
             return;
           }
           if (event.toString().startsWith(FILE_DELETE_EVENT)) {
-            FileDeleteHandler(event, repoName, repoPath);
+            FileDeleteHandler(event, repoPath);
             return;
           }
           if (event.toString().startsWith(FILE_RENAME_EVENT)) {
             try {
-              FileRenameHandler(event, repoName, repoPath);
+              FileRenameHandler(event, repoPath);
             } catch (IOException e) {
               e.printStackTrace();
             }

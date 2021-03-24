@@ -22,7 +22,7 @@ import static org.intellij.sdk.codesync.Constants.*;
 
 public class Utils {
 
-    public static Boolean shouldSkipEvent(String repoName, String repoPath) {
+    public static Boolean shouldSkipEvent(String repoPath) {
         // Skip if config does not exist
         File config = new File(CONFIG_PATH);
         if (!config.exists()) {
@@ -180,7 +180,7 @@ public class Utils {
         yaml.dump(data, writer);
     }
 
-    public static void FileCreateHandler(VFileEvent event, String repoName, String repoPath) {
+    public static void FileCreateHandler(VFileEvent event, String repoPath) {
         String filePath = event.getFile().getPath();
         // Skip in case of directory
         File eventFile = new File(filePath);
@@ -188,15 +188,15 @@ public class Utils {
         String s = String.format("%s/", repoPath);
         String[] rel_path_arr = filePath.split(s);
         String relPath = rel_path_arr[rel_path_arr.length - 1];
-        if (shouldSkipEvent(repoName, repoPath) || shouldIgnoreFile(relPath, repoPath)) { return; }
+        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relPath, repoPath)) { return; }
         String branch = Utils.GetGitBranch(repoPath);
 
-        String destOriginals = String.format("%s/%s/%s/%s", ORIGINALS_REPO, repoName, branch, relPath);
+        String destOriginals = String.format("%s/%s/%s/%s", ORIGINALS_REPO, repoPath.substring(1), branch, relPath);
         String[] destOriginalsPathSplit = destOriginals.split("/");
         String[] newArray = Arrays.copyOfRange(destOriginalsPathSplit, 0, destOriginalsPathSplit.length-1);
         String destOriginalsBasePath = String.join("/", newArray);
 
-        String destShadow = String.format("%s/%s/%s/%s", SHADOW_REPO, repoName, branch, relPath);
+        String destShadow = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, relPath);
         String[] destShadowPathSplit = destShadow.split("/");
         newArray = Arrays.copyOfRange(destShadowPathSplit, 0, destShadowPathSplit.length-1);
         String destShadowBasePath = String.join("/", newArray);
@@ -233,20 +233,20 @@ public class Utils {
         System.out.println(String.format("FileCreated: %s", filePath));
     }
 
-    public static void FileDeleteHandler(VFileEvent event, String repoName, String repoPath) {
+    public static void FileDeleteHandler(VFileEvent event, String repoPath) {
         String filePath = event.getFile().getPath();
         String s = String.format("%s/", repoPath);
         String[] rel_path_arr = filePath.split(s);
         String relPath = rel_path_arr[rel_path_arr.length - 1];
-        if (shouldSkipEvent(repoName, repoPath) || shouldIgnoreFile(relPath, repoPath)) { return; }
+        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relPath, repoPath)) { return; }
         String branch = Utils.GetGitBranch(repoPath);
 
-        String destDeleted = String.format("%s/%s/%s/%s", DELETED_REPO, repoName, branch, relPath);
+        String destDeleted = String.format("%s/%s/%s/%s", DELETED_REPO, repoPath.substring(1), branch, relPath);
         String[] destDeletedPathSplit = destDeleted.split("/");
         String[] newArray = Arrays.copyOfRange(destDeletedPathSplit, 0, destDeletedPathSplit.length-1);
         String destDeletedBasePath = String.join("/", newArray);
 
-        String shadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoName, branch, relPath);
+        String shadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, relPath);
 
         File f_deleted_base = new File(destDeletedBasePath);
         f_deleted_base.mkdirs();
@@ -270,31 +270,31 @@ public class Utils {
         System.out.println(String.format("FileDeleted: %s", filePath));
     }
 
-    public static void FileRenameHandler(VFileEvent event, String repoName, String repoPath) throws IOException {
+    public static void FileRenameHandler(VFileEvent event, String repoPath) throws IOException {
         String oldAbsPath = ((VFilePropertyChangeEvent) event).getOldPath();
         String newAbsPath = ((VFilePropertyChangeEvent) event).getNewPath();
         String s = String.format("%s/", repoPath);
         String[] newRelPathArr = newAbsPath.split(s);
         String newRelPath = newRelPathArr[newRelPathArr.length - 1];
 
-        if (shouldSkipEvent(repoName, repoPath) || shouldIgnoreFile(newRelPath, repoPath)) { return; }
+        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(newRelPath, repoPath)) { return; }
 
         String branch = Utils.GetGitBranch(repoPath);
         // See if it is for directory or a file
         File file = new File(newAbsPath);
-        handleRename(repoName, repoPath, branch, oldAbsPath, newAbsPath, file.isFile());
+        handleRename(repoPath, branch, oldAbsPath, newAbsPath, file.isFile());
     }
 
-    public static void handleRename(String repoName, String repoPath, String branch,
-                                    String oldAbsPath, String newAbsPath, Boolean isFile) {
+    public static void handleRename(String repoPath, String branch, String oldAbsPath,
+                                    String newAbsPath, Boolean isFile) {
         String s = String.format("%s/", repoPath);
         String[] oldRelPathArr = oldAbsPath.split(s);
         String oldRelPath = oldRelPathArr[oldRelPathArr.length - 1];
         String[] newRelPathArr = newAbsPath.split(s);
         String newRelPath = newRelPathArr[newRelPathArr.length - 1];
         // Rename shadow path
-        String oldShadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoName, branch, oldRelPath);
-        String newShadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoName, branch, newRelPath);
+        String oldShadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, oldRelPath);
+        String newShadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, newRelPath);
         File oldShadow = new File(oldShadowPath);
         File newShadow = new File(newShadowPath);
         oldShadow.renameTo(newShadow);
@@ -330,14 +330,13 @@ public class Utils {
         System.out.println(String.format("Event: %s", time));
         String filePath = file.getPath();
 
-        String repoName = project.getName();
         String repoPath = project.getBasePath();
         String branch = Utils.GetGitBranch(repoPath);
         if (repoPath == null) { return; }
         String s = String.format("%s/", repoPath);
         String[] rel_path_arr = filePath.split(s);
         String relPath = rel_path_arr[rel_path_arr.length - 1];
-        if (shouldSkipEvent(repoName, repoPath) || shouldIgnoreFile(relPath, repoPath)) { return; }
+        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relPath, repoPath)) { return; }
 
         // Get current git branch name
         ProcessBuilder processBuilder = new ProcessBuilder().directory(new File(repoPath));
@@ -369,7 +368,7 @@ public class Utils {
         String currentText = document.getText();
         currentText = currentText.replace(MAGIC_STRING, "").trim();
 
-        String shadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoName, branch, relPath);
+        String shadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, relPath);
         File f = new File(shadowPath);
         if (!f.exists()) {
             // TODO: Create shadow file?
