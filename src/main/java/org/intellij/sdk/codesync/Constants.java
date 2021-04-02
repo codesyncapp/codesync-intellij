@@ -6,7 +6,12 @@ public final class Constants {
         // restrict instantiation
     }
 
-    public static String CODESYNC_ROOT = "/usr/local/bin/.codesync";
+    public static String expanduser(String path) {
+        String user = System.getProperty("user.home");
+        return path.replaceFirst("~", user);
+    }
+
+    public static String CODESYNC_ROOT = Constants.expanduser("~/.codesync");
     public static String DIFFS_REPO = String.format("%s/.diffs", CODESYNC_ROOT);
     public static String ORIGINALS_REPO = String.format("%s/.originals", CODESYNC_ROOT);
     public static String DELETED_REPO = String.format("%s/.deleted", CODESYNC_ROOT);
