@@ -29,10 +29,13 @@ patchPluginXml {
   untilBuild = '203.*'
 }
 
-
 dependencies {
   implementation files('libs/diff_match_patch.jar')
   // https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple
   compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
+}
 
+publishPlugin {
+  token = System.getenv("ORG_GRADLE_PROJECT_intellijPublishToken")
+  channels = 'beta'
 }
