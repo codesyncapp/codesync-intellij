@@ -5,8 +5,8 @@ plugins {
   id 'org.jetbrains.intellij' version '0.6.5'
 }
 
-group 'org.intellij.sdk'
-version '2.1.0'
+group 'com.codesync'
+version '1.0'
 
 sourceCompatibility = 1.8
 
@@ -16,7 +16,7 @@ repositories {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-  version = '2020.2'
+  version '2020.3.3'
 }
 
 buildSearchableOptions {

@@ -3,7 +3,7 @@
 <idea-plugin>
 
   <!-- Unique id for this plugin. Must stay constant for the life of the plugin. -->
-  <id>org.intellij.sdk.codesync</id>
+  <id>com.codesync</id>
 
   <!-- Text to display as name on Preferences/Settings | Plugin page -->
   <name>CodeSync</name>
@@ -13,8 +13,9 @@
 
   <!-- Text to display as description on Preferences/Settings | Plugin page -->
   <description>Sync your code changes as you make them. </description>
+
   <!-- Text to display as company information on Preferences/Settings | Plugin page -->
-  <vendor url="https://www.codesync.com/">CodeSync</vendor>
+  <vendor email="hello@codesync.com" url="https://www.codesync.com">CodeSync</vendor>
 
   <projectListeners>
     <listener class="org.intellij.sdk.codesync.ProjectOpenCloseListener"
