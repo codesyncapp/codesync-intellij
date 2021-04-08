@@ -1,33 +1,29 @@
-# Maximum Open Projects Sample [![JetBrains IntelliJ Platform SDK Docs](https://jb.gg/badges/docs.svg)][docs]
-*Reference: [Plugin Services in IntelliJ SDK Docs][docs:plugin_services]*
+# CodeSync
+is a developer platform that streams code changes in real time.
 
-## Quickstart
+*   <span>**Never Lose Code Again:** </span><span>All code changes are saved. "Rewind" to see all history.</span>
+*   <span>**Code Performance:** </span><span>Track your performance every day.</span>
+*   <span>**Social Coding:** </span><span>Watch other developers as they code, in real time.</span>
 
-Maximum Open Projects Sample implements a `ProjectManagerListener` with two methods applied to check if the current projects have been opened or closed.
-Each method refers to the `ProjectCountingService` service registered as an `applicationService` extension point.
-It provides methods to increase and decrease the global counter of the currently opened projects in the IDE.
-After opening each one, a message dialog is presented to the user with the current number.
+**Setup**
 
-### Extension Points
+*   Follow [How to install?](https://www.codesync.com/install)
+*   You can see what you did for a particular day in the Review Today section
+*   You can Explore Public Repos and see the history of a particular file
 
-| Name                              | Implementation                                        | Extension Point Class |
-| --------------------------------- | ----------------------------------------------------- | --------------------- |
-| `com.intellij.applicationService` | [ProjectCountingService][file:ProjectCountingService] | n/a                   |
+We have plugins available for the following IDEs:
 
-*Reference: [Plugin Extension Points in IntelliJ SDK Docs][docs:ep]*
+*   IntelliJ
+*   VS Code
+*   Atom
 
-### Application Listeners
+These help to give a "live coding" experience.
 
-| Name     | Implementation                                            | Listener Class           |
-| -------- | --------------------------------------------------------- | ------------------------ |
-| listener | [ProjectOpenCloseListener][file:ProjectOpenCloseListener] | `ProjectManagerListener` |
 
-*Reference: [Plugin Listeners in IntelliJ SDK Docs][docs:listeners]*
+**Content View (Replaying your changes)**
 
-[docs]: https://www.jetbrains.org/intellij/sdk/docs
-[docs:plugin_services]: https://jetbrains.org/intellij/sdk/docs/basics/plugin_structure/plugin_services.html
-[docs:ep]: https://www.jetbrains.org/intellij/sdk/docs/basics/plugin_structure/plugin_extensions.html
-[docs:listeners]: https://jetbrains.org/intellij/sdk/docs/basics/plugin_structure/plugin_listeners.html
+![Content View (Replaying your changes)](https://codesync-images.s3.amazonaws.com/codesync-live-coding.gif)
 
-[file:ProjectCountingService]: ./src/main/java/org/intellij/sdk/maxOpenProjects/ProjectCountingService.java
-[file:ProjectOpenCloseListener]: ./src/main/java/org/intellij/sdk/maxOpenProjects/ProjectOpenCloseListener.java
+**Diff View**
+
+![Diff View](https://codesync-images.s3.amazonaws.com/codesync-diff-view.gif)
