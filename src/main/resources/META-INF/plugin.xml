@@ -12,7 +12,36 @@
   <depends>com.intellij.modules.platform</depends>
 
   <!-- Text to display as description on Preferences/Settings | Plugin page -->
-  <description>Sync your code changes as you make them. </description>
+  <description><![CDATA[
+    <p>CodeSync is a developer platform that streams code changes in real time.</p>
+    <ul>
+      <li><span><b>Never Lose Code Again: </b></span><span>All code changes are saved. "Rewind" to see all history.</span></li>
+      <li><span><b>Code Performance: </b></span><span>Track your performance every day.</span></li>
+      <li><span><b>Social Coding: </b></span><span>Watch other developers as they code, in real time.</span></li>
+    </ul>
+
+    <b>Setup</b>
+    <ul>
+      <li>Follow <a href="https://www.codesync.com/install">How to install?</a></li>
+      <li>You can see what you did for a particular day in the Review Today section</li>
+      <li>You can Explore Public Repos and see the history of a particular file</li>
+    </ul>
+
+    We have plugins available for the following IDEs:
+    <ul>
+        <li>IntelliJ</li>
+        <li>VS Code</li>
+        <li>Atom</li>
+    </ul>
+    These help to give a "live coding" experience.
+    
+    <p><b>Content View (Replaying your changes)</b></p>
+    <img src="https://codesync-images.s3.amazonaws.com/codesync-live-coding.gif" alt="Content View (Replaying your changes)"/>
+
+    <p><b>Diff View</b></p>
+    <img src="https://codesync-images.s3.amazonaws.com/codesync-diff-view.gif" alt="Diff View"/>
+    ]]>
+    </description>
 
   <!-- Text to display as company information on Preferences/Settings | Plugin page -->
   <vendor email="hello@codesync.com" url="https://www.codesync.com">CodeSync</vendor>
