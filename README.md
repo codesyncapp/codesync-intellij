@@ -6,12 +6,12 @@ is a developer platform that streams code changes in real time.
 *   <span>**Social Coding:** </span><span>Watch other developers as they code, in real time.</span>
 
 
-**Getting Started**
+Getting Started
 
 *   Follow the [setup](https://www.codesync.com/install)
 *   You can see what you did for a particular day in the Review Today section
 *   You can Explore Public Repos and see the history of a particular file
-.
+
 We have plugins available for the following IDEs:
 
 *   IntelliJ
