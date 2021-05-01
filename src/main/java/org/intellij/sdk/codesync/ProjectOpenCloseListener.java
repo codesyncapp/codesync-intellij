@@ -85,5 +85,4 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
   public void projectClosed(@NotNull Project project) {
 
   }
-
 }
