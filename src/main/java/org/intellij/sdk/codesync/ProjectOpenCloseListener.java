@@ -14,11 +14,13 @@ import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import static org.intellij.sdk.codesync.Constants.*;
 import static org.intellij.sdk.codesync.Utils.*;
+import static org.intellij.sdk.codesync.HandleBuffer.*;
 
 /**
  * Listener to detect project open and close.
@@ -72,6 +74,9 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       @Override
       public void documentChanged(@NotNull DocumentEvent event) {
         ChangesHandler(event, project);
+        File[] diffFiles  = getDiffFiles(DIFFS_REPO, ".yml");
+
+        System.out.println(diffFiles);
       }
     }, Disposer.newDisposable());
   }
