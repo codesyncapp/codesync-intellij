@@ -8,6 +8,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import name.fraser.neil.plaintext.diff_match_patch;
+import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -16,7 +17,9 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.*;
 import java.nio.file.*;
 import java.text.SimpleDateFormat;
+import java.text.ParseException;
 import java.util.*;
+
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -400,4 +403,23 @@ public class Utils {
                 false, false, false);
     }
 
+    @Nullable
+    public static Date parseDate(String dateString) {
+        final SimpleDateFormat pattern = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        try {
+            // Take a try
+            return new Date(pattern.parse(dateString).getTime());
+
+        } catch (ParseException pe) {
+            // Loop on
+        }
+        return null;
+    }
+
+    public static Boolean isDirectoryDelete(String repoPath, String branch, String relativeFilePath) {
+        String shadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO_PATH, repoPath, branch, relativeFilePath);
+        File shadowPathFile = new File(shadowPath);
+
+        return shadowPathFile.exists() && shadowPathFile.isDirectory();
+    }
 }

@@ -12,9 +12,9 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import org.intellij.sdk.codesync.files.DiffFile;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -74,9 +74,9 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       @Override
       public void documentChanged(@NotNull DocumentEvent event) {
         ChangesHandler(event, project);
-        File[] diffFiles  = getDiffFiles(DIFFS_REPO, ".yml");
-
-        System.out.println(diffFiles);
+        DiffFile[] diffFiles  = getDiffFiles(DIFFS_REPO, ".yml");
+        handleBuffer();
+        System.out.println("test");
       }
     }, Disposer.newDisposable());
   }
