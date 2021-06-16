@@ -7,10 +7,15 @@ import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
 import org.intellij.sdk.codesync.files.DiffFile;
+import org.json.simple.JSONObject;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.stream.Stream;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -175,7 +180,30 @@ public class HandleBuffer {
     }
 
     public static void handleDirRename(DiffFile diffFile) {
+        System.out.printf("Populating buffer for dir rename to %s", diffFile.newPath);
 
+        try {
+            Stream<Path> files = Files.walk(Paths.get(diffFile.newPath));
+            files.forEach((path) -> {
+                String newFilePath = path.toString();
+                String oldFilePath = newFilePath.replace(diffFile.newPath, diffFile.oldPath);
+                String newRelativePath = newFilePath.replace(String.format("%s/", diffFile.repoPath), "");
+                String oldRelativePath = oldFilePath.replace(String.format("%s/", diffFile.repoPath), "");
+                String branch = Utils.GetGitBranch(diffFile.repoPath);
+
+                JSONObject diff = new JSONObject();
+                diff.put("old_abs_path", oldFilePath);
+                diff.put("new_abs_path", newFilePath);
+                diff.put("old_rel_path", oldRelativePath);
+                diff.put("new_rel_path", newRelativePath);
+                Utils.WriteDiffToYml(
+                    diffFile.repoPath, branch, newRelativePath, diff.toJSONString(),
+                    false, false, true, false
+                );
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void handleNewFile(ConfigRepo repo, DiffFile diffFile) {

@@ -16,6 +16,8 @@ import org.intellij.sdk.codesync.files.DiffFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static org.intellij.sdk.codesync.Constants.*;
