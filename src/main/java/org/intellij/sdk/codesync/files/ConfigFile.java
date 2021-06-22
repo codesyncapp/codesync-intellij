@@ -80,7 +80,7 @@ public class ConfigFile {
         options.setPrettyFlow(true);
 
         Yaml yaml = new Yaml(options);
-        FileWriter writer = null;
+        FileWriter writer;
         try {
             writer = new FileWriter(this.configFile);
         } catch (IOException e) {

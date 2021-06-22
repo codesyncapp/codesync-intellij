@@ -56,7 +56,7 @@ public class HandleBuffer {
         }
 
         diffFiles = Arrays.copyOfRange(
-                diffFiles, 0, diffFiles.length >= DIFFS_PER_ITERATION ? DIFFS_PER_ITERATION : diffFiles.length
+            diffFiles, 0, diffFiles.length >= DIFFS_PER_ITERATION ? DIFFS_PER_ITERATION : diffFiles.length
         );
 
         try {
@@ -140,7 +140,6 @@ public class HandleBuffer {
                 }
 
                 handleFileRename(configFile, configRepo, configRepoBranch, diffFile, oldFileId);
-
             }
 
             if (!diffFile.isBinary && !diffFile.isDeleted && diffFile.diff.length() == 0) {
