@@ -16,10 +16,11 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
 import java.nio.file.*;
+import java.nio.file.attribute.FileTime;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.*;
-
+import java.nio.file.attribute.BasicFileAttributes;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -405,7 +406,7 @@ public class Utils {
 
     @Nullable
     public static Date parseDate(String dateString) {
-        final SimpleDateFormat pattern = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        SimpleDateFormat pattern = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         try {
             // Take a try
             return new Date(pattern.parse(dateString).getTime());
@@ -416,10 +417,53 @@ public class Utils {
         return null;
     }
 
+    public static String formatDate(Date date) {
+        SimpleDateFormat pattern = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        pattern.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return pattern.format(date);
+    }
+
+    public static String formatDate(FileTime date) {
+        SimpleDateFormat pattern = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        pattern.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return pattern.format(date.toMillis());
+    }
+
     public static Boolean isDirectoryDelete(String repoPath, String branch, String relativeFilePath) {
         String shadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO_PATH, repoPath, branch, relativeFilePath);
         File shadowPathFile = new File(shadowPath);
 
         return shadowPathFile.exists() && shadowPathFile.isDirectory();
     }
+
+    public static Map<String, Object> getFileInfo(String filePath) throws IOException {
+        Map<String, Object> fileInfo = new HashMap<>();
+        File file = new File(filePath);
+        Path path = file.toPath();
+        BasicFileAttributes fileAttributes = Files.readAttributes(path, BasicFileAttributes.class);
+        fileInfo.put("size", fileAttributes.size());
+        fileInfo.put("creationTime", formatDate(fileAttributes.creationTime()));
+        fileInfo.put("modifiedTime", formatDate(fileAttributes.lastModifiedTime()));
+        fileInfo.put("isBinary", isBinaryFile(file));
+
+        return fileInfo;
+    }
+
+    public static String computeDiff(String initialVersion, String latterVersion) {
+        diff_match_patch dmp = new diff_match_patch();
+        LinkedList<diff_match_patch.Patch> patches = dmp.patch_make(initialVersion, latterVersion);
+
+        // return text representation of patches objects
+        return dmp.patch_toText(patches);
+    }
+
+    public static boolean isBinaryFile(File f) throws IOException {
+        String type = Files.probeContentType(f.toPath());
+        //type isn't text
+        if (type == null) {
+            //type couldn't be determined, assume binary
+            return true;
+        } else return !type.startsWith("text");
+    }
+
 }

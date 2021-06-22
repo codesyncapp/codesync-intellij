@@ -55,8 +55,25 @@ public class ConfigRepo {
         this.pauseNotification = pauseNotification != null ? pauseNotification: false;
     }
 
+    public Map<String, Map<String, Map<String, Integer>>> getYMLAsHashMap() {
+        Map<String, Map<String, Integer>> branches = new HashMap<>();
+        for (Map.Entry<String, ConfigRepoBranch> branch : this.branches.entrySet()) {
+            branches.put(branch.getKey(), branch.getValue().getYMLAsHashMap());
+        }
+        Map<String, Map<String, Map<String, Integer>>> repo = new HashMap<>();
+        repo.put("branches", branches);
+        return repo;
+    }
+
     public ConfigRepoBranch getRepoBranch(String branchName) {
         return this.branches.get(branchName);
     }
 
+    public void updateRepoBranch(String branchName, ConfigRepoBranch newBranch) {
+        this.branches.put(branchName, newBranch);
+    }
+
+    public void deleteRepoBranch(String branchName) {
+        this.branches.remove(branchName);
+    }
 }

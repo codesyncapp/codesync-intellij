@@ -11,7 +11,15 @@ public class ConfigRepoBranch {
         this.files  = files;
     }
 
+    public Map<String, Integer> getYMLAsHashMap() {
+        return this.files;
+    }
+
     public Integer getFileId(String relativeFilePath) {
         return this.files.get(relativeFilePath);
+    }
+
+    public void updateFileId (String relativeFilePath, Integer fileId) {
+        this.files.put(relativeFilePath, fileId);
     }
 }
