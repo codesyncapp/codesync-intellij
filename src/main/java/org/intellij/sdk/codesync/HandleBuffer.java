@@ -1,7 +1,7 @@
 package org.intellij.sdk.codesync;
 
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
-import org.intellij.sdk.codesync.clients.WebSocketClient;
+import org.intellij.sdk.codesync.clients.CodeSyncWebSocketClient;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
@@ -39,6 +39,28 @@ public class HandleBuffer {
             return Arrays.stream(files).map(DiffFile::new).toArray(DiffFile[]::new);
         }
         return new DiffFile[0];
+    }
+
+    public static void test() {
+        CodeSyncClient codeSyncClient = new CodeSyncClient();
+        CodeSyncWebSocketClient codeSyncWebSocketClient;
+        try {
+            codeSyncWebSocketClient = codeSyncClient.connectWebSocket();
+            codeSyncWebSocketClient.connect();
+        } catch (WebSocketConnectionError error) {
+            System.out.printf("Failed to connect to websocket endpoint: %s", WEBSOCKET_ENDPOINT);
+            return;
+        }
+        ConfigFile configFile;
+
+        try {
+            configFile = new ConfigFile(CONFIG_PATH);
+        } catch (InvalidConfigFile error) {
+            System.out.printf("Config file error, %s%n", error.getMessage());
+            return;
+        }
+        ConfigRepo configRepo = configFile.getRepo("/Users/saleemlatif/dev/codesync/codesync");
+        Boolean authenticated = codeSyncWebSocketClient.authenticate(configRepo.token);
     }
 
     public static void handleBuffer() {
@@ -86,15 +108,16 @@ public class HandleBuffer {
                 continue;
             }
 
-            WebSocketClient webSocketClient;
+            CodeSyncWebSocketClient codeSyncWebSocketClient;
             try {
-                webSocketClient = client.connectWebSocket();
+                codeSyncWebSocketClient = client.connectWebSocket();
+                codeSyncWebSocketClient.connect();
             } catch (WebSocketConnectionError error) {
                 System.out.printf("Failed to connect to websocket endpoint: %s", WEBSOCKET_ENDPOINT);
                 continue;
             }
 
-            Boolean authenticated = webSocketClient.authenticate(configRepo.token);
+            Boolean authenticated = codeSyncWebSocketClient.authenticate(configRepo.token);
             if (!authenticated) {
                 System.out.println("Could noy authenticate user with token");
                 continue;
@@ -170,7 +193,7 @@ public class HandleBuffer {
                 );
             }
 
-            Boolean is_success = webSocketClient.sendDiff(diffFile);
+            Boolean is_success = codeSyncWebSocketClient.sendDiff(diffFile);
             if (!is_success) {
                 continue;
             }

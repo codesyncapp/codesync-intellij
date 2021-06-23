@@ -77,7 +77,8 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       public void documentChanged(@NotNull DocumentEvent event) {
         ChangesHandler(event, project);
         DiffFile[] diffFiles  = getDiffFiles(DIFFS_REPO, ".yml");
-        handleBuffer();
+//        handleBuffer();
+        test();
         System.out.println("test");
       }
     }, Disposer.newDisposable());

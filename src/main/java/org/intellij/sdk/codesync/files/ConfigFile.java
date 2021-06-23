@@ -52,12 +52,12 @@ public class ConfigFile {
         }
     }
 
-    public Map<String, Map<String, Map<String, Map<String, Map<String, Integer>>>>> getYMLAsHashMap() {
-        Map<String, Map<String, Map<String, Map<String, Integer>>>> repos = new HashMap<>();
+    public Map<String, Object> getYMLAsHashMap() {
+        Map<String, Object> repos = new HashMap<>();
         for (Map.Entry<String, ConfigRepo> repo : this.repos.entrySet()) {
             repos.put(repo.getKey(), repo.getValue().getYMLAsHashMap());
         }
-        Map<String, Map<String, Map<String, Map<String, Map<String, Integer>>>>> configFile = new HashMap<>();
+        Map<String, Object> configFile = new HashMap<>();
         configFile.put("repos", repos);
 
         return configFile;

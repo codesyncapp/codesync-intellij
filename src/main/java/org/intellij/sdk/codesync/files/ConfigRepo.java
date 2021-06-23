@@ -55,13 +55,19 @@ public class ConfigRepo {
         this.pauseNotification = pauseNotification != null ? pauseNotification: false;
     }
 
-    public Map<String, Map<String, Map<String, Integer>>> getYMLAsHashMap() {
+    public Map<String, Object> getYMLAsHashMap() {
         Map<String, Map<String, Integer>> branches = new HashMap<>();
         for (Map.Entry<String, ConfigRepoBranch> branch : this.branches.entrySet()) {
             branches.put(branch.getKey(), branch.getValue().getYMLAsHashMap());
         }
-        Map<String, Map<String, Map<String, Integer>>> repo = new HashMap<>();
+        Map<String, Object> repo = new HashMap<>();
         repo.put("branches", branches);
+        repo.put("email", this.email);
+        repo.put("id", this.id);
+        repo.put("last_synced_at", Utils.formatDate(this.lastSyncedAt));
+        repo.put("token", this.token);
+        repo.put("is_deleted", this.isDeleted);
+        repo.put("pause_notification", this.pauseNotification);
         return repo;
     }
 
