@@ -46,7 +46,6 @@ public class HandleBuffer {
         CodeSyncWebSocketClient codeSyncWebSocketClient;
         try {
             codeSyncWebSocketClient = codeSyncClient.connectWebSocket();
-            codeSyncWebSocketClient.connect();
         } catch (WebSocketConnectionError error) {
             System.out.printf("Failed to connect to websocket endpoint: %s", WEBSOCKET_ENDPOINT);
             return;
@@ -60,7 +59,7 @@ public class HandleBuffer {
             return;
         }
         ConfigRepo configRepo = configFile.getRepo("/Users/saleemlatif/dev/codesync/codesync");
-        Boolean authenticated = codeSyncWebSocketClient.authenticate(configRepo.token);
+        codeSyncWebSocketClient.connect(configRepo.token);
     }
 
     public static void handleBuffer() {
@@ -105,21 +104,6 @@ public class HandleBuffer {
             ConfigRepo configRepo = configFile.getRepo(diffFile.repoPath);
             if (!configRepo.branches.containsKey(diffFile.branch))  {
                 System.out.printf("Branch: `%s` is not synced for Repo `%s`", diffFile.branch, diffFile.repoPath);
-                continue;
-            }
-
-            CodeSyncWebSocketClient codeSyncWebSocketClient;
-            try {
-                codeSyncWebSocketClient = client.connectWebSocket();
-                codeSyncWebSocketClient.connect();
-            } catch (WebSocketConnectionError error) {
-                System.out.printf("Failed to connect to websocket endpoint: %s", WEBSOCKET_ENDPOINT);
-                continue;
-            }
-
-            Boolean authenticated = codeSyncWebSocketClient.authenticate(configRepo.token);
-            if (!authenticated) {
-                System.out.println("Could noy authenticate user with token");
                 continue;
             }
 
@@ -193,15 +177,25 @@ public class HandleBuffer {
                 );
             }
 
-            Boolean is_success = codeSyncWebSocketClient.sendDiff(diffFile);
-            if (!is_success) {
+            CodeSyncWebSocketClient codeSyncWebSocketClient;
+            try {
+                codeSyncWebSocketClient = client.connectWebSocket();
+                codeSyncWebSocketClient.connect(configRepo.token);
+            } catch (WebSocketConnectionError error) {
+                System.out.printf("Failed to connect to websocket endpoint: %s", WEBSOCKET_ENDPOINT);
                 continue;
             }
-            diffFile.delete();
-
-            System.out.println("Testings");
+            try {
+                codeSyncWebSocketClient.sendDiff(diffFile, fileId, successfullyTransferred -> {
+                    if (successfullyTransferred) {
+                        codeSyncWebSocketClient.disconnect();
+                        diffFile.delete();
+                    }
+                });
+            } catch (WebSocketConnectionError  error) {
+                System.out.printf("Failed to connect to websocket endpoint: %s", WEBSOCKET_ENDPOINT);
+            }
         }
-
     }
 
     public static void handleDirRename(DiffFile diffFile) {
