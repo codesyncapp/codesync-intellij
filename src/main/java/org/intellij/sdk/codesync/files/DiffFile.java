@@ -38,20 +38,11 @@ public class DiffFile {
         this.newPath = (String) obj.get("new_path");
         this.oldPath = (String) obj.get("old_path");
 
-        isBinary = (Boolean) obj.getOrDefault("is_binary", false);
-        this.isBinary = isBinary != null ? isBinary: false;
-
-        isDeleted = (Boolean) obj.getOrDefault("is_deleted", false);
-        this.isDeleted = isDeleted != null ? isDeleted: false;
-
-        isNewFile = (Boolean) obj.getOrDefault("is_new_file", false);
-        this.isNewFile = isNewFile != null ? isNewFile: false;
-
-        isRename = (Boolean) obj.getOrDefault("is_rename", false);
-        this.isRename = isRename != null ? isRename: false;
-
-        isDirRename = (Boolean) obj.getOrDefault("is_dir_rename", false);
-        this.isDirRename = isDirRename != null ? isDirRename: false;
+        this.isBinary = Utils.getBoolValue(obj, "is_binary", false);
+        this.isDeleted = Utils.getBoolValue(obj, "is_deleted", false);
+        this.isNewFile = Utils.getBoolValue(obj, "is_new_file", false);
+        this.isRename = Utils.getBoolValue(obj, "is_rename", false);
+        this.isDirRename = Utils.getBoolValue(obj, "is_dir_rename", false);
     }
 
     public Boolean isValid () {

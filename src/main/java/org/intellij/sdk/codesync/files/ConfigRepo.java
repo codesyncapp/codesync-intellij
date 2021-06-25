@@ -1,7 +1,7 @@
 package org.intellij.sdk.codesync.files;
 
 import org.intellij.sdk.codesync.Utils;
-import org.intellij.sdk.codesync.exceptions.InvalidConfigFile;
+import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +20,7 @@ public class ConfigRepo {
 
     public Map<String, ConfigRepoBranch> branches = new HashMap<>();
 
-    public ConfigRepo (String repoPath, Map<String, Object> configRepoMap) throws InvalidConfigFile {
+    public ConfigRepo (String repoPath, Map<String, Object> configRepoMap) throws InvalidConfigFileError {
         this.repoPath = repoPath;
 
         try {
@@ -34,7 +34,7 @@ public class ConfigRepo {
             this.email = (String) configRepoMap.get("email");
             this.id = (Integer) configRepoMap.get("id");
         } catch (ClassCastException e){
-            throw new InvalidConfigFile("Config file is not valid.");
+            throw new InvalidConfigFileError("Config file is not valid.");
         }
 
         try {

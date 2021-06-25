@@ -54,7 +54,7 @@ public class HandleBuffer {
 
         try {
             configFile = new ConfigFile(CONFIG_PATH);
-        } catch (InvalidConfigFile error) {
+        } catch (InvalidConfigFileError error) {
             System.out.printf("Config file error, %s%n", error.getMessage());
             return;
         }
@@ -82,7 +82,7 @@ public class HandleBuffer {
 
         try {
             configFile = new ConfigFile(CONFIG_PATH);
-        } catch (InvalidConfigFile error) {
+        } catch (InvalidConfigFileError error) {
             System.out.printf("Config file error, %s%n", error.getMessage());
             return;
         }
@@ -137,7 +137,6 @@ public class HandleBuffer {
                 }
 
                 Integer oldFileId = configRepoBranch.getFileId(diffFile.oldRelativePath);
-                // TODO: old_file_id = config_files.pop(old_rel_path, "") maybe we need to update configFile file here.
                 if (oldFileId == null) {
                     System.out.printf(
                         "old_file: %s was not synced for rename of %s/%s",
@@ -171,7 +170,6 @@ public class HandleBuffer {
             }
 
             if (diffFile.isDeleted){
-                // TODO: See of this can be moved to DiffFile.
                 diffFile.setDiff(
                     getDiffOfDeletedFile(configFile, configRepo, configRepoBranch, diffFile)
                 );
@@ -244,22 +242,27 @@ public class HandleBuffer {
         }
 
         System.out.printf("Uploading new file: %s", diffFile.fileRelativePath);
-        Integer fileId = client.uploadFile(repo, diffFile);
-        configRepoBranch.updateFileId(diffFile.fileRelativePath, fileId);
         try {
-            configFile.publishBranchUpdate(repo, configRepoBranch);
-        } catch (InvalidConfigFile error)  {
+            Integer fileId = client.uploadFile(repo, diffFile, originalsFile);
+            configRepoBranch.updateFileId(diffFile.fileRelativePath, fileId);
+            try {
+                configFile.publishBranchUpdate(repo, configRepoBranch);
+            } catch (InvalidConfigFileError error)  {
+                error.printStackTrace();
+            }
+        } catch (FileInfoError error) {
+            error.printStackTrace();
+        } catch (RequestError | InvalidJsonError error) {
             error.printStackTrace();
         }
-
     }
 
     public static void handleFileRename(ConfigFile configFile, ConfigRepo configRepo, ConfigRepoBranch configRepoBranch, DiffFile diffFile, Integer oldFileId) {
         String oldShadowPath = String.format(
-                "%s/%s/%s/%s", SHADOW_REPO_PATH, diffFile.repoPath.substring(1), diffFile.branch, diffFile.oldRelativePath
+                "%s/%s/%s/%s", SHADOW_REPO, diffFile.repoPath.substring(1), diffFile.branch, diffFile.oldRelativePath
         );
         String newShadowPath = String.format(
-                "%s/%s/%s/%s", SHADOW_REPO_PATH, diffFile.repoPath.substring(1), diffFile.branch, diffFile.fileRelativePath
+                "%s/%s/%s/%s", SHADOW_REPO, diffFile.repoPath.substring(1), diffFile.branch, diffFile.fileRelativePath
         );
         File oldShadowFile = new File(oldShadowPath);
         if (oldShadowFile.exists()) {
@@ -269,14 +272,14 @@ public class HandleBuffer {
 
         try {
             configFile.publishBranchUpdate(configRepo, configRepoBranch);
-        } catch (InvalidConfigFile error) {
+        } catch (InvalidConfigFileError error) {
             error.printStackTrace();
         }
     }
 
     public static String getDiffOfDeletedFile(ConfigFile configFile, ConfigRepo configRepo, ConfigRepoBranch configRepoBranch, DiffFile diffFile ) {
         String shadowPath = String.format(
-            "%s/%s/%s/%s", SHADOW_REPO_PATH, diffFile.repoPath.substring(1), diffFile.branch, diffFile.fileRelativePath
+            "%s/%s/%s/%s", SHADOW_REPO, diffFile.repoPath.substring(1), diffFile.branch, diffFile.fileRelativePath
         );
         File shadowFile = new File(shadowPath);
         String diff = "";
@@ -291,7 +294,7 @@ public class HandleBuffer {
                 cleanUpDeletedDiff(configFile,  configRepo, configRepoBranch, diffFile, shadowPath);
                 return diff;
             }
-        } catch (IOException error) {
+        } catch (FileInfoError error) {
             error.printStackTrace();
         }
         String shadowText = ReadFileToString.readLineByLineJava8(shadowPath);
@@ -323,7 +326,7 @@ public class HandleBuffer {
         }
         try {
             configFile.publishBranchRemoval(configRepo, configRepoBranch);
-        } catch (InvalidConfigFile error) {
+        } catch (InvalidConfigFileError error) {
             error.printStackTrace();
         }
     }

@@ -7,7 +7,7 @@ import java.util.HashMap;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import org.intellij.sdk.codesync.exceptions.InvalidConfigFile;
+import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 
 
 public class ConfigFile {
@@ -15,12 +15,12 @@ public class ConfigFile {
     Map<String, Object> contentsMap;
     public Map<String, ConfigRepo> repos = new HashMap<>();
 
-    private void reloadFromFile() throws InvalidConfigFile {
+    private void reloadFromFile() throws InvalidConfigFileError {
         this.contentsMap = this.readYml();
         this.loadYmlContent();
     }
 
-    private void loadYmlContent () throws InvalidConfigFile {
+    private void loadYmlContent () throws InvalidConfigFileError {
         try {
             Map<String, Map<String, Object>> repos = (Map<String, Map<String, Object>>) this.contentsMap.get("repos");
 
@@ -31,15 +31,15 @@ public class ConfigFile {
 
             }
         } catch (ClassCastException e){
-            throw new InvalidConfigFile("Config file is not valid.");
+            throw new InvalidConfigFileError("Config file is not valid.");
         }
     }
 
-    public ConfigFile(String filePath) throws InvalidConfigFile {
+    public ConfigFile(String filePath) throws InvalidConfigFileError {
         File configFile = new File(filePath);
 
         if (!configFile.isFile()) {
-            throw new InvalidConfigFile("Config file path must be absolute path pointing to a file.");
+            throw new InvalidConfigFileError("Config file path must be absolute path pointing to a file.");
         }
 
         this.configFile = configFile;
@@ -47,8 +47,8 @@ public class ConfigFile {
 
         try {
             this.loadYmlContent();
-        } catch (InvalidConfigFile e){
-            throw new InvalidConfigFile("Config file is not valid.");
+        } catch (InvalidConfigFileError e){
+            throw new InvalidConfigFileError("Config file is not valid.");
         }
     }
 
@@ -63,18 +63,18 @@ public class ConfigFile {
         return configFile;
     }
 
-    private Map<String, Object> readYml() throws InvalidConfigFile {
+    private Map<String, Object> readYml() throws InvalidConfigFileError {
         Yaml yaml = new Yaml();
         InputStream inputStream;
         try {
             inputStream = new FileInputStream(this.configFile);
         } catch (FileNotFoundException e) {
-            throw new InvalidConfigFile("Config file must be present.");
+            throw new InvalidConfigFileError("Config file must be present.");
         }
         return yaml.load(inputStream);
     }
 
-    private void writeYml() throws InvalidConfigFile {
+    private void writeYml() throws InvalidConfigFileError {
         final DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         options.setPrettyFlow(true);
@@ -84,7 +84,7 @@ public class ConfigFile {
         try {
             writer = new FileWriter(this.configFile);
         } catch (IOException e) {
-            throw new InvalidConfigFile("Error while writing to the config file.");
+            throw new InvalidConfigFileError("Error while writing to the config file.");
         }
         yaml.dump(this.getYMLAsHashMap(), writer);
     }
@@ -97,19 +97,19 @@ public class ConfigFile {
         this.repos.put(repoPath, newRepo);
     }
 
-    public void publishRepoUpdate (ConfigRepo updatedRepo) throws InvalidConfigFile {
+    public void publishRepoUpdate (ConfigRepo updatedRepo) throws InvalidConfigFileError {
         this.reloadFromFile();
         this.updateRepo(updatedRepo.repoPath, updatedRepo);
         this.writeYml();
     }
 
-    public void publishBranchUpdate (ConfigRepo updatedRepo, ConfigRepoBranch updatedBranch) throws InvalidConfigFile {
+    public void publishBranchUpdate (ConfigRepo updatedRepo, ConfigRepoBranch updatedBranch) throws InvalidConfigFileError {
         this.reloadFromFile();
         this.getRepo(updatedRepo.repoPath).updateRepoBranch(updatedBranch.branchName, updatedBranch);
         this.writeYml();
     }
 
-    public void publishBranchRemoval (ConfigRepo updatedRepo, ConfigRepoBranch updatedBranch) throws InvalidConfigFile {
+    public void publishBranchRemoval (ConfigRepo updatedRepo, ConfigRepoBranch updatedBranch) throws InvalidConfigFileError {
         this.reloadFromFile();
         this.getRepo(updatedRepo.repoPath).deleteRepoBranch(updatedBranch.branchName);
         this.writeYml();

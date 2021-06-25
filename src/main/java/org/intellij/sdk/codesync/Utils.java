@@ -8,6 +8,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import name.fraser.neil.plaintext.diff_match_patch;
+import org.intellij.sdk.codesync.exceptions.FileInfoError;
 import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 import org.yaml.snakeyaml.DumperOptions;
@@ -399,7 +400,6 @@ public class Utils {
 
         // Create text representation of patches objects
         String diffs = dmp.patch_toText(patches);
-//        System.out.println(diffs);
         Utils.WriteDiffToYml(repoPath, branch, relPath, diffs, false,
                 false, false, false);
     }
@@ -408,13 +408,10 @@ public class Utils {
     public static Date parseDate(String dateString) {
         SimpleDateFormat pattern = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         try {
-            // Take a try
             return new Date(pattern.parse(dateString).getTime());
-
         } catch (ParseException pe) {
-            // Loop on
+            return null;
         }
-        return null;
     }
 
     public static String formatDate(Date date) {
@@ -430,21 +427,25 @@ public class Utils {
     }
 
     public static Boolean isDirectoryDelete(String repoPath, String branch, String relativeFilePath) {
-        String shadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO_PATH, repoPath, branch, relativeFilePath);
+        String shadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath, branch, relativeFilePath);
         File shadowPathFile = new File(shadowPath);
 
         return shadowPathFile.exists() && shadowPathFile.isDirectory();
     }
 
-    public static Map<String, Object> getFileInfo(String filePath) throws IOException {
+    public static Map<String, Object> getFileInfo(String filePath) throws FileInfoError {
         Map<String, Object> fileInfo = new HashMap<>();
         File file = new File(filePath);
         Path path = file.toPath();
-        BasicFileAttributes fileAttributes = Files.readAttributes(path, BasicFileAttributes.class);
-        fileInfo.put("size", fileAttributes.size());
-        fileInfo.put("creationTime", formatDate(fileAttributes.creationTime()));
-        fileInfo.put("modifiedTime", formatDate(fileAttributes.lastModifiedTime()));
-        fileInfo.put("isBinary", isBinaryFile(file));
+        try {
+            BasicFileAttributes fileAttributes = Files.readAttributes(path, BasicFileAttributes.class);
+            fileInfo.put("size", fileAttributes.size());
+            fileInfo.put("creationTime", formatDate(fileAttributes.creationTime()));
+            fileInfo.put("modifiedTime", formatDate(fileAttributes.lastModifiedTime()));
+            fileInfo.put("isBinary", isBinaryFile(file));
+        } catch (IOException error) {
+            throw new FileInfoError(error.getMessage());
+        }
 
         return fileInfo;
     }
@@ -466,4 +467,8 @@ public class Utils {
         } else return !type.startsWith("text");
     }
 
+    public static boolean getBoolValue(Map<String, Object> map, String key, boolean defaultValue) {
+        Boolean binaryValue = (Boolean) map.getOrDefault(key, defaultValue);
+        return (binaryValue != null ? binaryValue: false);
+    }
 }

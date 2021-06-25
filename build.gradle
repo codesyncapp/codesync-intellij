@@ -39,6 +39,9 @@ dependencies {
 
   // https://mvnrepository.com/artifact/org.glassfish.tyrus.bundles/tyrus-standalone-client
   implementation group: 'org.glassfish.tyrus.bundles', name: 'tyrus-standalone-client', version: '2.0.0'
+
+  // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
+  implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
 }
 
 publishPlugin {
