@@ -13,9 +13,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.intellij.sdk.codesync.Constants.*;
@@ -41,25 +39,19 @@ public class HandleBuffer {
         return new DiffFile[0];
     }
 
-    public static void test() {
-        CodeSyncClient codeSyncClient = new CodeSyncClient();
-        CodeSyncWebSocketClient codeSyncWebSocketClient;
-        try {
-            codeSyncWebSocketClient = codeSyncClient.connectWebSocket();
-        } catch (WebSocketConnectionError error) {
-            System.out.printf("Failed to connect to websocket endpoint: %s", WEBSOCKET_ENDPOINT);
-            return;
-        }
-        ConfigFile configFile;
-
-        try {
-            configFile = new ConfigFile(CONFIG_PATH);
-        } catch (InvalidConfigFileError error) {
-            System.out.printf("Config file error, %s%n", error.getMessage());
-            return;
-        }
-        ConfigRepo configRepo = configFile.getRepo("/Users/saleemlatif/dev/codesync/codesync");
-        codeSyncWebSocketClient.connect(configRepo.token);
+    public static void scheduleBufferHandler() {
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    HandleBuffer.handleBuffer();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        Timer timer = new Timer(true);
+        timer.schedule(task, new Date(), 5000);
     }
 
     public static void handleBuffer() {
@@ -71,7 +63,7 @@ public class HandleBuffer {
             return;
         }
 
-        CodeSyncClient client =new CodeSyncClient();
+        CodeSyncClient client = new CodeSyncClient();
         if (!client.isServerUp()) {
             return;
         }
@@ -89,7 +81,7 @@ public class HandleBuffer {
 
         for (DiffFile diffFile: diffFiles) {
             if (!diffFile.isValid()) {
-                String filePath =  String.format("%s/%s", diffFile.repoPath, diffFile.fileRelativePath );
+                String filePath =  String.format("%s/%s", diffFile.repoPath, diffFile.fileRelativePath);
                 System.out.printf("Skipping invalid diff file: %s. data: %s", filePath, diffFile.diff);
 
                 diffFile.delete();
@@ -175,24 +167,26 @@ public class HandleBuffer {
                 );
             }
 
-            CodeSyncWebSocketClient codeSyncWebSocketClient;
-            try {
-                codeSyncWebSocketClient = client.connectWebSocket();
-                codeSyncWebSocketClient.connect(configRepo.token);
-            } catch (WebSocketConnectionError error) {
-                System.out.printf("Failed to connect to websocket endpoint: %s", WEBSOCKET_ENDPOINT);
-                continue;
-            }
-            try {
-                codeSyncWebSocketClient.sendDiff(diffFile, fileId, successfullyTransferred -> {
-                    if (successfullyTransferred) {
-                        codeSyncWebSocketClient.disconnect();
-                        diffFile.delete();
+            CodeSyncWebSocketClient codeSyncWebSocketClient = client.getWebSocketClient();
+            codeSyncWebSocketClient.connect(configRepo.token, isConnected -> {
+                if (isConnected) {
+                    try {
+                        codeSyncWebSocketClient.sendDiff(diffFile, fileId, successfullyTransferred -> {
+                            if (successfullyTransferred) {
+                                codeSyncWebSocketClient.disconnect();
+                                diffFile.delete();
+                            } else {
+                                System.out.printf("Error while sending the file to the server: %s", diffFile.fileRelativePath);
+                            }
+                        });
+                    } catch (WebSocketConnectionError  error) {
+                        System.out.printf("Failed to connect to websocket endpoint: %s", WEBSOCKET_ENDPOINT);
                     }
-                });
-            } catch (WebSocketConnectionError  error) {
-                System.out.printf("Failed to connect to websocket endpoint: %s", WEBSOCKET_ENDPOINT);
-            }
+                } else {
+                    System.out.printf("Failed to connect to websocket endpoint: %s", WEBSOCKET_ENDPOINT);
+                }
+
+            });
         }
     }
 
@@ -259,10 +253,10 @@ public class HandleBuffer {
 
     public static void handleFileRename(ConfigFile configFile, ConfigRepo configRepo, ConfigRepoBranch configRepoBranch, DiffFile diffFile, Integer oldFileId) {
         String oldShadowPath = String.format(
-                "%s/%s/%s/%s", SHADOW_REPO, diffFile.repoPath.substring(1), diffFile.branch, diffFile.oldRelativePath
+            "%s/%s/%s/%s", SHADOW_REPO, diffFile.repoPath.substring(1), diffFile.branch, diffFile.oldRelativePath
         );
         String newShadowPath = String.format(
-                "%s/%s/%s/%s", SHADOW_REPO, diffFile.repoPath.substring(1), diffFile.branch, diffFile.fileRelativePath
+            "%s/%s/%s/%s", SHADOW_REPO, diffFile.repoPath.substring(1), diffFile.branch, diffFile.fileRelativePath
         );
         File oldShadowFile = new File(oldShadowPath);
         if (oldShadowFile.exists()) {

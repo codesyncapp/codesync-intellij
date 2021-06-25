@@ -145,7 +145,7 @@ public class Utils {
         final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
         // Create YAML dump
-        Map<String, String > data = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
         data.put("repo_path", repoPath);
         data.put("branch", branch);
         data.put("file_relative_path", relPath);
@@ -153,16 +153,16 @@ public class Utils {
             data.put("diff", diffs);
         }
         if (isNewFile) {
-            data.put("is_new_file", "1");
+            data.put("is_new_file", true);
         }
         if (isDeleted) {
-            data.put("is_deleted", "1");
+            data.put("is_deleted", true);
         }
         if (isRename) {
-            data.put("is_rename", "1");
+            data.put("is_rename", true);
         }
         if (isDirRename) {
-            data.put("is_dir_rename", "1");
+            data.put("is_dir_rename", true);
         }
         data.put("source", DIFF_SOURCE);
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));

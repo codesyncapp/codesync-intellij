@@ -43,6 +43,9 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       return;
     }
 
+    // Schedule buffer handler.
+    HandleBuffer.scheduleBufferHandler();
+
     project.getMessageBus().connect().subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
       public void after(@NotNull List<? extends VFileEvent> events) {
@@ -76,10 +79,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       @Override
       public void documentChanged(@NotNull DocumentEvent event) {
         ChangesHandler(event, project);
-        DiffFile[] diffFiles  = getDiffFiles(DIFFS_REPO, ".yml");
 //        handleBuffer();
-        test();
-        System.out.println("test");
       }
     }, Disposer.newDisposable());
   }

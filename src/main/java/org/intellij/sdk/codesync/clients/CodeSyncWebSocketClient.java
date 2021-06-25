@@ -29,11 +29,12 @@ public class CodeSyncWebSocketClient {
         this.uri = uri;
     }
 
-    public void connect (String token) {
+    public void connect (String token, ConnectionHandler connectionHandler) {
         if (!this.isConnected) {
             this.webSocketClientEndpoint = new WebSocketClientEndpoint(this.uri);
             this.authenticate(token, isAuthenticated -> {
                 this.isConnected = isAuthenticated;
+                connectionHandler.handleConnected(isAuthenticated);
             });
         }
     }
@@ -51,7 +52,7 @@ public class CodeSyncWebSocketClient {
             JSONObject response;
             try {
                 response = (JSONObject) JSONValue.parseWithException(message);
-                Integer statusCode = (Integer) response.get("status");
+                Long statusCode = (Long) response.get("status");
                 if (statusCode != 200) {
                     System.out.printf("Diff auth Failed with error: %s.", response.get("error"));
                 }
@@ -98,13 +99,13 @@ public class CodeSyncWebSocketClient {
             JSONObject response;
             try {
                 response = (JSONObject) JSONValue.parseWithException(message);
-                Integer statusCode = (Integer) response.get("status");
+                Long statusCode = (Long) response.get("status");
                 if (statusCode != 200) {
                     System.out.printf("Diff auth Failed with error: %s.", response.get("error"));
                 }
                 dataTransmissionHandler.dataTransferStatusCallback(statusCode == 200);
             } catch (org.json.simple.parser.ParseException error) {
-                System.out.println("Socket connection lost with server.");
+                System.out.println("Invalid response from the server.");
                 dataTransmissionHandler.dataTransferStatusCallback(false);
             } catch (ClassCastException error) {
                 System.out.println("Invalid status code.");
@@ -117,6 +118,10 @@ public class CodeSyncWebSocketClient {
 
     public static interface AuthenticationHandler {
         public void handleAuthenticated(boolean isAuthenticated);
+    }
+
+    public static interface ConnectionHandler {
+        public void handleConnected(boolean isConnected);
     }
 
     public static interface DataTransmissionHandler {

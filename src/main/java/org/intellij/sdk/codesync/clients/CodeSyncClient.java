@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync.clients;
 
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.intellij.sdk.codesync.Utils;
@@ -32,10 +33,17 @@ public class CodeSyncClient {
     }
 
     public Boolean isServerUp() {
-        return true;
+        HttpClient httpClient = HttpClientBuilder.create().build();
+        HttpGet healthCheck = new HttpGet(API_HEALTHCHECK);
+        try {
+            HttpResponse response = httpClient.execute(healthCheck);
+            return response.getStatusLine().getStatusCode() == 200;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
-    public CodeSyncWebSocketClient connectWebSocket() throws WebSocketConnectionError {
+    public CodeSyncWebSocketClient getWebSocketClient() {
         return new CodeSyncWebSocketClient(WEBSOCKET_ENDPOINT);
     }
 

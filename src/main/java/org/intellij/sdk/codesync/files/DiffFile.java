@@ -8,11 +8,14 @@ import java.util.Date;
 import org.intellij.sdk.codesync.ReadFileToString;
 import org.intellij.sdk.codesync.Utils;
 import org.jetbrains.annotations.NotNull;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.ParseException;
 import org.yaml.snakeyaml.Yaml;
 
 
 public class DiffFile {
-    public String diff, branch, fileRelativePath, repoPath, newRelativePath, oldRelativePath, newPath, oldPath;
+    public String diff, branch, fileRelativePath, repoPath, newRelativePath, oldRelativePath, newPath, oldPath, newAbsolutePath, oldAbsolutePath;
     public Date createdAt;
     public Boolean isBinary, isDeleted, isNewFile, isRename, isDirRename;
     public File originalDiffFile;
@@ -34,6 +37,9 @@ public class DiffFile {
         this.fileRelativePath = (String) obj.get("file_relative_path");
         this.newRelativePath = (String) obj.get("new_rel_path");
         this.oldRelativePath = (String) obj.get("old_rel_path");
+        this.newAbsolutePath = (String) obj.get("new_rel_path");
+        this.oldAbsolutePath = (String) obj.get("old_rel_path");
+
         this.repoPath = (String) obj.get("repo_path");
         this.newPath = (String) obj.get("new_path");
         this.oldPath = (String) obj.get("old_path");
@@ -43,6 +49,31 @@ public class DiffFile {
         this.isNewFile = Utils.getBoolValue(obj, "is_new_file", false);
         this.isRename = Utils.getBoolValue(obj, "is_rename", false);
         this.isDirRename = Utils.getBoolValue(obj, "is_dir_rename", false);
+
+        if (this.isDirRename) {
+            try {
+                JSONObject diffJSON = (JSONObject) JSONValue.parseWithException(this.diff);
+                this.newPath = (String) diffJSON.get("new_path");
+                this.oldPath = (String) diffJSON.get("old_path");
+            } catch (ParseException e) {
+                // Not sure what else we can do in case of invalid diff file.
+                this.delete();
+                e.printStackTrace();
+            }
+        }
+        if (this.isRename) {
+            try {
+                JSONObject diffJSON = (JSONObject) JSONValue.parseWithException(this.diff);
+                this.newRelativePath = (String) diffJSON.get("new_rel_path");
+                this.oldRelativePath = (String) diffJSON.get("old_rel_path");
+                this.newAbsolutePath = (String) diffJSON.get("new_rel_path");
+                this.oldAbsolutePath = (String) diffJSON.get("old_rel_path");
+            } catch (ParseException e) {
+                // Not sure what else we can do in case of invalid diff file.
+                this.delete();
+                e.printStackTrace();
+            }
+        }
     }
 
     public Boolean isValid () {
