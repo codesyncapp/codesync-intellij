@@ -4,10 +4,12 @@ import java.io.*;
 import java.util.Map;
 import java.util.HashMap;
 
+import com.google.common.io.CharStreams;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
+import org.intellij.sdk.codesync.Utils;
 
 
 public class ConfigFile {
@@ -71,7 +73,15 @@ public class ConfigFile {
         } catch (FileNotFoundException e) {
             throw new InvalidConfigFileError("Config file must be present.");
         }
-        return yaml.load(inputStream);
+        String text = null;
+        try (Reader reader = new InputStreamReader(inputStream)) {
+            text = CharStreams.toString(reader);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        return yaml.load(text);
     }
 
     private void writeYml() throws InvalidConfigFileError {
@@ -80,13 +90,18 @@ public class ConfigFile {
         options.setPrettyFlow(true);
 
         Yaml yaml = new Yaml(options);
+
+        // This line of code is placed here so that in  case of any error we do not write to the config file.
+        Map<String, Object> yamlConfig = this.getYMLAsHashMap();
+
         FileWriter writer;
         try {
             writer = new FileWriter(this.configFile);
         } catch (IOException e) {
             throw new InvalidConfigFileError("Error while writing to the config file.");
         }
-        yaml.dump(this.getYMLAsHashMap(), writer);
+
+        yaml.dump(yamlConfig, writer);
     }
 
     public ConfigRepo getRepo(String repoPath) {
@@ -94,6 +109,7 @@ public class ConfigFile {
     }
 
     public void updateRepo(String repoPath, ConfigRepo newRepo) {
+        newRepo.lastSyncedAt = Utils.getCurrentDatetime();
         this.repos.put(repoPath, newRepo);
     }
 
@@ -105,13 +121,17 @@ public class ConfigFile {
 
     public void publishBranchUpdate (ConfigRepo updatedRepo, ConfigRepoBranch updatedBranch) throws InvalidConfigFileError {
         this.reloadFromFile();
-        this.getRepo(updatedRepo.repoPath).updateRepoBranch(updatedBranch.branchName, updatedBranch);
+        ConfigRepo configRepo = this.getRepo(updatedRepo.repoPath);
+        configRepo.lastSyncedAt = Utils.getCurrentDatetime();
+        configRepo.updateRepoBranch(updatedBranch.branchName, updatedBranch);
         this.writeYml();
     }
 
-    public void publishBranchRemoval (ConfigRepo updatedRepo, ConfigRepoBranch updatedBranch) throws InvalidConfigFileError {
+    public void publishFileRemoval (ConfigRepo updatedRepo, ConfigRepoBranch updatedBranch) throws InvalidConfigFileError {
         this.reloadFromFile();
-        this.getRepo(updatedRepo.repoPath).deleteRepoBranch(updatedBranch.branchName);
+        ConfigRepo configRepo = this.getRepo(updatedRepo.repoPath);
+        configRepo.lastSyncedAt = Utils.getCurrentDatetime();
+        configRepo.deleteRepoBranch(updatedBranch.branchName);
         this.writeYml();
     }
 }

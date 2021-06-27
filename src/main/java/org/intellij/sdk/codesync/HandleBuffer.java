@@ -113,8 +113,10 @@ public class HandleBuffer {
             ConfigRepoBranch configRepoBranch = configRepo.getRepoBranch(diffFile.branch);
             if (diffFile.isNewFile) {
                 newFiles.add(diffFile.fileRelativePath);
-                handleNewFile(client, diffFile, configFile, configRepo, configRepoBranch);
-                diffFile.delete();
+                boolean isSuccess = handleNewFile(client, diffFile, configFile, configRepo, configRepoBranch);
+                if (isSuccess) {
+                    diffFile.delete();
+                }
             }
 
             if (newFiles.contains(diffFile.fileRelativePath))  {
@@ -137,7 +139,11 @@ public class HandleBuffer {
                     diffFile.delete();
                 }
 
-                handleFileRename(configFile, configRepo, configRepoBranch, diffFile, oldFileId);
+                boolean isSuccess = handleFileRename(configFile, configRepo, configRepoBranch, diffFile, oldFileId);
+                if (!isSuccess) {
+                    // Skip this iteration
+                    continue;
+                }
             }
 
             if (!diffFile.isBinary && !diffFile.isDeleted && diffFile.diff.length() == 0) {
@@ -149,12 +155,12 @@ public class HandleBuffer {
 
             Integer fileId = configRepoBranch.getFileId(diffFile.fileRelativePath);
             if (fileId == null && !diffFile.isRename &&  !diffFile.isDeleted) {
-                System.out.printf("File ID not found for; %s", diffFile.fileRelativePath);
+                System.out.printf("File ID not found for; %s\n", diffFile.fileRelativePath);
                 continue;
             }
             if (fileId == null && diffFile.isDeleted) {
                 if (!Utils.isDirectoryDelete(diffFile.repoPath, diffFile.branch, diffFile.fileRelativePath)) {
-                    System.out.printf("is_deleted non-synced file found: %s/%s", diffFile.repoPath, diffFile.fileRelativePath);
+                    System.out.printf("is_deleted non-synced file found: %s/%s\n", diffFile.repoPath, diffFile.fileRelativePath);
                 }
                 diffFile.delete();
 
@@ -217,7 +223,7 @@ public class HandleBuffer {
         }
     }
 
-    public static void handleNewFile(CodeSyncClient client, DiffFile diffFile, ConfigFile configFile, ConfigRepo repo, ConfigRepoBranch configRepoBranch) {
+    public static boolean handleNewFile(CodeSyncClient client, DiffFile diffFile, ConfigFile configFile, ConfigRepo repo, ConfigRepoBranch configRepoBranch) {
         String branch = Utils.GetGitBranch(repo.repoPath);
 
         String originalsFilePath = String.format(
@@ -232,10 +238,10 @@ public class HandleBuffer {
         if (Utils.shouldIgnoreFile(diffFile.fileRelativePath, repo.repoPath)) {
             System.out.printf("Ignoring new file upload: %s", diffFile.fileRelativePath);
             originalsFile.delete();
-            return;
+            return true;
         }
 
-        System.out.printf("Uploading new file: %s", diffFile.fileRelativePath);
+        System.out.printf("Uploading new file: %s \n", diffFile.fileRelativePath);
         try {
             Integer fileId = client.uploadFile(repo, diffFile, originalsFile);
             configRepoBranch.updateFileId(diffFile.fileRelativePath, fileId);
@@ -243,15 +249,19 @@ public class HandleBuffer {
                 configFile.publishBranchUpdate(repo, configRepoBranch);
             } catch (InvalidConfigFileError error)  {
                 error.printStackTrace();
+                return false;
             }
         } catch (FileInfoError error) {
             error.printStackTrace();
+            return false;
         } catch (RequestError | InvalidJsonError error) {
             error.printStackTrace();
+            return false;
         }
+        return true;
     }
 
-    public static void handleFileRename(ConfigFile configFile, ConfigRepo configRepo, ConfigRepoBranch configRepoBranch, DiffFile diffFile, Integer oldFileId) {
+    public static boolean handleFileRename(ConfigFile configFile, ConfigRepo configRepo, ConfigRepoBranch configRepoBranch, DiffFile diffFile, Integer oldFileId) {
         String oldShadowPath = String.format(
             "%s/%s/%s/%s", SHADOW_REPO, diffFile.repoPath.substring(1), diffFile.branch, diffFile.oldRelativePath
         );
@@ -266,8 +276,10 @@ public class HandleBuffer {
 
         try {
             configFile.publishBranchUpdate(configRepo, configRepoBranch);
+            return true;
         } catch (InvalidConfigFileError error) {
             error.printStackTrace();
+            return false;
         }
     }
 
@@ -319,7 +331,8 @@ public class HandleBuffer {
             shadowFile.delete();
         }
         try {
-            configFile.publishBranchRemoval(configRepo, configRepoBranch);
+            configRepoBranch.removeFileId(diffFile.fileRelativePath);
+            configFile.publishBranchUpdate(configRepo, configRepoBranch);
         } catch (InvalidConfigFileError error) {
             error.printStackTrace();
         }

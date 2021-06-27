@@ -80,6 +80,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       public void documentChanged(@NotNull DocumentEvent event) {
         ChangesHandler(event, project);
 //        handleBuffer();
+//        test();
       }
     }, Disposer.newDisposable());
   }

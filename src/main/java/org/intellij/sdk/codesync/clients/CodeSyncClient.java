@@ -53,7 +53,7 @@ public class CodeSyncClient {
         JSONObject data = new JSONObject();
         Map<String, Object> fileInfo;
         try {
-            fileInfo = Utils.getFileInfo(diffFile.fileRelativePath);
+            fileInfo = Utils.getFileInfo(originalsFile.getAbsolutePath());
         } catch (FileInfoError error) {
             throw new FileInfoError(String.format("File Info could not be found for %s", diffFile.fileRelativePath));
         }
@@ -90,11 +90,11 @@ public class CodeSyncClient {
             throw new RequestError(String.format("Error processing response of the file upload  request. Error: %s", error.getMessage()));
         }
 
-        Integer fileId;
+        Long fileId;
         JSONObject jsonResponse;
         try {
             jsonResponse = (JSONObject) JSONValue.parseWithException(responseContent);
-            fileId = (Integer) jsonResponse.get("id");
+            fileId = (Long) jsonResponse.get("id");
         } catch (org.json.simple.parser.ParseException | ClassCastException error) {
             throw new RequestError(String.format("Error processing response of the file upload  request. Error: %s", error.getMessage()));
         }
@@ -112,7 +112,7 @@ public class CodeSyncClient {
         }
 
         originalsFile.delete();
-        return fileId;
+        return fileId.intValue();
     }
 
     public void uploadToS3(File originalsFile, Map<String, Object> preSignedURLData) throws RequestError {

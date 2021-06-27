@@ -22,4 +22,7 @@ public class ConfigRepoBranch {
     public void updateFileId (String relativeFilePath, Integer fileId) {
         this.files.put(relativeFilePath, fileId);
     }
+    public void removeFileId (String fileRelativePath) {
+        this.files.remove(fileRelativePath);
+    }
 }

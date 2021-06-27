@@ -459,16 +459,42 @@ public class Utils {
     }
 
     public static boolean isBinaryFile(File f) throws IOException {
-        String type = Files.probeContentType(f.toPath());
-        //type isn't text
-        if (type == null) {
-            //type couldn't be determined, assume binary
-            return true;
-        } else return !type.startsWith("text");
+        try {
+            return !isTextFile(f);
+        } catch (Exception e){
+            return false;
+        }
+
     }
 
     public static boolean getBoolValue(Map<String, Object> map, String key, boolean defaultValue) {
         Boolean binaryValue = (Boolean) map.getOrDefault(key, defaultValue);
         return (binaryValue != null ? binaryValue: false);
+    }
+
+    private static boolean isTextFile(File f) throws Exception {
+        if(!f.exists())
+            return false;
+        FileInputStream in = new FileInputStream(f);
+        int size = in.available();
+        if(size > 1000)
+            size = 1000;
+        byte[] data = new byte[size];
+        in.read(data);
+        in.close();
+        String s = new String(data, "ISO-8859-1");
+        String s2 = s.replaceAll(
+                "[a-zA-Z0-9ßöäü\\.\\*!\"§\\$\\%&/()=\\?@~'#:,;\\"+
+                        "+><\\|\\[\\]\\{\\}\\^°²³\\\\ \\n\\r\\t_\\-`´âêîô"+
+                        "ÂÊÔÎáéíóàèìòÁÉÍÓÀÈÌÒ©‰¢£¥€±¿»«¼½¾™ª]", "");
+        // will delete all text signs
+
+        double d = (double)(s.length() - s2.length()) / (double)(s.length());
+        // percentage of text signs in the text
+        return d > 0.95;
+    }
+
+    public static Date getCurrentDatetime()  {
+        return new Date();
     }
 }
