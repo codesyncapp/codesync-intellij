@@ -109,7 +109,6 @@ public class ConfigFile {
     }
 
     public void updateRepo(String repoPath, ConfigRepo newRepo) {
-        newRepo.lastSyncedAt = Utils.getCurrentDatetime();
         this.repos.put(repoPath, newRepo);
     }
 

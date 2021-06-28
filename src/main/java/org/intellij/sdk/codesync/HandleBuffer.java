@@ -39,19 +39,23 @@ public class HandleBuffer {
         return new DiffFile[0];
     }
 
-    public static void scheduleBufferHandler() {
-        TimerTask task = new TimerTask() {
-            @Override
+    private static void bufferHandler(final Timer timer) {
+        timer.schedule(new TimerTask() {
             public void run() {
                 try {
                     HandleBuffer.handleBuffer();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+                bufferHandler(timer);
             }
-        };
+        }, DELAY_BETWEEN_BUFFER_TASKS);
+    }
+
+    public static void scheduleBufferHandler() {
         Timer timer = new Timer(true);
-        timer.schedule(task, new Date(), RESTART_DAEMON_AFTER);
+        bufferHandler(timer);
     }
 
     public static void handleBuffer() {
@@ -66,7 +70,7 @@ public class HandleBuffer {
         try {
             configFile = new ConfigFile(CONFIG_PATH);
         } catch (InvalidConfigFileError error) {
-            System.out.printf("Config file error, %s%n", error.getMessage());
+            System.out.printf("Config file error, %s.\n", error.getMessage());
             return;
         }
 
@@ -80,22 +84,24 @@ public class HandleBuffer {
         );
 
         for (DiffFile diffFile: diffFiles) {
+            System.out.printf("Processing diff file: %s.\n", diffFile.originalDiffFile.getPath());
+
             if (!diffFile.isValid()) {
                 String filePath =  String.format("%s/%s", diffFile.repoPath, diffFile.fileRelativePath);
-                System.out.printf("Skipping invalid diff file: %s. data: %s", filePath, diffFile.diff);
+                System.out.printf("Skipping invalid diff file: %s. data: %s.\n", filePath, diffFile.diff);
 
                 diffFile.delete();
                 continue;
             }
 
             if (!configFile.repos.containsKey(diffFile.repoPath)) {
-                System.out.printf("Repo `%s` is in buffer.yml but not in configFile.yml", diffFile.repoPath);
+                System.out.printf("Repo `%s` is in buffer.yml but not in configFile.yml.\n", diffFile.repoPath);
                 continue;
             }
 
             ConfigRepo configRepo = configFile.getRepo(diffFile.repoPath);
             if (!configRepo.branches.containsKey(diffFile.branch))  {
-                System.out.printf("Branch: `%s` is not synced for Repo `%s`", diffFile.branch, diffFile.repoPath);
+                System.out.printf("Branch: `%s` is not synced for Repo `%s`.\n", diffFile.branch, diffFile.repoPath);
                 continue;
             }
 
@@ -109,6 +115,7 @@ public class HandleBuffer {
                 newFiles.add(diffFile.fileRelativePath);
                 boolean isSuccess = handleNewFile(client, diffFile, configFile, configRepo, configRepoBranch);
                 if (isSuccess) {
+                    System.out.printf("Diff file '%s' successfully processed.\n", diffFile.originalDiffFile.getPath());
                     diffFile.delete();
                     continue;
                 }
@@ -128,7 +135,7 @@ public class HandleBuffer {
                 Integer oldFileId = configRepoBranch.getFileId(diffFile.oldRelativePath);
                 if (oldFileId == null) {
                     System.out.printf(
-                        "old_file: %s was not synced for rename of %s/%s",
+                        "old_file: %s was not synced for rename of %s/%s.\n",
                         diffFile.oldRelativePath, diffFile.repoPath, diffFile.fileRelativePath
                     );
                     diffFile.delete();
@@ -137,13 +144,14 @@ public class HandleBuffer {
 
                 boolean isSuccess = handleFileRename(configFile, configRepo, configRepoBranch, diffFile, oldFileId);
                 if (!isSuccess) {
+                    System.out.printf("Diff file '%s' successfully processed.\n", diffFile.originalDiffFile.getPath());
                     // Skip this iteration
                     continue;
                 }
             }
 
             if (!diffFile.isBinary && !diffFile.isDeleted && diffFile.diff.length() == 0) {
-                System.out.printf("Empty diff found in file: %s. Removing...", diffFile.fileRelativePath);
+                System.out.printf("Empty diff found in file: %s. Removing...\n", diffFile.fileRelativePath);
                 // Delete empty diff files.
                 diffFile.delete();
                 continue;
@@ -151,7 +159,7 @@ public class HandleBuffer {
 
             Integer fileId = configRepoBranch.getFileId(diffFile.fileRelativePath);
             if (fileId == null && !diffFile.isRename &&  !diffFile.isDeleted) {
-                System.out.printf("File ID not found for; %s\n", diffFile.fileRelativePath);
+                System.out.printf("File ID not found for; %s.\n", diffFile.fileRelativePath);
                 continue;
             }
             if (fileId == null && diffFile.isDeleted) {
@@ -179,16 +187,17 @@ public class HandleBuffer {
                         codeSyncWebSocketClient.sendDiff(diffFile, fileId, successfullyTransferred -> {
                             if (successfullyTransferred) {
                                 codeSyncWebSocketClient.disconnect();
+                                System.out.printf("Diff file '%s' successfully processed.\n", diffFile.originalDiffFile.getPath());
                                 diffFile.delete();
                             } else {
-                                System.out.printf("Error while sending the file to the server: %s", diffFile.fileRelativePath);
+                                System.out.printf("Error while sending the file to the server: %s.\n", diffFile.fileRelativePath);
                             }
                         });
                     } catch (WebSocketConnectionError  error) {
-                        System.out.printf("Failed to connect to websocket endpoint: %s", WEBSOCKET_ENDPOINT);
+                        System.out.printf("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT);
                     }
                 } else {
-                    System.out.printf("Failed to connect to websocket endpoint: %s", WEBSOCKET_ENDPOINT);
+                    System.out.printf("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT);
                 }
 
             });
@@ -204,10 +213,10 @@ public class HandleBuffer {
         File originalsFile = new File(originalsFilePath);
 
         if (!originalsFile.exists()) {
-            System.out.printf("Original file: %s not found", originalsFilePath);
+            System.out.printf("Original file: %s not found.\n", originalsFilePath);
         }
 
-        System.out.printf("Uploading new file: %s \n", diffFile.fileRelativePath);
+        System.out.printf("Uploading new file: %s .\n", diffFile.fileRelativePath);
         try {
             Integer fileId = client.uploadFile(repo, diffFile, originalsFile);
             configRepoBranch.updateFileId(diffFile.fileRelativePath, fileId);

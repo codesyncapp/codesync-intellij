@@ -44,6 +44,6 @@ public final class Constants {
     public static String FILES_API_ENDPOINT = String.format("%s/files", API_ENDPOINT);
     public static String API_HEALTHCHECK = String.format("%s/healthcheck", CODESYNC_HOST);
 
-    public static Integer RESTART_DAEMON_AFTER = 5000;
+    public static Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
     public static String  DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
 }
