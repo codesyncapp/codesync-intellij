@@ -142,7 +142,7 @@ public class Utils {
         String DIFF_SOURCE = "intellij";
 
         final Date currentTime = new Date();
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        final SimpleDateFormat sdf = new SimpleDateFormat(DATE_TIME_FORMAT);
 
         // Create YAML dump
         Map<String, Object> data = new HashMap<>();
@@ -406,7 +406,7 @@ public class Utils {
 
     @Nullable
     public static Date parseDate(String dateString) {
-        SimpleDateFormat pattern = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        SimpleDateFormat pattern = new SimpleDateFormat(DATE_TIME_FORMAT);
         try {
             return new Date(pattern.parse(dateString).getTime());
         } catch (ParseException pe) {
@@ -415,22 +415,15 @@ public class Utils {
     }
 
     public static String formatDate(Date date) {
-        SimpleDateFormat pattern = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        SimpleDateFormat pattern = new SimpleDateFormat(DATE_TIME_FORMAT);
         pattern.setTimeZone(TimeZone.getTimeZone("UTC"));
         return pattern.format(date);
     }
 
     public static String formatDate(FileTime date) {
-        SimpleDateFormat pattern = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        SimpleDateFormat pattern = new SimpleDateFormat(DATE_TIME_FORMAT);
         pattern.setTimeZone(TimeZone.getTimeZone("UTC"));
         return pattern.format(date.toMillis());
-    }
-
-    public static Boolean isDirectoryDelete(String repoPath, String branch, String relativeFilePath) {
-        String shadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath, branch, relativeFilePath);
-        File shadowPathFile = new File(shadowPath);
-
-        return shadowPathFile.exists() && shadowPathFile.isDirectory();
     }
 
     public static Map<String, Object> getFileInfo(String filePath) throws FileInfoError {

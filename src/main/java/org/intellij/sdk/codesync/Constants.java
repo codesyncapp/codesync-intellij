@@ -12,7 +12,7 @@ public final class Constants {
     }
 
     public static String CODESYNC_ROOT = Constants.expanduser("~/.codesync");
-    public static String DIFFS_REPO = String.format("%s/.diffs", CODESYNC_ROOT);
+    public static String DIFFS_REPO = String.format("%s/.diffs/.intellij", CODESYNC_ROOT);
     public static String ORIGINALS_REPO = String.format("%s/.originals", CODESYNC_ROOT);
     public static String DELETED_REPO = String.format("%s/.deleted", CODESYNC_ROOT);
     public static String SHADOW_REPO = String.format("%s/.shadow", CODESYNC_ROOT);
@@ -41,5 +41,9 @@ public final class Constants {
     public static String API_ENDPOINT = String.format("%s/v1", CODESYNC_HOST);
     public static String API_INIT = String.format("%s/init", API_ENDPOINT);
     public static String GET_USER = String.format("%s/users", API_ENDPOINT);
+    public static String FILES_API_ENDPOINT = String.format("%s/files", API_ENDPOINT);
     public static String API_HEALTHCHECK = String.format("%s/healthcheck", CODESYNC_HOST);
+
+    public static Integer RESTART_DAEMON_AFTER = 5000;
+    public static String  DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
 }

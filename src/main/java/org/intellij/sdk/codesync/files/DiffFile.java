@@ -77,6 +77,7 @@ public class DiffFile {
     }
 
     public Boolean isValid () {
+        // TODO: Add validation for `file-rename`, `directory-rename` and `diff-size`/
         return (
                 this.repoPath != null &&
                 this.branch != null &&

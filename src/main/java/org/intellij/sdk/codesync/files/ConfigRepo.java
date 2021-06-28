@@ -12,7 +12,6 @@ public class ConfigRepo {
     public String repoPath;
     public String email;
     public Integer id;
-    public Date lastSyncedAt;
     public String token;
     public Boolean isInSync;
     public Boolean isDeleted;
@@ -37,22 +36,11 @@ public class ConfigRepo {
             throw new InvalidConfigFileError("Config file is not valid.");
         }
 
-        try {
-            this.lastSyncedAt = (Date) configRepoMap.get("last_synced_at");
-        } catch (ClassCastException e) {
-            this.lastSyncedAt = Utils.parseDate((String) configRepoMap.get("last_synced_at"));
-        }
-
         this.token = (String) configRepoMap.get("token");
 
-        isInSync = (Boolean) configRepoMap.get("is_in_sync");
-        this.isInSync = isInSync != null ? isInSync: true;
-
-        isDeleted = (Boolean) configRepoMap.get("is_deleted");
-        this.isDeleted = isDeleted != null ? isDeleted: false;
-
-        pauseNotification = (Boolean) configRepoMap.get("pause_notification");
-        this.pauseNotification = pauseNotification != null ? pauseNotification: false;
+        this.isInSync = Utils.getBoolValue(configRepoMap, "is_in_sync", true);
+        this.isDeleted = Utils.getBoolValue(configRepoMap, "is_deleted", false);
+        this.pauseNotification = Utils.getBoolValue(configRepoMap, "pause_notification", false);
     }
 
     public Map<String, Object> getYMLAsHashMap() {
@@ -64,7 +52,6 @@ public class ConfigRepo {
         repo.put("branches", branches);
         repo.put("email", this.email);
         repo.put("id", this.id);
-        repo.put("last_synced_at", Utils.formatDate(this.lastSyncedAt));
         repo.put("token", this.token);
         repo.put("is_deleted", this.isDeleted);
         repo.put("pause_notification", this.pauseNotification);

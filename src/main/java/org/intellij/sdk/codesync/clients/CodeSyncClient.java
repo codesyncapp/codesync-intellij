@@ -26,7 +26,7 @@ import java.util.Map;
 
 
 public class CodeSyncClient {
-    final String filesURL = String.format("%s/files", API_ENDPOINT);
+    final String filesURL = FILES_API_ENDPOINT;
 
     public CodeSyncClient() {
 

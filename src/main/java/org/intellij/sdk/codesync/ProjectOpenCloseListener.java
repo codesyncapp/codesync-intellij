@@ -79,8 +79,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       @Override
       public void documentChanged(@NotNull DocumentEvent event) {
         ChangesHandler(event, project);
-//        handleBuffer();
-//        test();
       }
     }, Disposer.newDisposable());
   }

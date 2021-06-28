@@ -51,7 +51,7 @@ public class HandleBuffer {
             }
         };
         Timer timer = new Timer(true);
-        timer.schedule(task, new Date(), 5000);
+        timer.schedule(task, new Date(), RESTART_DAEMON_AFTER);
     }
 
     public static void handleBuffer() {
@@ -63,6 +63,13 @@ public class HandleBuffer {
             return;
         }
 
+        try {
+            configFile = new ConfigFile(CONFIG_PATH);
+        } catch (InvalidConfigFileError error) {
+            System.out.printf("Config file error, %s%n", error.getMessage());
+            return;
+        }
+
         CodeSyncClient client = new CodeSyncClient();
         if (!client.isServerUp()) {
             return;
@@ -71,13 +78,6 @@ public class HandleBuffer {
         diffFiles = Arrays.copyOfRange(
             diffFiles, 0, diffFiles.length >= DIFFS_PER_ITERATION ? DIFFS_PER_ITERATION : diffFiles.length
         );
-
-        try {
-            configFile = new ConfigFile(CONFIG_PATH);
-        } catch (InvalidConfigFileError error) {
-            System.out.printf("Config file error, %s%n", error.getMessage());
-            return;
-        }
 
         for (DiffFile diffFile: diffFiles) {
             if (!diffFile.isValid()) {
@@ -99,12 +99,6 @@ public class HandleBuffer {
                 continue;
             }
 
-            if(diffFile.isDirRename) {
-                handleDirRename(diffFile);
-                diffFile.delete();
-                continue;
-            }
-
             if (Utils.shouldIgnoreFile(diffFile.fileRelativePath, diffFile.repoPath)) {
                 diffFile.delete();
                 continue;
@@ -116,6 +110,7 @@ public class HandleBuffer {
                 boolean isSuccess = handleNewFile(client, diffFile, configFile, configRepo, configRepoBranch);
                 if (isSuccess) {
                     diffFile.delete();
+                    continue;
                 }
             }
 
@@ -137,6 +132,7 @@ public class HandleBuffer {
                         diffFile.oldRelativePath, diffFile.repoPath, diffFile.fileRelativePath
                     );
                     diffFile.delete();
+                    continue;
                 }
 
                 boolean isSuccess = handleFileRename(configFile, configRepo, configRepoBranch, diffFile, oldFileId);
@@ -159,11 +155,14 @@ public class HandleBuffer {
                 continue;
             }
             if (fileId == null && diffFile.isDeleted) {
-                if (!Utils.isDirectoryDelete(diffFile.repoPath, diffFile.branch, diffFile.fileRelativePath)) {
-                    System.out.printf("is_deleted non-synced file found: %s/%s\n", diffFile.repoPath, diffFile.fileRelativePath);
-                }
+                cleanUpDeletedDiff(
+                    configFile, configRepo, configRepoBranch, diffFile,
+                    String.format(
+                        "%s/%s/%s/%s", SHADOW_REPO, diffFile.repoPath.substring(1), diffFile.branch,
+                        diffFile.fileRelativePath
+                    )
+                );
                 diffFile.delete();
-
                 continue;
             }
 
@@ -196,33 +195,6 @@ public class HandleBuffer {
         }
     }
 
-    public static void handleDirRename(DiffFile diffFile) {
-        System.out.printf("Populating buffer for dir rename to %s", diffFile.newPath);
-
-        try {
-            Stream<Path> files = Files.walk(Paths.get(diffFile.newPath));
-            files.forEach((path) -> {
-                String newFilePath = path.toString();
-                String oldFilePath = newFilePath.replace(diffFile.newPath, diffFile.oldPath);
-                String newRelativePath = newFilePath.replace(String.format("%s/", diffFile.repoPath), "");
-                String oldRelativePath = oldFilePath.replace(String.format("%s/", diffFile.repoPath), "");
-                String branch = Utils.GetGitBranch(diffFile.repoPath);
-
-                JSONObject diff = new JSONObject();
-                diff.put("old_abs_path", oldFilePath);
-                diff.put("new_abs_path", newFilePath);
-                diff.put("old_rel_path", oldRelativePath);
-                diff.put("new_rel_path", newRelativePath);
-                Utils.WriteDiffToYml(
-                    diffFile.repoPath, branch, newRelativePath, diff.toJSONString(),
-                    false, false, true, false
-                );
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public static boolean handleNewFile(CodeSyncClient client, DiffFile diffFile, ConfigFile configFile, ConfigRepo repo, ConfigRepoBranch configRepoBranch) {
         String branch = Utils.GetGitBranch(repo.repoPath);
 
@@ -233,12 +205,6 @@ public class HandleBuffer {
 
         if (!originalsFile.exists()) {
             System.out.printf("Original file: %s not found", originalsFilePath);
-        }
-
-        if (Utils.shouldIgnoreFile(diffFile.fileRelativePath, repo.repoPath)) {
-            System.out.printf("Ignoring new file upload: %s", diffFile.fileRelativePath);
-            originalsFile.delete();
-            return true;
         }
 
         System.out.printf("Uploading new file: %s \n", diffFile.fileRelativePath);

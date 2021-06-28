@@ -121,17 +121,13 @@ public class ConfigFile {
 
     public void publishBranchUpdate (ConfigRepo updatedRepo, ConfigRepoBranch updatedBranch) throws InvalidConfigFileError {
         this.reloadFromFile();
-        ConfigRepo configRepo = this.getRepo(updatedRepo.repoPath);
-        configRepo.lastSyncedAt = Utils.getCurrentDatetime();
-        configRepo.updateRepoBranch(updatedBranch.branchName, updatedBranch);
+        this.getRepo(updatedRepo.repoPath).updateRepoBranch(updatedBranch.branchName, updatedBranch);
         this.writeYml();
     }
 
     public void publishFileRemoval (ConfigRepo updatedRepo, ConfigRepoBranch updatedBranch) throws InvalidConfigFileError {
         this.reloadFromFile();
-        ConfigRepo configRepo = this.getRepo(updatedRepo.repoPath);
-        configRepo.lastSyncedAt = Utils.getCurrentDatetime();
-        configRepo.deleteRepoBranch(updatedBranch.branchName);
+        this.getRepo(updatedRepo.repoPath).deleteRepoBranch(updatedBranch.branchName);
         this.writeYml();
     }
 }
