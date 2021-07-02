@@ -216,7 +216,6 @@ public class HandleBuffer {
             try {
                 codeSyncWebSocketClient.sendDiff(diffFile, fileId, successfullyTransferred -> {
                     if (successfullyTransferred) {
-                        codeSyncWebSocketClient.disconnect();
                         System.out.printf("Diff file '%s' successfully processed.\n", diffFile.originalDiffFile.getPath());
                         diffFile.delete();
                     } else {
