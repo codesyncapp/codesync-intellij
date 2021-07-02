@@ -35,14 +35,8 @@ public class DiffFile {
             this.createdAt = Utils.parseDate((String) obj.get("created_at"));
         }
         this.fileRelativePath = (String) obj.get("file_relative_path");
-        this.newRelativePath = (String) obj.get("new_rel_path");
-        this.oldRelativePath = (String) obj.get("old_rel_path");
-        this.newAbsolutePath = (String) obj.get("new_rel_path");
-        this.oldAbsolutePath = (String) obj.get("old_rel_path");
 
         this.repoPath = (String) obj.get("repo_path");
-        this.newPath = (String) obj.get("new_path");
-        this.oldPath = (String) obj.get("old_path");
 
         this.isBinary = Utils.getBoolValue(obj, "is_binary", false);
         this.isDeleted = Utils.getBoolValue(obj, "is_deleted", false);
