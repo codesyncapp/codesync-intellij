@@ -8,6 +8,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import name.fraser.neil.plaintext.diff_match_patch;
+import org.intellij.sdk.codesync.exceptions.FileInfoError;
+import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -15,8 +17,11 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
 import java.nio.file.*;
+import java.nio.file.attribute.FileTime;
 import java.text.SimpleDateFormat;
+import java.text.ParseException;
 import java.util.*;
+import java.nio.file.attribute.BasicFileAttributes;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -137,10 +142,10 @@ public class Utils {
         String DIFF_SOURCE = "intellij";
 
         final Date currentTime = new Date();
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        final SimpleDateFormat sdf = new SimpleDateFormat(DATE_TIME_FORMAT);
 
         // Create YAML dump
-        Map<String, String > data = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
         data.put("repo_path", repoPath);
         data.put("branch", branch);
         data.put("file_relative_path", relPath);
@@ -148,16 +153,16 @@ public class Utils {
             data.put("diff", diffs);
         }
         if (isNewFile) {
-            data.put("is_new_file", "1");
+            data.put("is_new_file", true);
         }
         if (isDeleted) {
-            data.put("is_deleted", "1");
+            data.put("is_deleted", true);
         }
         if (isRename) {
-            data.put("is_rename", "1");
+            data.put("is_rename", true);
         }
         if (isDirRename) {
-            data.put("is_dir_rename", "1");
+            data.put("is_dir_rename", true);
         }
         data.put("source", DIFF_SOURCE);
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -395,9 +400,94 @@ public class Utils {
 
         // Create text representation of patches objects
         String diffs = dmp.patch_toText(patches);
-//        System.out.println(diffs);
         Utils.WriteDiffToYml(repoPath, branch, relPath, diffs, false,
                 false, false, false);
     }
 
+    @Nullable
+    public static Date parseDate(String dateString) {
+        SimpleDateFormat pattern = new SimpleDateFormat(DATE_TIME_FORMAT);
+        try {
+            return new Date(pattern.parse(dateString).getTime());
+        } catch (ParseException pe) {
+            return null;
+        }
+    }
+
+    public static String formatDate(Date date) {
+        SimpleDateFormat pattern = new SimpleDateFormat(DATE_TIME_FORMAT);
+        pattern.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return pattern.format(date);
+    }
+
+    public static String formatDate(FileTime date) {
+        SimpleDateFormat pattern = new SimpleDateFormat(DATE_TIME_FORMAT);
+        pattern.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return pattern.format(date.toMillis());
+    }
+
+    public static Map<String, Object> getFileInfo(String filePath) throws FileInfoError {
+        Map<String, Object> fileInfo = new HashMap<>();
+        File file = new File(filePath);
+        Path path = file.toPath();
+        try {
+            BasicFileAttributes fileAttributes = Files.readAttributes(path, BasicFileAttributes.class);
+            fileInfo.put("size", fileAttributes.size());
+            fileInfo.put("creationTime", formatDate(fileAttributes.creationTime()));
+            fileInfo.put("modifiedTime", formatDate(fileAttributes.lastModifiedTime()));
+            fileInfo.put("isBinary", isBinaryFile(file));
+        } catch (IOException error) {
+            throw new FileInfoError(error.getMessage());
+        }
+
+        return fileInfo;
+    }
+
+    public static String computeDiff(String initialVersion, String latterVersion) {
+        diff_match_patch dmp = new diff_match_patch();
+        LinkedList<diff_match_patch.Patch> patches = dmp.patch_make(initialVersion, latterVersion);
+
+        // return text representation of patches objects
+        return dmp.patch_toText(patches);
+    }
+
+    public static boolean isBinaryFile(File f) throws IOException {
+        try {
+            return !isTextFile(f);
+        } catch (Exception e){
+            return false;
+        }
+
+    }
+
+    public static boolean getBoolValue(Map<String, Object> map, String key, boolean defaultValue) {
+        Boolean binaryValue = (Boolean) map.getOrDefault(key, defaultValue);
+        return (binaryValue != null ? binaryValue: false);
+    }
+
+    private static boolean isTextFile(File f) throws Exception {
+        if(!f.exists())
+            return false;
+        FileInputStream in = new FileInputStream(f);
+        int size = in.available();
+        if(size > 1000)
+            size = 1000;
+        byte[] data = new byte[size];
+        in.read(data);
+        in.close();
+        String s = new String(data, "ISO-8859-1");
+        String s2 = s.replaceAll(
+                "[a-zA-Z0-9ßöäü\\.\\*!\"§\\$\\%&/()=\\?@~'#:,;\\"+
+                        "+><\\|\\[\\]\\{\\}\\^°²³\\\\ \\n\\r\\t_\\-`´âêîô"+
+                        "ÂÊÔÎáéíóàèìòÁÉÍÓÀÈÌÒ©‰¢£¥€±¿»«¼½¾™ª]", "");
+        // will delete all text signs
+
+        double d = (double)(s.length() - s2.length()) / (double)(s.length());
+        // percentage of text signs in the text
+        return d > 0.95;
+    }
+
+    public static Date getCurrentDatetime()  {
+        return new Date();
+    }
 }
