@@ -83,6 +83,39 @@ public class HandleBuffer {
             diffFiles, 0, diffFiles.length >= DIFFS_PER_ITERATION ? DIFFS_PER_ITERATION : diffFiles.length
         );
 
+        // Group diff files by repo.
+        Map<String, ArrayList<DiffFile>> diffFilesPerRepo = new HashMap<>();
+        for (DiffFile diffFile: diffFiles) {
+            ArrayList<DiffFile> _diffFiles = diffFilesPerRepo.get(diffFile.repoPath);
+
+            if (_diffFiles == null) {
+                _diffFiles = new ArrayList<>();
+                _diffFiles.add(diffFile);
+                diffFilesPerRepo.put(diffFile.repoPath, _diffFiles);
+            } else {
+                _diffFiles.add(diffFile);
+            }
+        }
+        for (Map.Entry<String, ArrayList<DiffFile>> entry : diffFilesPerRepo.entrySet()) {
+           String repoPath = entry.getKey();
+           final DiffFile[] diffFileArrayList = entry.getValue().toArray(new DiffFile[0]);
+           ConfigRepo configRepo = configFile.getRepo(repoPath);
+
+            CodeSyncWebSocketClient codeSyncWebSocketClient = client.getWebSocketClient();
+            codeSyncWebSocketClient.connect(configRepo.token, isConnected -> {
+                if (isConnected) {
+                    processDiffFiles(configFile, newFiles, diffFileArrayList, client, codeSyncWebSocketClient);
+                } else {
+                    System.out.printf("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT);
+                }
+            });
+
+        }
+
+
+    }
+
+    private static void processDiffFiles(ConfigFile configFile, HashSet<String> newFiles, DiffFile[] diffFiles, CodeSyncClient client, CodeSyncWebSocketClient codeSyncWebSocketClient) {
         for (DiffFile diffFile: diffFiles) {
             System.out.printf("Processing diff file: %s.\n", diffFile.originalDiffFile.getPath());
 
@@ -180,27 +213,20 @@ public class HandleBuffer {
                 );
             }
 
-            CodeSyncWebSocketClient codeSyncWebSocketClient = client.getWebSocketClient();
-            codeSyncWebSocketClient.connect(configRepo.token, isConnected -> {
-                if (isConnected) {
-                    try {
-                        codeSyncWebSocketClient.sendDiff(diffFile, fileId, successfullyTransferred -> {
-                            if (successfullyTransferred) {
-                                codeSyncWebSocketClient.disconnect();
-                                System.out.printf("Diff file '%s' successfully processed.\n", diffFile.originalDiffFile.getPath());
-                                diffFile.delete();
-                            } else {
-                                System.out.printf("Error while sending the file to the server: %s.\n", diffFile.fileRelativePath);
-                            }
-                        });
-                    } catch (WebSocketConnectionError  error) {
-                        System.out.printf("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT);
+            try {
+                codeSyncWebSocketClient.sendDiff(diffFile, fileId, successfullyTransferred -> {
+                    if (successfullyTransferred) {
+                        codeSyncWebSocketClient.disconnect();
+                        System.out.printf("Diff file '%s' successfully processed.\n", diffFile.originalDiffFile.getPath());
+                        diffFile.delete();
+                    } else {
+                        System.out.printf("Error while sending the file to the server: %s.\n", diffFile.fileRelativePath);
                     }
-                } else {
-                    System.out.printf("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT);
-                }
+                });
+            } catch (WebSocketConnectionError  error) {
+                System.out.printf("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT);
+            }
 
-            });
         }
     }
 
