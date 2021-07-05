@@ -1,11 +1,14 @@
 package org.intellij.sdk.codesync.clients;
 
+import kotlin.Pair;
 import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.files.DiffFile;
 import org.intellij.sdk.codesync.exceptions.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Map;
 
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -16,28 +19,34 @@ public class CodeSyncWebSocketClient {
     URI uri;
     WebSocketClientEndpoint webSocketClientEndpoint;
     boolean isConnected = false;
+    String token = null;
 
-    public CodeSyncWebSocketClient(String uri) {
+    public CodeSyncWebSocketClient(String token, String uri) {
         try {
+            this.token = token;
             this.uri = new URI(uri);
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
     }
 
-    public CodeSyncWebSocketClient(URI uri) {
-        this.uri = uri;
-    }
-
-    public void connect (String token, ConnectionHandler connectionHandler) {
+    public void connect (ConnectionHandler connectionHandler) {
         if (!this.isConnected) {
             this.webSocketClientEndpoint = new WebSocketClientEndpoint(this.uri);
             this.authenticate(token, isAuthenticated -> {
                 this.isConnected = isAuthenticated;
                 connectionHandler.handleConnected(isAuthenticated);
             });
+        } else {
+            try {
+                connectionHandler.handleConnected(true);
+            } catch (NullPointerException e)  {
+                this.isConnected = false;
+                throw e;
+            }
         }
     }
+
     public void disconnect () {
         this.isConnected = false;
     }
@@ -75,6 +84,8 @@ public class CodeSyncWebSocketClient {
                 String.format("Failed to connect to the websocket endpoint at '%s'.}", this.uri.toString())
             );
         }
+        System.out.printf("Sending Diff: %s.\n", diffFile.originalDiffFile.getPath());
+
         JSONObject diff = new JSONObject();
         diff.put("file_id", fileId);
         diff.put("diff", diffFile.diff);
@@ -83,6 +94,7 @@ public class CodeSyncWebSocketClient {
         diff.put("is_binary", diffFile.isBinary);
         diff.put("created_at", Utils.formatDate(diffFile.createdAt));
         diff.put("path", diffFile.fileRelativePath);
+        diff.put("diff_file_path", diffFile.originalDiffFile.getPath());
 
         JSONArray diffs = new JSONArray();
         diffs.add(diff);
@@ -93,23 +105,79 @@ public class CodeSyncWebSocketClient {
         this.webSocketClientEndpoint.setMessageHandler(message -> {
             if (message.isEmpty()) {
                 System.out.println("Got empty response while authenticating diff.");
-                dataTransmissionHandler.dataTransferStatusCallback(false);
+                dataTransmissionHandler.dataTransferStatusCallback(false, null);
             }
 
             JSONObject response;
             try {
                 response = (JSONObject) JSONValue.parseWithException(message);
                 Long statusCode = (Long) response.get("status");
+                String diffFilePath = (String) response.get("diff_file_path");
                 if (statusCode != 200) {
                     System.out.printf("Diff auth Failed with error: %s.", response.get("error"));
                 }
-                dataTransmissionHandler.dataTransferStatusCallback(statusCode == 200);
+                dataTransmissionHandler.dataTransferStatusCallback(statusCode == 200, diffFilePath);
             } catch (org.json.simple.parser.ParseException error) {
                 System.out.println("Invalid response from the server.");
-                dataTransmissionHandler.dataTransferStatusCallback(false);
+                dataTransmissionHandler.dataTransferStatusCallback(false, null);
             } catch (ClassCastException error) {
                 System.out.println("Invalid status code.");
-                dataTransmissionHandler.dataTransferStatusCallback(false);
+                dataTransmissionHandler.dataTransferStatusCallback(false, null);
+            }
+        });
+
+        this.webSocketClientEndpoint.sendMessage(payload.toJSONString());
+    }
+
+    public void sendDiffs(ArrayList<Pair<Integer, DiffFile>> diffsToSend, DataTransmissionHandler dataTransmissionHandler) throws WebSocketConnectionError {
+        if (!this.isConnected) {
+            throw new WebSocketConnectionError(
+                String.format("Failed to connect to the websocket endpoint at '%s'.}", this.uri.toString())
+            );
+        }
+        JSONArray diffs = new JSONArray();
+
+        for (Pair<Integer, DiffFile> diffFileEntry : diffsToSend) {
+            Integer fileId = diffFileEntry.getFirst();
+            DiffFile diffFile = diffFileEntry.getSecond();
+
+            JSONObject diff = new JSONObject();
+            diff.put("file_id", fileId);
+            diff.put("diff", diffFile.diff);
+            diff.put("is_deleted", diffFile.isDeleted);
+            diff.put("is_rename", diffFile.isRename);
+            diff.put("is_binary", diffFile.isBinary);
+            diff.put("created_at", Utils.formatDate(diffFile.createdAt));
+            diff.put("path", diffFile.fileRelativePath);
+            diff.put("diff_file_path", diffFile.originalDiffFile.getPath());
+
+            diffs.add(diff);
+        }
+
+        JSONObject payload = new JSONObject();
+        payload.put("diffs", diffs);
+
+        this.webSocketClientEndpoint.setMessageHandler(message -> {
+            if (message.isEmpty()) {
+                System.out.println("Got empty response while sendings diffs.");
+                dataTransmissionHandler.dataTransferStatusCallback(false, null);
+            }
+
+            JSONObject response;
+            try {
+                response = (JSONObject) JSONValue.parseWithException(message);
+                Long statusCode = (Long) response.get("status");
+                String diffFilePath = (String) response.get("diff_file_path");
+                if (statusCode != 200) {
+                    System.out.printf("Diff upload failed with error: %s.", response.get("error"));
+                }
+                dataTransmissionHandler.dataTransferStatusCallback(statusCode == 200, diffFilePath);
+            } catch (org.json.simple.parser.ParseException error) {
+                System.out.println("Invalid response from the server.");
+                dataTransmissionHandler.dataTransferStatusCallback(false, null);
+            } catch (ClassCastException error) {
+                System.out.println("Invalid status code.");
+                dataTransmissionHandler.dataTransferStatusCallback(false, null);
             }
         });
 
@@ -125,6 +193,6 @@ public class CodeSyncWebSocketClient {
     }
 
     public static interface DataTransmissionHandler {
-        public void dataTransferStatusCallback(boolean successfullyTransferred);
+        public void dataTransferStatusCallback(boolean successfullyTransferred, String diffFilePath);
     }
 }

@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync;
 
+import kotlin.Pair;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.clients.CodeSyncWebSocketClient;
 import org.intellij.sdk.codesync.exceptions.*;
@@ -7,14 +8,9 @@ import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
 import org.intellij.sdk.codesync.files.DiffFile;
-import org.json.simple.JSONObject;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Stream;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -61,8 +57,13 @@ public class HandleBuffer {
     public static void handleBuffer() {
         ConfigFile configFile;
         HashSet<String> newFiles = new HashSet<>();
-
+        System.out.println("handleBuffer called:");
         DiffFile[] diffFiles = getDiffFiles(DIFFS_REPO, ".yml");
+        ArrayList<Pair<Integer, DiffFile>> diffsToSend = new ArrayList<>();
+
+        // We only process one repo per handleBuffer call.
+        String currentRepo = null;
+
         if (diffFiles.length == 0) {
             return;
         }
@@ -83,11 +84,20 @@ public class HandleBuffer {
             diffFiles, 0, diffFiles.length >= DIFFS_PER_ITERATION ? DIFFS_PER_ITERATION : diffFiles.length
         );
 
-        for (DiffFile diffFile: diffFiles) {
+        for (final DiffFile diffFile : diffFiles) {
+            if (currentRepo == null) {
+                currentRepo = diffFile.repoPath;
+            }
+
+            if (!currentRepo.equals(diffFile.repoPath)) {
+                // We only process one repo per handleBuffer call.
+                continue;
+            }
+
             System.out.printf("Processing diff file: %s.\n", diffFile.originalDiffFile.getPath());
 
             if (!diffFile.isValid()) {
-                String filePath =  String.format("%s/%s", diffFile.repoPath, diffFile.fileRelativePath);
+                String filePath = String.format("%s/%s", diffFile.repoPath, diffFile.fileRelativePath);
                 System.out.printf("Skipping invalid diff file: %s. data: %s.\n", filePath, diffFile.diff);
 
                 diffFile.delete();
@@ -100,7 +110,7 @@ public class HandleBuffer {
             }
 
             ConfigRepo configRepo = configFile.getRepo(diffFile.repoPath);
-            if (!configRepo.branches.containsKey(diffFile.branch))  {
+            if (!configRepo.branches.containsKey(diffFile.branch)) {
                 System.out.printf("Branch: `%s` is not synced for Repo `%s`.\n", diffFile.branch, diffFile.repoPath);
                 continue;
             }
@@ -121,7 +131,7 @@ public class HandleBuffer {
                 }
             }
 
-            if (newFiles.contains(diffFile.fileRelativePath))  {
+            if (newFiles.contains(diffFile.fileRelativePath)) {
                 // Skip the changes diffs if relevant file was uploaded in the same iteration, wait for next iteration
                 continue;
             }
@@ -135,8 +145,8 @@ public class HandleBuffer {
                 Integer oldFileId = configRepoBranch.getFileId(diffFile.oldRelativePath);
                 if (oldFileId == null) {
                     System.out.printf(
-                        "old_file: %s was not synced for rename of %s/%s.\n",
-                        diffFile.oldRelativePath, diffFile.repoPath, diffFile.fileRelativePath
+                            "old_file: %s was not synced for rename of %s/%s.\n",
+                            diffFile.oldRelativePath, diffFile.repoPath, diffFile.fileRelativePath
                     );
                     diffFile.delete();
                     continue;
@@ -158,50 +168,51 @@ public class HandleBuffer {
             }
 
             Integer fileId = configRepoBranch.getFileId(diffFile.fileRelativePath);
-            if (fileId == null && !diffFile.isRename &&  !diffFile.isDeleted) {
+            if (fileId == null && !diffFile.isRename && !diffFile.isDeleted) {
                 System.out.printf("File ID not found for; %s.\n", diffFile.fileRelativePath);
                 continue;
             }
             if (fileId == null && diffFile.isDeleted) {
                 cleanUpDeletedDiff(
-                    configFile, configRepo, configRepoBranch, diffFile,
-                    String.format(
-                        "%s/%s/%s/%s", SHADOW_REPO, diffFile.repoPath.substring(1), diffFile.branch,
-                        diffFile.fileRelativePath
-                    )
+                        configFile, configRepo, configRepoBranch, diffFile,
+                        String.format(
+                                "%s/%s/%s/%s", SHADOW_REPO, diffFile.repoPath.substring(1), diffFile.branch,
+                                diffFile.fileRelativePath
+                        )
                 );
                 diffFile.delete();
                 continue;
             }
 
-            if (diffFile.isDeleted){
+            if (diffFile.isDeleted) {
                 diffFile.setDiff(
                     getDiffOfDeletedFile(configFile, configRepo, configRepoBranch, diffFile)
                 );
             }
+            diffsToSend.add(new Pair<>(fileId, diffFile));
+        }
 
-            CodeSyncWebSocketClient codeSyncWebSocketClient = client.getWebSocketClient();
-            codeSyncWebSocketClient.connect(configRepo.token, isConnected -> {
-                if (isConnected) {
-                    try {
-                        codeSyncWebSocketClient.sendDiff(diffFile, fileId, successfullyTransferred -> {
-                            if (successfullyTransferred) {
-                                codeSyncWebSocketClient.disconnect();
-                                System.out.printf("Diff file '%s' successfully processed.\n", diffFile.originalDiffFile.getPath());
-                                diffFile.delete();
-                            } else {
-                                System.out.printf("Error while sending the file to the server: %s.\n", diffFile.fileRelativePath);
-                            }
-                        });
-                    } catch (WebSocketConnectionError  error) {
-                        System.out.printf("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT);
-                    }
-                } else {
+        // Send Diffs in a single request.
+        ConfigRepo configRepo = configFile.getRepo(currentRepo);
+        CodeSyncWebSocketClient codeSyncWebSocketClient = client.getWebSocketClient(configRepo.token);
+        codeSyncWebSocketClient.connect(isConnected -> {
+            if (isConnected) {
+                try {
+                    codeSyncWebSocketClient.sendDiffs(diffsToSend, (successfullyTransferred, diffFilePath) -> {
+                        if (!successfullyTransferred) {
+                            System.out.println("Error while sending the diff files to the server:.\n");
+                            return;
+                        }
+                        System.out.printf("Diff file '%s' successfully processed.\n", diffFilePath);
+                        DiffFile.delete(diffFilePath);
+                    });
+                } catch (WebSocketConnectionError error) {
                     System.out.printf("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT);
                 }
-
-            });
-        }
+            } else {
+                System.out.printf("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT);
+            }
+        });
     }
 
     public static boolean handleNewFile(CodeSyncClient client, DiffFile diffFile, ConfigFile configFile, ConfigRepo repo, ConfigRepoBranch configRepoBranch) {

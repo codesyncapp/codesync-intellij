@@ -84,6 +84,13 @@ public class DiffFile {
         return this.originalDiffFile.delete();
     }
 
+    public static Boolean delete(String diffFilePath) {
+        if (diffFilePath != null){
+            return new File(diffFilePath).delete();
+        }
+        return false;
+    }
+
     public void setDiff(String diff)  {
         this.diff = diff;
     }
