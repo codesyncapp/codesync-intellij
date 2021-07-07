@@ -22,11 +22,13 @@ import org.json.simple.JSONValue;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.Map;
 
 
 public class CodeSyncClient {
     final String filesURL = FILES_API_ENDPOINT;
+    static Map<String, CodeSyncWebSocketClient> codeSyncWebSocketClients = new HashMap<>();
 
     public CodeSyncClient() {
 
@@ -43,8 +45,14 @@ public class CodeSyncClient {
         }
     }
 
-    public CodeSyncWebSocketClient getWebSocketClient() {
-        return new CodeSyncWebSocketClient(WEBSOCKET_ENDPOINT);
+    public CodeSyncWebSocketClient getWebSocketClient(String token) {
+        if (codeSyncWebSocketClients.containsKey(token)) {
+            return codeSyncWebSocketClients.get(token);
+        } else {
+            CodeSyncWebSocketClient codeSyncWebSocketClient = new CodeSyncWebSocketClient(token, WEBSOCKET_ENDPOINT);
+            codeSyncWebSocketClients.put(token, codeSyncWebSocketClient);
+            return codeSyncWebSocketClient;
+        }
     }
 
     public Integer uploadFile(ConfigRepo configRepo, DiffFile diffFile, File originalsFile) throws FileInfoError, InvalidJsonError, RequestError {
