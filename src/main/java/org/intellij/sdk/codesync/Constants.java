@@ -17,6 +17,8 @@ public final class Constants {
     public static String DELETED_REPO = String.format("%s/.deleted", CODESYNC_ROOT);
     public static String SHADOW_REPO = String.format("%s/.shadow", CODESYNC_ROOT);
     public static String CONFIG_PATH = String.format("%s/config.yml", CODESYNC_ROOT);
+    public static String USER_FILE_PATH = String.format("%s/user.yml", CODESYNC_ROOT);
+    public static String SEQUENCE_TOKEN_FILE_PATH = String.format("%s/sequence_token.yml", CODESYNC_ROOT);
 
     public static String DEFAULT_BRANCH = "default";
     public static String GIT_REPO = ".git";
@@ -45,5 +47,8 @@ public final class Constants {
     public static String API_HEALTHCHECK = String.format("%s/healthcheck", CODESYNC_HOST);
 
     public static Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
-    public static String  DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
+    public static String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
+    public static String DIFF_SOURCE = "intellij";
+    public static String AWS_REGION = "us-east-1";
+    public static String CLIENT_LOGS_GROUP_NAME = "client-logs";
 }

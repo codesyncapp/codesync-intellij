@@ -42,6 +42,11 @@ dependencies {
 
   // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
   implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
+
+  // https://mvnrepository.com/artifact/software.amazon.awssdk/cloudwatch
+  implementation group: 'software.amazon.awssdk', name: 'cloudwatch', version: '2.16.98'
+  // https://mvnrepository.com/artifact/software.amazon.awssdk/cloudwatch
+  implementation group: 'software.amazon.awssdk', name: 'cloudwatchlogs', version: '2.16.98'
 }
 
 publishPlugin {
