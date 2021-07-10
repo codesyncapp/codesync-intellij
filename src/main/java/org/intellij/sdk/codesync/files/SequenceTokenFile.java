@@ -11,7 +11,7 @@ import java.util.Map;
 public class SequenceTokenFile extends CodeSyncYmlFile {
     File sequenceTokenFile;
     Map<String, Object> contentsMap;
-    Map<String, SequenceToken> sequenceTokens;
+    Map<String, SequenceToken> sequenceTokens = new HashMap<>();
 
     public static class SequenceToken {
         String userEmail, tokenString;

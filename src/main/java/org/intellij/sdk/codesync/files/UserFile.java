@@ -11,7 +11,7 @@ import java.util.Optional;
 public class UserFile extends CodeSyncYmlFile {
     File userFile;
     public Map<String, Object> contentsMap;
-    public Map<String, User> users;
+    public Map<String, User> users = new HashMap<>();
 
     public static class User {
         String userEmail, accessKey, secretKey;
