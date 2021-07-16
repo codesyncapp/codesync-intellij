@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync.files;
 
+import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 
 import java.io.File;
@@ -74,4 +75,18 @@ public class SequenceTokenFile extends CodeSyncYmlFile {
     public SequenceToken getSequenceToken (String userEmail) {
         return this.sequenceTokens.getOrDefault(userEmail, null);
     }
+
+    public void updateSequenceToken (String userEmail, String sequenceToken) {
+        this.sequenceTokens.put(userEmail, new SequenceToken(userEmail, sequenceToken));
+    }
+
+    public void publishNewSequenceToken (String userEmail, String sequenceToken) {
+        this.updateSequenceToken(userEmail, sequenceToken);
+        try {
+            this.writeYml();
+        } catch (FileNotFoundException | InvalidYmlFileError e) {
+            // Ignore errors while updating to sequence token file
+        }
+    }
+
 }

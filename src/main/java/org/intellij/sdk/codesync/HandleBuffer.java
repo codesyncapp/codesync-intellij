@@ -130,7 +130,7 @@ public class HandleBuffer {
                     diffFile.delete();
 
                     // We also need to disconnect existing connections here,
-                    // otherwise the server cache causes an error that user is not able to edit new file.
+                    // otherwise the server cache causes an error and file updates end in error until the IDE restarts.
                     client.getWebSocketClient(configRepo.token).disconnect();
                     continue;
                 }

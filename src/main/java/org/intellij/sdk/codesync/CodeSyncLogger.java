@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync;
 
+import org.intellij.sdk.codesync.files.SequenceTokenFile;
 import org.json.simple.JSONObject;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.regions.Region;
@@ -63,6 +64,16 @@ public class CodeSyncLogger {
             logsClient.putLogEvents(putLogEventsRequest);
 
             System.out.println("Successfully put CloudWatch log event");
+            // Update sequence token file for other plugins and daemon
+            try {
+                SequenceTokenFile sequenceTokenFile = new SequenceTokenFile(SEQUENCE_TOKEN_FILE_PATH);
+
+                // user email is the streamName.
+                sequenceTokenFile.publishNewSequenceToken(streamName, sequenceToken);
+            } catch (FileNotFoundException | InvalidYmlFileError e) {
+                // skip update to sequence file if not found;
+                return;
+            }
         } catch (CloudWatchException e) {
             e.printStackTrace();
             throw e;

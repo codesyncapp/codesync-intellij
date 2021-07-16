@@ -52,7 +52,6 @@ public final class Constants {
     public static Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
     public static String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
     public static String DIFF_SOURCE = "intellij";
-    public static String AWS_REGION = "us-east-1";
     public static String CLIENT_LOGS_GROUP_NAME = "client-logs";
 
     public static String CONNECTION_ERROR_MESSAGE = "Error => Server is not available. Please try again in a moment";
