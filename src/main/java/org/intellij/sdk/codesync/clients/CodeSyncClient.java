@@ -1,15 +1,12 @@
 package org.intellij.sdk.codesync.clients;
 
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.FileBody;
 import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.DiffFile;
 import static org.intellij.sdk.codesync.Constants.*;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.util.EntityUtils;
@@ -23,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.net.HttpURLConnection;
 
@@ -155,22 +151,5 @@ public class CodeSyncClient {
         } catch (IOException e) {
             throw new RequestError(String.format("Error uploading file. Error: %s", e.getMessage()));
         }
-
-//        HttpClient httpClient = HttpClientBuilder.create().build();
-//        HttpPost post = new HttpPost((String) preSignedURLData.get("url"));
-//        HttpEntity entity = MultipartEntityBuilder.create().addPart("file", new FileBody(originalsFile)).build();
-//        post.setEntity(entity);
-//
-//        HttpResponse response;
-//        try {
-//            response = httpClient.execute(post);
-//        } catch (IOException e) {
-//            throw new RequestError(String.format("Error uploading file. Error: %s", e.getMessage()));
-//        }
-//        if (response.getStatusLine().getStatusCode() == 204) {
-//            System.out.printf("Successfully uploaded new file: %s.", originalsFile.getPath());
-//        } else {
-//            System.out.printf("Error uploading file. Error: %s.", originalsFile.getPath());
-//        }
     }
 }
