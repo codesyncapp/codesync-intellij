@@ -23,7 +23,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.net.HttpURLConnection;
 
 
 public class CodeSyncClient {
@@ -69,7 +71,7 @@ public class CodeSyncClient {
         data.put("repo_id", configRepo.id);
         data.put("branch", diffFile.branch);
         data.put("is_binary", (Boolean) fileInfo.get("isBinary"));
-        data.put("size", (long) fileInfo.get("size"));
+        data.put("size", (long) fileInfo.get("size") + 1);
         data.put("file_path", diffFile.fileRelativePath);
         data.put("created_at", Utils.formatDate(diffFile.createdAt));
 
@@ -111,11 +113,12 @@ public class CodeSyncClient {
         try {
             preSignedURLData = (Map<String, Object>) jsonResponse.get("url");
 
-            long fileSize =  (long) fileInfo.get("size");
+            long fileSize =  (long) fileInfo.get("size") + 1;
             if (fileSize > 0) {
                 this.uploadToS3(originalsFile, preSignedURLData);
             }
         } catch (ClassCastException error) {
+            System.out.println("Could not upload the file.");
             // this would probably mean that `url` is empty and we can skip aws upload.
         }
 
@@ -128,27 +131,46 @@ public class CodeSyncClient {
             System.out.printf("Failed uploading new file, path: %s not found.", originalsFile.getPath());
             return;
         }
-        JSONObject data = new JSONObject();
-        data.put("fields", JSONObject.toJSONString(
-            (Map<String, Object>) preSignedURLData.get("fields")
-        ));
-
-
-        HttpClient httpClient = HttpClientBuilder.create().build();
-        HttpPost post = new HttpPost((String) preSignedURLData.get("url"));
-        HttpEntity entity = MultipartEntityBuilder.create().addPart("file", new FileBody(originalsFile)).build();
-        post.setEntity(entity);
-
-        HttpResponse response;
+        Map<String, String> fields;
         try {
-            response = httpClient.execute(post);
+            fields = (Map<String, String>) preSignedURLData.get("fields");
+        } catch (ClassCastException e) {
+            fields = new HashMap<>();
+        }
+
+        String charset = "UTF-8";
+        try {
+            MultipartUtility multipart = new MultipartUtility((String) preSignedURLData.get("url"), charset);
+            multipart.addHeaderField("User-Agent", "IntelliJ Plugin");
+
+            for (Map.Entry<String, String> fieldEntry : fields.entrySet()) {
+                if (fieldEntry.getValue() != null) {
+                    multipart.addFormField(fieldEntry.getKey(), fieldEntry.getValue());
+                }
+
+            }
+
+            multipart.addFilePart("file", originalsFile);
+            multipart.finish(HttpURLConnection.HTTP_NO_CONTENT);
         } catch (IOException e) {
             throw new RequestError(String.format("Error uploading file. Error: %s", e.getMessage()));
         }
-        if (response.getStatusLine().getStatusCode() == 204) {
-            System.out.printf("Successfully uploaded new file: %s.", originalsFile.getPath());
-        } else {
-            System.out.printf("Error uploading file. Error: %s.", originalsFile.getPath());
-        }
+
+//        HttpClient httpClient = HttpClientBuilder.create().build();
+//        HttpPost post = new HttpPost((String) preSignedURLData.get("url"));
+//        HttpEntity entity = MultipartEntityBuilder.create().addPart("file", new FileBody(originalsFile)).build();
+//        post.setEntity(entity);
+//
+//        HttpResponse response;
+//        try {
+//            response = httpClient.execute(post);
+//        } catch (IOException e) {
+//            throw new RequestError(String.format("Error uploading file. Error: %s", e.getMessage()));
+//        }
+//        if (response.getStatusLine().getStatusCode() == 204) {
+//            System.out.printf("Successfully uploaded new file: %s.", originalsFile.getPath());
+//        } else {
+//            System.out.printf("Error uploading file. Error: %s.", originalsFile.getPath());
+//        }
     }
 }
