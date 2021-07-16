@@ -49,15 +49,17 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
 
         // handle the events
         for (VFileEvent event : events) {
-          if (event.toString().startsWith(FILE_CREATE_EVENT)) {
-            FileCreateHandler(event, repoPath);
+          String eventString = event.toString();
+
+          if (eventString.startsWith(FILE_CREATE_EVENT) | eventString.startsWith(FILE_COPY_EVENT)) {
+            FileCreateHandler(event.getPath(), repoPath);
             return;
           }
-          if (event.toString().startsWith(FILE_DELETE_EVENT)) {
+          if (eventString.startsWith(FILE_DELETE_EVENT)) {
             FileDeleteHandler(event, repoPath);
             return;
           }
-          if (event.toString().startsWith(FILE_RENAME_EVENT)) {
+          if (eventString.startsWith(FILE_RENAME_EVENT)) {
             try {
               FileRenameHandler(event, repoPath);
             } catch (IOException e) {
@@ -65,7 +67,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
             }
             return;
           }
-//          System.out.println(event.toString());
+//          System.out.println(eventString);
         }
       }
     });

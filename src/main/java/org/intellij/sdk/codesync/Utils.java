@@ -185,8 +185,7 @@ public class Utils {
         yaml.dump(data, writer);
     }
 
-    public static void FileCreateHandler(VFileEvent event, String repoPath) {
-        String filePath = event.getFile().getPath();
+    public static void FileCreateHandler(String filePath, String repoPath) {
         // Skip in case of directory
         File eventFile = new File(filePath);
         if (eventFile.isDirectory()) { return; }
@@ -482,6 +481,9 @@ public class Utils {
                         "ÂÊÔÎáéíóàèìòÁÉÍÓÀÈÌÒ©‰¢£¥€±¿»«¼½¾™ª]", "");
         // will delete all text signs
 
+        if (s.length() == 0 | s2.length() == 0) {
+            return true;
+        }
         double d = (double)(s.length() - s2.length()) / (double)(s.length());
         // percentage of text signs in the text
         return d > 0.95;

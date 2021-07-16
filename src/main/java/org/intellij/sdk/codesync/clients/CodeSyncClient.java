@@ -1,15 +1,12 @@
 package org.intellij.sdk.codesync.clients;
 
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.FileBody;
 import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.DiffFile;
 import static org.intellij.sdk.codesync.Constants.*;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.util.EntityUtils;
@@ -24,6 +21,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
+import java.net.HttpURLConnection;
 
 
 public class CodeSyncClient {
@@ -116,6 +114,7 @@ public class CodeSyncClient {
                 this.uploadToS3(originalsFile, preSignedURLData);
             }
         } catch (ClassCastException error) {
+            System.out.println("Could not upload the file.");
             // this would probably mean that `url` is empty and we can skip aws upload.
         }
 
@@ -128,27 +127,29 @@ public class CodeSyncClient {
             System.out.printf("Failed uploading new file, path: %s not found.", originalsFile.getPath());
             return;
         }
-        JSONObject data = new JSONObject();
-        data.put("fields", JSONObject.toJSONString(
-            (Map<String, Object>) preSignedURLData.get("fields")
-        ));
-
-
-        HttpClient httpClient = HttpClientBuilder.create().build();
-        HttpPost post = new HttpPost((String) preSignedURLData.get("url"));
-        HttpEntity entity = MultipartEntityBuilder.create().addPart("file", new FileBody(originalsFile)).build();
-        post.setEntity(entity);
-
-        HttpResponse response;
+        Map<String, String> fields;
         try {
-            response = httpClient.execute(post);
+            fields = (Map<String, String>) preSignedURLData.get("fields");
+        } catch (ClassCastException e) {
+            fields = new HashMap<>();
+        }
+
+        String charset = "UTF-8";
+        try {
+            MultipartUtility multipart = new MultipartUtility((String) preSignedURLData.get("url"), charset);
+            multipart.addHeaderField("User-Agent", "IntelliJ Plugin");
+
+            for (Map.Entry<String, String> fieldEntry : fields.entrySet()) {
+                if (fieldEntry.getValue() != null) {
+                    multipart.addFormField(fieldEntry.getKey(), fieldEntry.getValue());
+                }
+
+            }
+
+            multipart.addFilePart("file", originalsFile);
+            multipart.finish(HttpURLConnection.HTTP_NO_CONTENT);
         } catch (IOException e) {
             throw new RequestError(String.format("Error uploading file. Error: %s", e.getMessage()));
-        }
-        if (response.getStatusLine().getStatusCode() == 204) {
-            System.out.printf("Successfully uploaded new file: %s.", originalsFile.getPath());
-        } else {
-            System.out.printf("Error uploading file. Error: %s.", originalsFile.getPath());
         }
     }
 }
