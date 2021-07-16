@@ -11,7 +11,6 @@ import software.amazon.awssdk.services.cloudwatchlogs.model.InputLogEvent;
 import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsRequest;
 
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
-//import org.intellij.sdk.codesync.files.SequenceTokenFile;
 import org.intellij.sdk.codesync.files.UserFile;
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -22,6 +21,7 @@ import java.util.logging.Logger;
 
 public class CodeSyncLogger {
     private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+    private static Integer retryCount = 0;
 
     private static void logMessageToCloudWatch(
             String logGroupName, String streamName, String accessKey, String secretKey, String message
@@ -69,6 +69,10 @@ public class CodeSyncLogger {
         }
     }
 
+    public static void logEvent(String message) {
+        logEvent(message, null);
+    }
+
     public static void logEvent(String message, String userEmail) {
         LOGGER.log(Level.SEVERE, message);
         UserFile.User user = null;
@@ -86,7 +90,6 @@ public class CodeSyncLogger {
             user = userFile.getUser();
         }
 
-//        SequenceTokenFile sequenceTokenFile;
         if (user == null) {
             // Can't log any thing.
             return;
@@ -94,26 +97,19 @@ public class CodeSyncLogger {
             // can't log anything
             return;
         }
-        // I do not think we need a separate sequence token file in java. Need to verify it though.
-//        else {
-//            try {
-//                sequenceTokenFile = new SequenceTokenFile(SEQUENCE_TOKEN_FILE_PATH);
-//            } catch (FileNotFoundException | InvalidYmlFileError e) {
-//                // Can't log anything;
-//                return;
-//            }
-//        }
-//        SequenceTokenFile.SequenceToken sequenceToken = sequenceTokenFile.getSequenceToken(user.getUserEmail());
 
         try {
             logMessageToCloudWatch(
                     CLIENT_LOGS_GROUP_NAME, user.getUserEmail(), user.getAccessKey(), user.getSecretKey(), message
             );
         } catch (CloudWatchException e) {
-            // TODO: Shouldn't we handle infinite loop here?
-            // try again.
-            logEvent(message, userEmail);
+            if (retryCount > 10) {
+                // Do not try more than 10 times.
+                retryCount = 0;
+            } else {
+                // try again.
+                logEvent(message, userEmail);
+            }
         }
-
     }
 }

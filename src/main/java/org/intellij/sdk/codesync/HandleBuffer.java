@@ -71,12 +71,13 @@ public class HandleBuffer {
         try {
             configFile = new ConfigFile(CONFIG_PATH);
         } catch (InvalidConfigFileError error) {
-            System.out.printf("Config file error, %s.\n", error.getMessage());
+            CodeSyncLogger.logEvent(String.format("Config file error, %s.\n", error.getMessage()));
             return;
         }
 
         CodeSyncClient client = new CodeSyncClient();
         if (!client.isServerUp()) {
+            CodeSyncLogger.logEvent(CONNECTION_ERROR_MESSAGE);
             return;
         }
 
@@ -98,20 +99,20 @@ public class HandleBuffer {
 
             if (!diffFile.isValid()) {
                 String filePath = String.format("%s/%s", diffFile.repoPath, diffFile.fileRelativePath);
-                System.out.printf("Skipping invalid diff file: %s. data: %s.\n", filePath, diffFile.diff);
+                CodeSyncLogger.logEvent(String.format("Skipping invalid diff file: %s. data: %s.\n", filePath, diffFile.diff));
 
                 diffFile.delete();
                 continue;
             }
 
             if (!configFile.repos.containsKey(diffFile.repoPath)) {
-                System.out.printf("Repo `%s` is in buffer.yml but not in configFile.yml.\n", diffFile.repoPath);
+                CodeSyncLogger.logEvent(String.format("Repo `%s` is in buffer.yml but not in configFile.yml.\n", diffFile.repoPath));
                 continue;
             }
 
             ConfigRepo configRepo = configFile.getRepo(diffFile.repoPath);
             if (!configRepo.branches.containsKey(diffFile.branch)) {
-                System.out.printf("Branch: `%s` is not synced for Repo `%s`.\n", diffFile.branch, diffFile.repoPath);
+                CodeSyncLogger.logEvent(String.format("Branch: `%s` is not synced for Repo `%s`.\n", diffFile.branch, diffFile.repoPath));
                 continue;
             }
 
@@ -127,6 +128,10 @@ public class HandleBuffer {
                 if (isSuccess) {
                     System.out.printf("Diff file '%s' successfully processed.\n", diffFile.originalDiffFile.getPath());
                     diffFile.delete();
+
+                    // We also need to disconnect existing connections here,
+                    // otherwise the server cache causes an error that user is not able to edit new file.
+                    client.getWebSocketClient(configRepo.token).disconnect();
                     continue;
                 }
             }
@@ -144,10 +149,9 @@ public class HandleBuffer {
 
                 Integer oldFileId = configRepoBranch.getFileId(diffFile.oldRelativePath);
                 if (oldFileId == null) {
-                    System.out.printf(
-                            "old_file: %s was not synced for rename of %s/%s.\n",
+                    CodeSyncLogger.logEvent(String.format("old_file: %s was not synced for rename of %s/%s.\n",
                             diffFile.oldRelativePath, diffFile.repoPath, diffFile.fileRelativePath
-                    );
+                    ));
                     diffFile.delete();
                     continue;
                 }
@@ -200,17 +204,17 @@ public class HandleBuffer {
                 try {
                     codeSyncWebSocketClient.sendDiffs(diffsToSend, (successfullyTransferred, diffFilePath) -> {
                         if (!successfullyTransferred) {
-                            System.out.println("Error while sending the diff files to the server:.\n");
+                            CodeSyncLogger.logEvent("Error while sending the diff files to the server.", configRepo.email);
                             return;
                         }
                         System.out.printf("Diff file '%s' successfully processed.\n", diffFilePath);
                         DiffFile.delete(diffFilePath);
                     });
                 } catch (WebSocketConnectionError error) {
-                    System.out.printf("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT);
+                    CodeSyncLogger.logEvent(String.format("Connection error while sending diff to the server at %s.\n", WEBSOCKET_ENDPOINT), configRepo.email);
                 }
             } else {
-                System.out.printf("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT);
+                CodeSyncLogger.logEvent(String.format("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT), configRepo.email);
             }
         });
     }
@@ -234,13 +238,16 @@ public class HandleBuffer {
             try {
                 configFile.publishBranchUpdate(repo, configRepoBranch);
             } catch (InvalidConfigFileError error)  {
+                CodeSyncLogger.logEvent(String.format("Error while updating the config file with new file ID. \n%s", error.getMessage()));
                 error.printStackTrace();
                 return false;
             }
         } catch (FileInfoError error) {
+            CodeSyncLogger.logEvent(String.format("Error while getting file information. \n%s", error.getMessage()));
             error.printStackTrace();
             return false;
         } catch (RequestError | InvalidJsonError error) {
+            CodeSyncLogger.logEvent(String.format("Error while uploading a new file '%s'. \n%s", diffFile.fileRelativePath, error.getMessage()));
             error.printStackTrace();
             return false;
         }

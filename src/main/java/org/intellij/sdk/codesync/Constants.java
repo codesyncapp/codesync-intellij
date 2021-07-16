@@ -27,6 +27,9 @@ public final class Constants {
     public static String CURRENT_GIT_BRANCH_COMMAND = "git rev-parse --abbrev-ref HEAD";
 
     public static String MAGIC_STRING = "IntellijIdeaRulezzz";
+    public static String DIR_CREATE_EVENT = "VfsEvent[create dir";
+    public static String EMPTY_DIR_CREATE_EVENT = "VfsEvent[create (empty) dir";
+    public static String FILE_COPY_EVENT = "VfsEvent[copy file";
     public static String FILE_CREATE_EVENT = "VfsEvent[create file";
     public static String FILE_DELETE_EVENT = "VfsEvent[deleted: file";
     public static String FILE_RENAME_EVENT = "VfsEvent[property(name) changed";
@@ -35,9 +38,9 @@ public final class Constants {
     public static Integer DIFFS_PER_ITERATION = 50;
 
     public static String CODESYNC_DOMAIN = "codesync-server.herokuapp.com";
-    // public static String CODESYNC_DOMAIN = "127.0.0.1:8000";
+//     public static String CODESYNC_DOMAIN = "127.0.0.1:8000";
     public static String CODESYNC_HOST = "https://codesync-server.herokuapp.com";
-    // public static String CODESYNC_HOST = "http://127.0.0.1:8000";
+//     public static String CODESYNC_HOST = "http://127.0.0.1:8000";
     public static String CODESYNC_APP = "https://codesync.com";
     public static String WEBSOCKET_ENDPOINT = String.format("ws://%s/v1/websocket", CODESYNC_DOMAIN);
     public static String API_ENDPOINT = String.format("%s/v1", CODESYNC_HOST);
@@ -51,4 +54,7 @@ public final class Constants {
     public static String DIFF_SOURCE = "intellij";
     public static String AWS_REGION = "us-east-1";
     public static String CLIENT_LOGS_GROUP_NAME = "client-logs";
+
+    public static String CONNECTION_ERROR_MESSAGE = "Error => Server is not available. Please try again in a moment";
+
 }
