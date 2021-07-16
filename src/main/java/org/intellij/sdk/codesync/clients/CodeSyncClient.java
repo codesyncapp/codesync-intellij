@@ -71,7 +71,7 @@ public class CodeSyncClient {
         data.put("repo_id", configRepo.id);
         data.put("branch", diffFile.branch);
         data.put("is_binary", (Boolean) fileInfo.get("isBinary"));
-        data.put("size", (long) fileInfo.get("size") + 1);
+        data.put("size", (long) fileInfo.get("size"));
         data.put("file_path", diffFile.fileRelativePath);
         data.put("created_at", Utils.formatDate(diffFile.createdAt));
 
@@ -113,7 +113,7 @@ public class CodeSyncClient {
         try {
             preSignedURLData = (Map<String, Object>) jsonResponse.get("url");
 
-            long fileSize =  (long) fileInfo.get("size") + 1;
+            long fileSize =  (long) fileInfo.get("size");
             if (fileSize > 0) {
                 this.uploadToS3(originalsFile, preSignedURLData);
             }
