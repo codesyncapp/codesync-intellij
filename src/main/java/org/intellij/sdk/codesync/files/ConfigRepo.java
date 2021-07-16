@@ -5,8 +5,6 @@ import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Date;
-
 
 public class ConfigRepo {
     public String repoPath;

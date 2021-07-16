@@ -17,6 +17,8 @@ public final class Constants {
     public static String DELETED_REPO = String.format("%s/.deleted", CODESYNC_ROOT);
     public static String SHADOW_REPO = String.format("%s/.shadow", CODESYNC_ROOT);
     public static String CONFIG_PATH = String.format("%s/config.yml", CODESYNC_ROOT);
+    public static String USER_FILE_PATH = String.format("%s/user.yml", CODESYNC_ROOT);
+    public static String SEQUENCE_TOKEN_FILE_PATH = String.format("%s/sequence_token.yml", CODESYNC_ROOT);
 
     public static String DEFAULT_BRANCH = "default";
     public static String GIT_REPO = ".git";
@@ -25,6 +27,9 @@ public final class Constants {
     public static String CURRENT_GIT_BRANCH_COMMAND = "git rev-parse --abbrev-ref HEAD";
 
     public static String MAGIC_STRING = "IntellijIdeaRulezzz";
+    public static String DIR_CREATE_EVENT = "VfsEvent[create dir";
+    public static String EMPTY_DIR_CREATE_EVENT = "VfsEvent[create (empty) dir";
+    public static String FILE_COPY_EVENT = "VfsEvent[copy file";
     public static String FILE_CREATE_EVENT = "VfsEvent[create file";
     public static String FILE_DELETE_EVENT = "VfsEvent[deleted: file";
     public static String FILE_RENAME_EVENT = "VfsEvent[property(name) changed";
@@ -33,9 +38,9 @@ public final class Constants {
     public static Integer DIFFS_PER_ITERATION = 50;
 
     public static String CODESYNC_DOMAIN = "codesync-server.herokuapp.com";
-    // public static String CODESYNC_DOMAIN = "127.0.0.1:8000";
+//     public static String CODESYNC_DOMAIN = "127.0.0.1:8000";
     public static String CODESYNC_HOST = "https://codesync-server.herokuapp.com";
-    // public static String CODESYNC_HOST = "http://127.0.0.1:8000";
+//     public static String CODESYNC_HOST = "http://127.0.0.1:8000";
     public static String CODESYNC_APP = "https://codesync.com";
     public static String WEBSOCKET_ENDPOINT = String.format("ws://%s/v1/websocket", CODESYNC_DOMAIN);
     public static String API_ENDPOINT = String.format("%s/v1", CODESYNC_HOST);
@@ -45,5 +50,10 @@ public final class Constants {
     public static String API_HEALTHCHECK = String.format("%s/healthcheck", CODESYNC_HOST);
 
     public static Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
-    public static String  DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
+    public static String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
+    public static String DIFF_SOURCE = "intellij";
+    public static String CLIENT_LOGS_GROUP_NAME = "client-logs";
+
+    public static String CONNECTION_ERROR_MESSAGE = "Error => Server is not available. Please try again in a moment";
+
 }
