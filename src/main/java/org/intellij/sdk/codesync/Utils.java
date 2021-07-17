@@ -3,13 +3,13 @@ package org.intellij.sdk.codesync;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.impl.LoadTextUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import name.fraser.neil.plaintext.diff_match_patch;
 import org.intellij.sdk.codesync.exceptions.FileInfoError;
-import org.intellij.sdk.codesync.files.DiffFile;
 import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 import org.yaml.snakeyaml.DumperOptions;
@@ -216,8 +216,6 @@ public class Utils {
         File f_originals = new File(destOriginals);
         File f_shadow = new File(destShadow);
 
-        if (f_originals.exists()) { return; }
-
         try {
             Files.copy(file.toPath(), f_originals.toPath());
         } catch (FileAlreadyExistsException e) {
@@ -304,15 +302,13 @@ public class Utils {
 
                 String deletedFileDirectoryPath = deletedRepoFile.getParent();
                 File deletedFileDirectory = new File(deletedFileDirectoryPath);
-                boolean areDirectoriesCreated = deletedFileDirectory.mkdirs();
-                if (!areDirectoriesCreated) {
-                    return;
-                }
+                deletedFileDirectory.mkdirs();
 
                 try {
                     Files.copy(shadowFile.toPath(), deletedRepoFile.toPath());
                 } catch (IOException e) {
                     e.printStackTrace();
+
                 }
 
                 Utils.WriteDiffToYml(repoPath, branch, relativeFilePath, "", false,
@@ -402,6 +398,10 @@ public class Utils {
     public static void ChangesHandler(DocumentEvent event, Project project) {
         Document document = event.getDocument();
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
+        handleDocumentUpdates(file, project.getBasePath(), document.getText());
+    }
+
+    public static void handleDocumentUpdates(VirtualFile file, String repoPath, String currentText) {
         if (file == null) {
             return;
         }
@@ -409,7 +409,6 @@ public class Utils {
         System.out.println(String.format("Event: %s", time));
         String filePath = file.getPath();
 
-        String repoPath = project.getBasePath();
         String branch = Utils.GetGitBranch(repoPath);
         if (repoPath == null) { return; }
         String s = String.format("%s/", repoPath);
@@ -444,7 +443,6 @@ public class Utils {
             return;
         }
 
-        String currentText = document.getText();
         currentText = currentText.replace(MAGIC_STRING, "").trim();
 
         String shadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, relPath);

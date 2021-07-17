@@ -67,7 +67,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
             }
             return;
           }
-//          System.out.println(eventString);
+          System.out.println(eventString);
         }
       }
     });
