@@ -3,7 +3,6 @@ package org.intellij.sdk.codesync;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.impl.LoadTextUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
@@ -143,9 +142,6 @@ public class Utils {
                                       Boolean isNewFile, Boolean isDeleted, Boolean isRename, Boolean isDirRename) {
         String DIFF_SOURCE = "intellij";
 
-        final Date currentTime = new Date();
-        final SimpleDateFormat sdf = new SimpleDateFormat(DATE_TIME_FORMAT);
-
         // Create YAML dump
         Map<String, Object> data = new HashMap<>();
         data.put("repo_path", repoPath);
@@ -167,9 +163,7 @@ public class Utils {
             data.put("is_dir_rename", true);
         }
         data.put("source", DIFF_SOURCE);
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String created_at = sdf.format(currentTime);
-        data.put("created_at", created_at);
+        data.put("created_at", getCurrentDatetime());
 
         final DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
@@ -217,7 +211,7 @@ public class Utils {
         File f_shadow = new File(destShadow);
 
         try {
-            Files.copy(file.toPath(), f_originals.toPath());
+            Files.copy(file.toPath(), f_originals.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (FileAlreadyExistsException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -562,7 +556,10 @@ public class Utils {
         return d > 0.95;
     }
 
-    public static Date getCurrentDatetime()  {
-        return new Date();
+    public static String getCurrentDatetime()  {
+        Date currentTime = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_TIME_FORMAT);
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return sdf.format(currentTime);
     }
 }
