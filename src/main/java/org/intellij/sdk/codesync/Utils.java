@@ -22,6 +22,7 @@ import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.stream.Stream;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -141,9 +142,6 @@ public class Utils {
                                       Boolean isNewFile, Boolean isDeleted, Boolean isRename, Boolean isDirRename) {
         String DIFF_SOURCE = "intellij";
 
-        final Date currentTime = new Date();
-        final SimpleDateFormat sdf = new SimpleDateFormat(DATE_TIME_FORMAT);
-
         // Create YAML dump
         Map<String, Object> data = new HashMap<>();
         data.put("repo_path", repoPath);
@@ -165,9 +163,7 @@ public class Utils {
             data.put("is_dir_rename", true);
         }
         data.put("source", DIFF_SOURCE);
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String created_at = sdf.format(currentTime);
-        data.put("created_at", created_at);
+        data.put("created_at", getCurrentDatetime());
 
         final DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
@@ -214,10 +210,8 @@ public class Utils {
         File f_originals = new File(destOriginals);
         File f_shadow = new File(destShadow);
 
-        if (f_originals.exists()) { return; }
-
         try {
-            Files.copy(file.toPath(), f_originals.toPath());
+            Files.copy(file.toPath(), f_originals.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (FileAlreadyExistsException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -244,6 +238,10 @@ public class Utils {
         String relPath = rel_path_arr[rel_path_arr.length - 1];
         if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relPath, repoPath)) { return; }
         String branch = Utils.GetGitBranch(repoPath);
+        if (event.getFile().isDirectory()) {
+            handleDirDelete(repoPath, branch, relPath);
+            return;
+        }
 
         String destDeleted = String.format("%s/%s/%s/%s", DELETED_REPO, repoPath.substring(1), branch, relPath);
         String[] destDeletedPathSplit = destDeleted.split("/");
@@ -272,6 +270,48 @@ public class Utils {
         Utils.WriteDiffToYml(repoPath, branch, relPath, "", false,
                 true, false, false);
         System.out.println(String.format("FileDeleted: %s", filePath));
+    }
+
+    public static void handleDirDelete(String repoPath, String branch, String relativeDirPath) {
+        System.out.printf("Populating buffer for dir '%S' delete.", relativeDirPath);
+        String shadowDirPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, relativeDirPath);
+
+        try {
+            Stream<Path> files = Files.walk(Paths.get(shadowDirPath)).filter(Files::isRegularFile);
+            files.forEach((path) -> {
+                String filePath = path.toString();
+
+                String relativeFilePath = filePath.split(String.format("%s/%s/", repoPath.substring(1), branch))[1];
+                String shadowFilePath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, relativeFilePath);
+
+                String deletedRepoFilePath = String.format("%s/%s/%s/%s", DELETED_REPO, repoPath.substring(1), branch, relativeFilePath);
+                File deletedRepoFile = new File(deletedRepoFilePath);
+                File shadowFile = new File(shadowFilePath);
+
+                if (deletedRepoFile.exists() || !shadowFile.exists()) {
+                    // If file already exists in .deleted directory or does not exist in shadow repo
+                    // then no further action is needed.
+                    return;
+                }
+
+                String deletedFileDirectoryPath = deletedRepoFile.getParent();
+                File deletedFileDirectory = new File(deletedFileDirectoryPath);
+                deletedFileDirectory.mkdirs();
+
+                try {
+                    Files.copy(shadowFile.toPath(), deletedRepoFile.toPath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+
+                }
+
+                Utils.WriteDiffToYml(repoPath, branch, relativeFilePath, "", false,
+                        true, false, false);
+                System.out.printf("FileDeleted: %s%n", filePath);
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void FileRenameHandler(VFileEvent event, String repoPath) throws IOException {
@@ -309,8 +349,7 @@ public class Utils {
             JSONObject diff = new JSONObject();
             diff.put("old_path", oldAbsPath);
             diff.put("new_path", newAbsPath);
-            Utils.WriteDiffToYml(repoPath, branch, newRelPath, diff.toJSONString(),
-                    false, false, false, true);
+            handleDirRename(oldAbsPath, newAbsPath, repoPath, branch);
             return;
         }
         System.out.println(String.format("FileRenamed: %s, %s", oldAbsPath, newAbsPath));
@@ -324,9 +363,39 @@ public class Utils {
                 false, false, true, false);
     }
 
+    public static void handleDirRename(String oldPath, String newPath, String repoPath, String branch) {
+        System.out.printf("Populating buffer for dir rename to %s", newPath);
+
+        try {
+            Stream<Path> files = Files.walk(Paths.get(newPath)).filter(Files::isRegularFile);
+            files.forEach((path) -> {
+                String newFilePath = path.toString();
+                String oldFilePath = newFilePath.replace(newPath, oldPath);
+                String newRelativePath = newFilePath.replace(String.format("%s/", repoPath), "");
+                String oldRelativePath = oldFilePath.replace(String.format("%s/", repoPath), "");
+
+                JSONObject diff = new JSONObject();
+                diff.put("old_abs_path", oldFilePath);
+                diff.put("new_abs_path", newFilePath);
+                diff.put("old_rel_path", oldRelativePath);
+                diff.put("new_rel_path", newRelativePath);
+                Utils.WriteDiffToYml(
+                        repoPath, branch, newRelativePath, diff.toJSONString(),
+                        false, false, true, false
+                );
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void ChangesHandler(DocumentEvent event, Project project) {
         Document document = event.getDocument();
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
+        handleDocumentUpdates(file, project.getBasePath(), document.getText());
+    }
+
+    public static void handleDocumentUpdates(VirtualFile file, String repoPath, String currentText) {
         if (file == null) {
             return;
         }
@@ -334,7 +403,6 @@ public class Utils {
         System.out.println(String.format("Event: %s", time));
         String filePath = file.getPath();
 
-        String repoPath = project.getBasePath();
         String branch = Utils.GetGitBranch(repoPath);
         if (repoPath == null) { return; }
         String s = String.format("%s/", repoPath);
@@ -369,7 +437,6 @@ public class Utils {
             return;
         }
 
-        String currentText = document.getText();
         currentText = currentText.replace(MAGIC_STRING, "").trim();
 
         String shadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, relPath);
@@ -489,7 +556,10 @@ public class Utils {
         return d > 0.95;
     }
 
-    public static Date getCurrentDatetime()  {
-        return new Date();
+    public static String getCurrentDatetime()  {
+        Date currentTime = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_TIME_FORMAT);
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return sdf.format(currentTime);
     }
 }
