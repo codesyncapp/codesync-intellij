@@ -14,6 +14,7 @@ import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -37,6 +38,12 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return;
     }
+    // Create system folders
+    String[] systemFolders = {CODESYNC_ROOT, DIFFS_REPO, ORIGINALS_REPO, SHADOW_REPO, DELETED_REPO};
+    for (String systemFolder : systemFolders) {
+      File folder = new File(systemFolder);
+      folder.mkdirs();
+    }
 
     // Schedule buffer handler.
     HandleBuffer.scheduleBufferHandler();
@@ -44,7 +51,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     project.getMessageBus().connect().subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
       public void after(@NotNull List<? extends VFileEvent> events) {
-        String repoName = project.getName();
         String repoPath = project.getBasePath();
 
         // handle the events
