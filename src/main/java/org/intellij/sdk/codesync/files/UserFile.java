@@ -30,6 +30,10 @@ public class UserFile extends CodeSyncYmlFile {
             return this.accessKey;
         }
 
+        public void setAccessKey (String accessKey) {
+            this.accessKey = accessKey;
+        }
+
         public String getSecretKey () {
             return this.secretKey;
         }
@@ -51,6 +55,28 @@ public class UserFile extends CodeSyncYmlFile {
         this.userFile = userFile;
         this.contentsMap = this.readYml();
         this.loadYmlContent();
+    }
+
+    public static boolean createFile(String filePath) {
+        try {
+            File file = new File(filePath);
+            if (file.createNewFile()) {
+                FileWriter fileWriter = new FileWriter(file);
+
+                // Write empty yml dict.
+                fileWriter.write("{}");
+                fileWriter.close();
+
+                return true;
+            } else {
+                return false;
+            }
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     public File getYmlFile()  {
@@ -84,6 +110,18 @@ public class UserFile extends CodeSyncYmlFile {
      */
     public User getUser(String userEmail) {
         return this.users.getOrDefault(userEmail, null);
+    }
+
+    public void setUser (String userEmail, String accessToken) {
+        User user = getUser(userEmail);
+        if (user == null) {
+            Map<String, String> userCredentials = new HashMap<>();
+            userCredentials.put("access_key", accessToken);
+            user = new User(userEmail, userCredentials);
+        } else {
+            user.setAccessKey(accessToken);
+        }
+        this.users.put(userEmail, user);
     }
 
     /*

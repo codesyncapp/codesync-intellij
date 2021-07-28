@@ -47,4 +47,10 @@
     <listener class="org.intellij.sdk.codesync.ProjectOpenCloseListener"
               topic="com.intellij.openapi.project.ProjectManagerListener"/>
   </projectListeners>
+  <actions>
+    <action id="org.intellij.sdk.codesync.uiElements.AuthAction" class="org.intellij.sdk.codesync.auth.AuthAction"
+            text="Authentication Setup" description="Authentication setup">
+      <add-to-group group-id="ToolsMenu" anchor="first"/>
+    </action>
+  </actions>
 </idea-plugin>

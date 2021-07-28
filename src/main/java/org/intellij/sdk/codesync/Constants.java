@@ -45,9 +45,10 @@ public final class Constants {
     public static String WEBSOCKET_ENDPOINT = String.format("ws://%s/v1/websocket", CODESYNC_DOMAIN);
     public static String API_ENDPOINT = String.format("%s/v1", CODESYNC_HOST);
     public static String API_INIT = String.format("%s/init", API_ENDPOINT);
-    public static String GET_USER = String.format("%s/users", API_ENDPOINT);
+    public static String API_USERS = String.format("%s/users", API_ENDPOINT);
     public static String FILES_API_ENDPOINT = String.format("%s/files", API_ENDPOINT);
     public static String API_HEALTHCHECK = String.format("%s/healthcheck", CODESYNC_HOST);
+    public static String CODESYNC_AUTHORIZE_URL = String.format("%s/authorize", CODESYNC_HOST);
 
     public static Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
     public static String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
@@ -55,5 +56,4 @@ public final class Constants {
     public static String CLIENT_LOGS_GROUP_NAME = "client-logs";
 
     public static String CONNECTION_ERROR_MESSAGE = "Error => Server is not available. Please try again in a moment";
-
 }
