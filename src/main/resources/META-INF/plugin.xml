@@ -48,9 +48,16 @@
               topic="com.intellij.openapi.project.ProjectManagerListener"/>
   </projectListeners>
   <actions>
-    <action id="org.intellij.sdk.codesync.uiElements.AuthAction" class="org.intellij.sdk.codesync.auth.AuthAction"
-            text="Authentication Setup" description="Authentication setup">
-      <add-to-group group-id="ToolsMenu" anchor="first"/>
-    </action>
+    <group id="org.intellij.sdk.action.GroupedActions" text="CodeSync" popup="true">
+      <add-to-group group-id="MainMenu" anchor="after" relative-to-action="ToolsMenu"/>
+      <action id="org.intellij.sdk.codesync.auth.AuthAction" class="org.intellij.sdk.codesync.auth.AuthAction"
+              text="Login" description="Authentication setup" icon="SdkIcons.codeSyncIcon">
+      </action>
+      <action id="org.intellij.sdk.codesync.auth.LogoutAction" class="org.intellij.sdk.codesync.auth.LogoutAction"
+              text="Use Different Account" description="Use a different account for codesync authentication."
+              icon="SdkIcons.codeSyncIcon"
+      >
+      </action>
+    </group>
   </actions>
 </idea-plugin>

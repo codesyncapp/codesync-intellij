@@ -49,6 +49,7 @@ public final class Constants {
     public static String FILES_API_ENDPOINT = String.format("%s/files", API_ENDPOINT);
     public static String API_HEALTHCHECK = String.format("%s/healthcheck", CODESYNC_HOST);
     public static String CODESYNC_AUTHORIZE_URL = String.format("%s/authorize", CODESYNC_HOST);
+    public static String CODESYNC_LOGOUT_URL = String.format("%s/auth-logout", CODESYNC_HOST);
 
     public static Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
     public static String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
