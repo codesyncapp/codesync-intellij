@@ -23,7 +23,7 @@ public class LogoutAction extends AnAction {
         try {
             server =  CodeSyncAuthServer.getInstance();
             URIBuilder uriBuilder = new URIBuilder(CODESYNC_LOGOUT_URL);
-            uriBuilder.addParameter("redirect_uri", server.getAuthorizationUrl());
+            uriBuilder.addParameter("redirect_uri", server.getServerURL());
             BrowserUtil.browse(uriBuilder.toString());
         } catch (Exception exc) {
             exc.printStackTrace();
