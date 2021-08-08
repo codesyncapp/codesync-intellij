@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'com.codesync'
-version '1.3.0'
+version '2.0.0'
 
 sourceCompatibility = 1.8
 
@@ -26,7 +26,7 @@ buildSearchableOptions {
 patchPluginXml {
   version = project.version
   sinceBuild = '201'
-  untilBuild = '211.*'
+  untilBuild = '212.*'
 }
 
 dependencies {
