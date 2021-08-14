@@ -14,6 +14,7 @@ public class ConfigRepo {
     public Boolean isInSync;
     public Boolean isDeleted;
     public Boolean pauseNotification;
+    public Boolean isDisconnected;
 
     public Map<String, ConfigRepoBranch> branches = new HashMap<>();
 
@@ -38,6 +39,7 @@ public class ConfigRepo {
 
         this.isInSync = Utils.getBoolValue(configRepoMap, "is_in_sync", true);
         this.isDeleted = Utils.getBoolValue(configRepoMap, "is_deleted", false);
+        this.isDisconnected = Utils.getBoolValue(configRepoMap, "is_disconnected", false);
         this.pauseNotification = Utils.getBoolValue(configRepoMap, "pause_notification", false);
     }
 
@@ -52,6 +54,7 @@ public class ConfigRepo {
         repo.put("id", this.id);
         repo.put("token", this.token);
         repo.put("is_deleted", this.isDeleted);
+        repo.put("is_disconnected", this.isDisconnected);
         repo.put("pause_notification", this.pauseNotification);
         return repo;
     }
@@ -66,5 +69,18 @@ public class ConfigRepo {
 
     public void deleteRepoBranch(String branchName) {
         this.branches.remove(branchName);
+    }
+
+    public boolean isSuccessfullySynced() {
+        String branchName = Utils.GetGitBranch(this.repoPath);
+        if (!this.branches.containsKey(branchName)) {
+            // If branch is not synced, daemon will take care of it.
+            return true;
+        }
+
+        ConfigRepoBranch configRepoBranch = this.getRepoBranch(branchName);
+
+        // If there is any invalid file then it mean repo was not synced successfully.
+        return !configRepoBranch.hasInvalidFiles();
     }
 }

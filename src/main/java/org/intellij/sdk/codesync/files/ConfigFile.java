@@ -111,4 +111,13 @@ public class ConfigFile extends CodeSyncYmlFile {
             throw new InvalidConfigFileError(e.getMessage());
         }
     }
+
+    public boolean isRepoSynced (String repoPath) {
+        ConfigRepo repo = this.getRepo(repoPath);
+        if (repo == null) {
+            return false;
+        }
+
+        return !repo.isDisconnected;
+    }
 }

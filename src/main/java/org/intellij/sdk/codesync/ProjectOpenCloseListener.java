@@ -12,9 +12,9 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -38,12 +38,8 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return;
     }
-    // Create system folders
-    String[] systemFolders = {CODESYNC_ROOT, DIFFS_REPO, ORIGINALS_REPO, SHADOW_REPO, DELETED_REPO};
-    for (String systemFolder : systemFolders) {
-      File folder = new File(systemFolder);
-      folder.mkdirs();
-    }
+
+    CodeSyncSetup.setupCodeSyncRepo(project.getBasePath(), project.getName());
 
     // Schedule buffer handler.
     HandleBuffer.scheduleBufferHandler();
@@ -82,6 +78,11 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       @Override
       public void documentChanged(@NotNull DocumentEvent event) {
         ChangesHandler(event, project);
+
+        // TODO: Remove after testing.
+//        CodeSyncSetup.syncRepo("/Users/saleemlatif/dev/codesync/codesyncserver");
+//        NotificationManager.notifyError("user made some changes.");
+
       }
     }, Disposer.newDisposable());
   }
