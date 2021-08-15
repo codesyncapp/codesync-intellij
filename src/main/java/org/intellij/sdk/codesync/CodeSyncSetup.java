@@ -1,13 +1,23 @@
 package org.intellij.sdk.codesync;
 
+import com.intellij.ide.BrowserUtil;
+import kotlin.Pair;
+import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
+import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
+import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
+import org.intellij.sdk.codesync.exceptions.RequestError;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
+import org.intellij.sdk.codesync.files.UserFile;
+import org.intellij.sdk.codesync.models.User;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
+import org.intellij.sdk.codesync.userInput.SignupRequestDialogWrapper;
 import org.intellij.sdk.codesync.userInput.SyncRepoDialogWrapper;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -26,13 +36,17 @@ public class CodeSyncSetup {
                 boolean shouldSyncRepo = new SyncRepoDialogWrapper(repoName).showAndGet();
 
                 if (shouldSyncRepo) {
-                    syncRepo(repoPath);
+                    boolean hasAccessToken = checkUserAccess();
+                    if (hasAccessToken) {
+                        syncRepo(repoPath);
+                    }
                 }
             }
 
         } catch (InvalidConfigFileError error) {
             CodeSyncLogger.logEvent(String.format("Config file error, %s.\n", error.getMessage()));
         }
+
         // Create system directories required by the plugin.
         createSystemDirectories();
     }
@@ -44,6 +58,79 @@ public class CodeSyncSetup {
             File folder = new File(systemFolder);
             folder.mkdirs();
         }
+    }
+
+    /*
+    Check if the user has proper access for repo initialization, or not.
+
+    This will also trigger the authentication flow if user does not have access token setup.
+     */
+    public static boolean checkUserAccess() {
+        CodeSyncClient codeSyncClient = new CodeSyncClient();
+        if (!codeSyncClient.isServerUp()) {
+            NotificationManager.notifyError(Notification.SERVICE_NOT_AVAILABLE);
+            return false;
+        }
+
+        String accessToken = null;
+        try {
+            UserFile userFile = new UserFile(USER_FILE_PATH);
+            UserFile.User user = userFile.getUser();
+            if (user != null) {
+                accessToken = user.getAccessKey();
+            }
+        } catch (FileNotFoundException | InvalidYmlFileError error) {
+            // Set access token to null to trigger user signup.
+            accessToken = null;
+        }
+
+        // User already has access token, no need to proceed.
+        if (accessToken != null) {
+            try {
+                Pair<Boolean, User> userPair = codeSyncClient.getUser(accessToken);
+                Boolean isTokenValid = userPair.component1();
+
+                // If token is not valid then need to authenticate again.
+                if (!isTokenValid) {
+                    return false;
+                }
+
+                User user = userPair.component2();
+                if (user.repoCount >= user.plan.repoCount) {
+                    NotificationManager.notifyError(Notification.UPGRADE_PLAN);
+                    return false;
+                }
+
+                // User has access to repo sync, and can proceed.
+                return true;
+            } catch (RequestError e) {
+                // Unknown token status, need to authenticate again.
+                return false;
+            }
+        }
+
+        boolean shouldSignup = new SignupRequestDialogWrapper().showAndGet();
+
+        // If user said no to signup request the return here.
+        if (!shouldSignup) {
+            // TODO: We should add logic here to not ask the user again next time he opens the project.
+            return false;
+        }
+
+        CodeSyncAuthServer server;
+        // TODO: Add code to resume repo-sync after successful login. This might be already happening, need to test.
+        try {
+            server =  CodeSyncAuthServer.getInstance();
+            BrowserUtil.browse(server.getAuthorizationUrl());
+        } catch (Exception exc) {
+            exc.printStackTrace();
+            CodeSyncLogger.logEvent(
+                    "[INTELLIJ_AUTH_ERROR]: IntelliJ Login Error, an error occurred during user authentication."
+            );
+            NotificationManager.notifyError("There was a problem with login, please try again later.");
+        }
+
+        return false;
     }
 
     public static void syncRepo(String repoPath) {
