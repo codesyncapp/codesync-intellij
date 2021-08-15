@@ -77,7 +77,7 @@ public class CodeSyncSetup {
             UserFile userFile = new UserFile(USER_FILE_PATH);
             UserFile.User user = userFile.getUser();
             if (user != null) {
-                accessToken = user.getAccessKey();
+                accessToken = user.getAccessToken();
             }
         } catch (FileNotFoundException | InvalidYmlFileError error) {
             // Set access token to null to trigger user signup.

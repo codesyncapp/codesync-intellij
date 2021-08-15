@@ -14,34 +14,51 @@ public class UserFile extends CodeSyncYmlFile {
     public Map<String, User> users = new HashMap<>();
 
     public static class User {
-        String userEmail, accessKey, secretKey;
+        String userEmail, accessKey = null, secretKey = null, accessToken = null;
 
         public User(String userEmail, Map<String, String> userCredentials) {
             this.userEmail = userEmail;
             this.accessKey = userCredentials.getOrDefault("access_key", null);
             this.secretKey = userCredentials.getOrDefault("secret_key", null);
+            this.accessToken = userCredentials.getOrDefault("access_token", null);
+        }
+
+        /*
+        Construct a user instance with Auth0 access token.
+         */
+        public User(String userEmail, String accessToken) {
+            this.userEmail = userEmail;
+            this.accessToken = accessToken;
+        }
+
+        /*
+        Construct a user instance with IAM access and secret.
+         */
+        public User(String userEmail, String iamAccessKey, String iamSecretKey) {
+            this.userEmail = userEmail;
+            this.accessKey = iamAccessKey;
+            this.secretKey = iamSecretKey;
         }
 
         public String getUserEmail () {
             return this.userEmail;
         }
-
-        public String getAccessKey () {
-            return this.accessKey;
-        }
-
-        public void setAccessKey (String accessKey) {
-            this.accessKey = accessKey;
-        }
-
+        public String getAccessKey () { return this.accessKey; }
+        public String getAccessToken () { return this.accessToken; }
         public String getSecretKey () {
             return this.secretKey;
         }
+
+        public void setAccessKey (String accessKey) { this.accessKey = accessKey; }
+        public void setAccessToken (String accessToken) { this.accessToken = accessToken; }
+        public void setSecretKey (String secretKey) { this.secretKey = secretKey; }
+
 
         public Map<String, String> getYMLAsHashMap() {
             Map<String, String> user = new HashMap<>();
             user.put("access_key", this.accessKey);
             user.put("secret_key", this.secretKey);
+            user.put("access_token", this.accessToken);
             return user;
         }
     }
@@ -112,18 +129,6 @@ public class UserFile extends CodeSyncYmlFile {
         return this.users.getOrDefault(userEmail, null);
     }
 
-    public void setUser (String userEmail, String accessToken) {
-        User user = getUser(userEmail);
-        if (user == null) {
-            Map<String, String> userCredentials = new HashMap<>();
-            userCredentials.put("access_key", accessToken);
-            user = new User(userEmail, userCredentials);
-        } else {
-            user.setAccessKey(accessToken);
-        }
-        this.users.put(userEmail, user);
-    }
-
     /*
     Get the first user from the map.
      */
@@ -131,4 +136,32 @@ public class UserFile extends CodeSyncYmlFile {
         Optional<String> firstKey = this.users.keySet().stream().findFirst();
         return firstKey.map(this::getUser).orElse(null);
     }
+
+    /*
+    Set user using Auth0 access token
+     */
+    public void setUser (String userEmail, String accessToken) {
+        User user = getUser(userEmail);
+        if (user == null) {
+            user = new User(userEmail, accessToken);
+        } else {
+            user.setAccessToken(accessToken);
+        }
+        this.users.put(userEmail, user);
+    }
+
+    /*
+    Set user using IAM access and secret.
+     */
+    public void setUser (String userEmail, String iamAccessKey, String iamSecretKey) {
+        User user = getUser(userEmail);
+        if (user == null) {
+            user = new User(userEmail, iamAccessKey, iamSecretKey);
+        } else {
+            user.setAccessKey(iamAccessKey);
+            user.setSecretKey(iamSecretKey);
+        }
+        this.users.put(userEmail, user);
+    }
+
 }

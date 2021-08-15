@@ -65,7 +65,7 @@ public class CodeSyncClient {
         // If server returned an error then token is not valid.
         boolean isTokenValid = !response.containsKey("error");
         if (!isTokenValid) {
-            return new Pair<Boolean, User>(false, null);
+            return new Pair<>(false, null);
         }
 
         try { JSONObject userPlanObject = (JSONObject) response.get("plan");
@@ -80,7 +80,7 @@ public class CodeSyncClient {
                 userPlan
             );
 
-            return new Pair<Boolean, User>(true, user);
+            return new Pair<>(true, user);
         } catch (ClassCastException err) {
             CodeSyncLogger.logEvent(String.format(
                 "Error parsing the response of /users endpoint. Error: %s", err.getMessage()
