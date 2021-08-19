@@ -39,7 +39,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       return;
     }
 
-    CodeSyncSetup.setupCodeSyncRepo(project.getBasePath(), project.getName());
+//    CodeSyncSetup.setupCodeSyncRepo(project.getBasePath(), project.getName());
 
     // Schedule buffer handler.
     HandleBuffer.scheduleBufferHandler();

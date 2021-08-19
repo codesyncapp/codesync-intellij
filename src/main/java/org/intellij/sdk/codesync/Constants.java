@@ -69,7 +69,11 @@ public final class Constants {
             // restrict instantiation
         }
 
+        public static String YES = "Yes";
+        public static String NO = "No";
         public static String SERVICE_NOT_AVAILABLE = "Service is unavailable. Please try again in a moment.";
         public static String UPGRADE_PLAN = String.format("Upgrade your plan: %s", PLANS_URL);
+        public static String PUBLIC_OR_PRIVATE = "Do you want to make the repo public?";
+        public static String ERROR_SYNCING_REPO = "Error syncing repo.";
     }
 }

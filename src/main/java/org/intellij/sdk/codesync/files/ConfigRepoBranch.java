@@ -26,6 +26,12 @@ public class ConfigRepoBranch {
         this.files.remove(fileRelativePath);
     }
 
+    /*
+    Update all files of this branch.
+     */
+    public void updateFiles (Map<String, Integer> files) {
+        this.files = files;
+    }
 
     /*
     Check if any file in this branch has invalid files or not. Files with `null` values are considered invalid.

@@ -36,10 +36,10 @@ public class ShadowRepoManager extends BaseRepoManager {
     public void copyFiles(String[] filePaths) {
         for (String filePath: filePaths) {
             String to = String.format(
-                    "%s%s",
-                    // remove trailing forward slash if present.
-                    this.shadowDirectory.replaceFirst("/$",""),
-                    filePath
+                "%s%s",
+                // remove trailing forward slash if present.
+                this.shadowDirectory.replaceFirst("/$",""),
+                filePath
             );
 
             try {

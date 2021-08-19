@@ -18,6 +18,10 @@ public class ConfigRepo {
 
     public Map<String, ConfigRepoBranch> branches = new HashMap<>();
 
+    public ConfigRepo (String repoPath) {
+        this.repoPath = repoPath;
+    }
+
     public ConfigRepo (String repoPath, Map<String, Object> configRepoMap) throws InvalidConfigFileError {
         this.repoPath = repoPath;
 
@@ -62,6 +66,7 @@ public class ConfigRepo {
     public ConfigRepoBranch getRepoBranch(String branchName) {
         return this.branches.get(branchName);
     }
+    public boolean containsBranch(String branchName) { return this.branches.containsKey(branchName); }
 
     public void updateRepoBranch(String branchName, ConfigRepoBranch newBranch) {
         this.branches.put(branchName, newBranch);

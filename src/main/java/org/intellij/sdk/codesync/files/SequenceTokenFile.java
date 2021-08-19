@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync.files;
 
+import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 
@@ -39,6 +40,23 @@ public class SequenceTokenFile extends CodeSyncYmlFile {
         File sequenceTokenFile = new File(filePath);
 
         if (!sequenceTokenFile.isFile()) {
+            throw new FileNotFoundException(String.format("Sequence token file \"%s\" does not exist.", filePath));
+        }
+        this.sequenceTokenFile = sequenceTokenFile;
+        this.contentsMap = this.readYml();
+        this.loadYmlContent();
+    }
+
+    public SequenceTokenFile (String filePath, boolean shouldCreateIfAbsent) throws FileNotFoundException, InvalidYmlFileError, FileNotCreatedError {
+        File sequenceTokenFile = new File(filePath);
+
+        if (!sequenceTokenFile.isFile() && shouldCreateIfAbsent) {
+            boolean isFileReady = createFile(filePath);
+            if (!isFileReady) {
+                throw new FileNotCreatedError(String.format("User file \"%s\" could not be created.", filePath));
+            }
+            throw new FileNotFoundException(String.format("Sequence token file \"%s\" does not exist.", filePath));
+        } else if (!sequenceTokenFile.isFile()) {
             throw new FileNotFoundException(String.format("Sequence token file \"%s\" does not exist.", filePath));
         }
         this.sequenceTokenFile = sequenceTokenFile;

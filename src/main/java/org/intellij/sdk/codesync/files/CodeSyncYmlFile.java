@@ -58,4 +58,31 @@ abstract public class CodeSyncYmlFile {
         yaml.dump(yamlConfig, writer);
     }
 
+    /*
+    Create an empty yml file at the specified path.
+
+    @return true if file created successfully, false otherwise.
+     */
+    public static boolean createFile(String filePath) {
+        try {
+            File file = new File(filePath);
+            if (file.createNewFile()) {
+                FileWriter fileWriter = new FileWriter(file);
+
+                // Write empty yml dict.
+                fileWriter.write("{}");
+                fileWriter.close();
+
+                return true;
+            } else {
+                return false;
+            }
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
 }

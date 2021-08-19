@@ -1,11 +1,14 @@
 package org.intellij.sdk.codesync.files;
 
+import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import static org.intellij.sdk.codesync.Constants.USER_FILE_PATH;
 
 
 public class UserFile extends CodeSyncYmlFile {
@@ -74,26 +77,55 @@ public class UserFile extends CodeSyncYmlFile {
         this.loadYmlContent();
     }
 
-    public static boolean createFile(String filePath) {
-        try {
-            File file = new File(filePath);
-            if (file.createNewFile()) {
-                FileWriter fileWriter = new FileWriter(file);
+    /*
+    Instantiate a user file, create the file if it does not exist.
+     */
+    public UserFile (String filePath, boolean shouldCreateIfAbsent) throws FileNotFoundException, FileNotCreatedError, InvalidYmlFileError {
+        File userFile = new File(filePath);
 
-                // Write empty yml dict.
-                fileWriter.write("{}");
-                fileWriter.close();
-
-                return true;
-            } else {
-                return false;
+        if (!userFile.isFile() && shouldCreateIfAbsent) {
+            boolean isFileReady = createFile(filePath);
+            if (!isFileReady) {
+                throw new FileNotCreatedError(String.format("User file \"%s\" could not be created.", filePath));
             }
-        } catch (IOException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
+        } else if(!userFile.isFile()) {
+            throw new FileNotFoundException(String.format("User file \"%s\" does not exist.", filePath));
         }
 
-        return false;
+        this.userFile = userFile;
+        this.contentsMap = this.readYml();
+        this.loadYmlContent();
+    }
+
+    /*
+    Get access token for the user or null.
+
+    This is a utility method and can be called in places where it has already been made sure that file with correct
+    access token will be present.
+     */
+    public static String getAccessToken(String email) {
+        UserFile userFile = null;
+        try {
+            userFile = new UserFile(USER_FILE_PATH);
+        } catch (FileNotFoundException | InvalidYmlFileError e) {
+            return null;
+        }
+        UserFile.User user = userFile.getUser(email);
+        if (user != null) {
+            return user.getAccessToken();
+        }
+
+        return null;
+    }
+
+    /*
+    Get access token for the first user in the file or null.
+
+    This is a utility method and can be called in places where it has already been made sure that file with correct
+    access token will be present.
+     */
+    public static String getAccessToken() {
+        return getAccessToken(null);
     }
 
     public File getYmlFile()  {

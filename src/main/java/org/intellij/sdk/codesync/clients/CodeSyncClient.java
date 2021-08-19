@@ -198,4 +198,16 @@ public class CodeSyncClient {
             throw new RequestError(String.format("Error uploading file. Error: %s", e.getMessage()));
         }
     }
+
+    public JSONObject uploadRepo(String accessToken, JSONObject payload) {
+        try {
+            return ClientUtils.sendPost(API_INIT, payload, accessToken);
+        } catch (RequestError | InvalidJsonError error) {
+            error.printStackTrace();
+
+            CodeSyncLogger.logEvent(String.format("Error while repo init, %s", error.getMessage()));
+            return null;
+        }
+
+    }
 }
