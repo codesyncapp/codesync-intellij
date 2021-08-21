@@ -25,6 +25,8 @@ import java.util.*;
 import static org.intellij.sdk.codesync.Constants.*;
 
 public class CodeSyncSetup {
+    public static final Set<String> reposBeingSynced = new HashSet<>();
+
     public static void setupCodeSyncRepo(String repoPath, String repoName) {
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
@@ -32,18 +34,23 @@ public class CodeSyncSetup {
             ConfigRepo repo = configFile.getRepo(repoPath);
 
             if (!configFile.isRepoSynced(repoPath) || !repo.isSuccessfullySynced()) {
-                boolean shouldSyncRepo = Messages.showYesNoDialog(
-                        "Do uou want to enable syncing of this Repo?",
-                        String.format("'%s' Is not Being Synced!", repoName),
-                        Notification.YES,
-                        Notification.NO,
-                        Messages.getQuestionIcon()
-                ) == Messages.YES;;
 
-                if (shouldSyncRepo) {
-                    boolean hasAccessToken = checkUserAccess();
-                    if (hasAccessToken) {
-                        syncRepo(repoPath, repoName, Utils.GetGitBranch(repoPath));
+                // Do not ask user to sync repo, if it is already in progress.
+                if (!reposBeingSynced.contains(repoPath)) {
+                    reposBeingSynced.add(repoPath);
+                    boolean shouldSyncRepo = Messages.showYesNoDialog(
+                            "Do you want to enable syncing of this Repo?",
+                            String.format("'%s' Is not Being Synced!", repoName),
+                            Notification.YES,
+                            Notification.NO,
+                            Messages.getQuestionIcon()
+                    ) == Messages.YES;;
+
+                    if (shouldSyncRepo) {
+                        boolean hasAccessToken = checkUserAccess();
+                        if (hasAccessToken) {
+                            syncRepoAsync(repoPath, repoName, Utils.GetGitBranch(repoPath));
+                        }
                     }
                 }
             }
@@ -144,7 +151,25 @@ public class CodeSyncSetup {
         return false;
     }
 
-    public static void syncRepo(String repoPath, String repoName, String branchName) {
+    /*
+    Start an async task to sync repo.
+     */
+    public static void syncRepoAsync(String repoPath, String repoName, String branchName) {
+        boolean isPublic = Messages.showYesNoDialog(
+                Notification.PUBLIC_OR_PRIVATE,
+                Notification.PUBLIC_OR_PRIVATE,
+                Notification.YES,
+                Notification.NO,
+                Messages.getQuestionIcon()
+        ) == Messages.YES;
+
+        Thread newThread = new Thread(() -> {
+            syncRepo(repoPath, repoName, branchName, isPublic);
+        });
+        newThread.start();
+    }
+
+    public static void syncRepo(String repoPath, String repoName, String branchName, boolean isPublic) {
         // create .syncignore file.
         createSyncIgnore(repoPath);
 
@@ -160,14 +185,13 @@ public class CodeSyncSetup {
         originalsRepoManager.copyFiles(filePaths);
 
         // Upload the repo.
-        uploadRepo(repoPath, repoName, filePaths);
+        uploadRepo(repoPath, repoName, filePaths, isPublic);
 
         // Remove originals repo.
         originalsRepoManager.delete();
-
     }
 
-    public static void  uploadRepo(String repoPath, String repoName, String[] filePaths) {
+    public static void  uploadRepo(String repoPath, String repoName, String[] filePaths, boolean isPublic) {
         ConfigFile configFile = null;
         try {
             configFile = new ConfigFile(CONFIG_PATH);
@@ -237,14 +261,6 @@ public class CodeSyncSetup {
         }
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         JSONObject payload = new JSONObject();
-
-        boolean isPublic = Messages.showYesNoDialog(
-                Notification.PUBLIC_OR_PRIVATE,
-                Notification.PUBLIC_OR_PRIVATE,
-                Notification.YES,
-                Notification.NO,
-                Messages.getQuestionIcon()
-        ) == Messages.YES;
 
         payload.put("name", repoName);
         payload.put("is_public", isPublic);
@@ -466,6 +482,7 @@ public class CodeSyncSetup {
                 );
                 e.printStackTrace();
             }
+            return;
         }
 
         try {
