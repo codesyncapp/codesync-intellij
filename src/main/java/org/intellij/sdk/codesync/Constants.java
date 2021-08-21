@@ -37,15 +37,15 @@ public final class Constants {
     public static String REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION = "/^\\!/";
     public static Integer DIFFS_PER_ITERATION = 50;
 
-//    public static String CODESYNC_DOMAIN = "codesync-server.herokuapp.com";
-     public static String CODESYNC_DOMAIN = "127.0.0.1:8000";
-//    public static String CODESYNC_HOST = "https://codesync-server.herokuapp.com";
-     public static String CODESYNC_HOST = "http://127.0.0.1:8000";
-//    public static String CODESYNC_APP = "https://codesync.com";
+    public static String CODESYNC_DOMAIN = "codesync-server.herokuapp.com";
+//     public static String CODESYNC_DOMAIN = "127.0.0.1:8000";
+    public static String CODESYNC_HOST = "https://codesync-server.herokuapp.com";
+//     public static String CODESYNC_HOST = "http://127.0.0.1:8000";
+    public static String CODESYNC_APP = "https://codesync.com";
     public static String WEBSOCKET_ENDPOINT = String.format("ws://%s/v1/websocket", CODESYNC_DOMAIN);
 
-    public static String WEB_APP_URL = "http://localhost:3000";
-//    public static String WEB_APP_URL = "https://www.codesync.com";
+//    public static String WEB_APP_URL = "http://localhost:3000";
+    public static String WEB_APP_URL = "https://www.codesync.com";
 
     public static String API_ENDPOINT = String.format("%s/v1", CODESYNC_HOST);
     public static String API_INIT = String.format("%s/init", API_ENDPOINT);
