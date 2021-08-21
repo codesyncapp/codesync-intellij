@@ -2,7 +2,6 @@ package org.intellij.sdk.codesync;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.Messages;
@@ -14,7 +13,6 @@ import org.intellij.sdk.codesync.files.*;
 import org.intellij.sdk.codesync.models.User;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
-import org.intellij.sdk.codesync.userInput.SyncRepoDialogWrapper;
 import org.json.simple.JSONObject;
 
 import java.io.File;
@@ -34,12 +32,18 @@ public class CodeSyncSetup {
             ConfigRepo repo = configFile.getRepo(repoPath);
 
             if (!configFile.isRepoSynced(repoPath) || !repo.isSuccessfullySynced()) {
-                boolean shouldSyncRepo = new SyncRepoDialogWrapper(repoName).showAndGet();
+                boolean shouldSyncRepo = Messages.showYesNoDialog(
+                        "Do uou want to enable syncing of this Repo?",
+                        String.format("'%s' Is not Being Synced!", repoName),
+                        Notification.YES,
+                        Notification.NO,
+                        Messages.getQuestionIcon()
+                ) == Messages.YES;;
 
                 if (shouldSyncRepo) {
                     boolean hasAccessToken = checkUserAccess();
                     if (hasAccessToken) {
-                        syncRepo(repoPath, repoName);
+                        syncRepo(repoPath, repoName, Utils.GetGitBranch(repoPath));
                     }
                 }
             }
@@ -110,7 +114,7 @@ public class CodeSyncSetup {
             }
         }
 
-        boolean shouldSignup =Messages.showYesNoDialog(
+        boolean shouldSignup = Messages.showYesNoDialog(
                 "Do you want to proceed with authentication?",
                 "You Need to Authenticate!",
                 Notification.YES,
@@ -140,7 +144,7 @@ public class CodeSyncSetup {
         return false;
     }
 
-    public static void syncRepo(String repoPath, String repoName) {
+    public static void syncRepo(String repoPath, String repoName, String branchName) {
         // create .syncignore file.
         createSyncIgnore(repoPath);
 
@@ -148,15 +152,19 @@ public class CodeSyncSetup {
         System.out.println(Arrays.toString(filePaths));
 
         // Copy files to shadow repo.
-        ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath);
+        ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branchName);
         shadowRepoManager.copyFiles(filePaths);
 
         // Copy files to originals repo.
-        OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath);
+        OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath, branchName);
         originalsRepoManager.copyFiles(filePaths);
 
         // Upload the repo.
         uploadRepo(repoPath, repoName, filePaths);
+
+        // Remove originals repo.
+        originalsRepoManager.delete();
+
     }
 
     public static void  uploadRepo(String repoPath, String repoName, String[] filePaths) {
@@ -212,8 +220,7 @@ public class CodeSyncSetup {
                 return;
             }
         } else if(!configRepo.containsBranch(branchName)) {
-            ConfigRepoBranch configRepoBranch = configRepo.getRepoBranch(branchName);
-            configRepoBranch.updateFiles(branchFiles);
+            ConfigRepoBranch configRepoBranch = new ConfigRepoBranch(branchName, branchFiles);
             try {
                 configFile.publishBranchUpdate(configRepo, configRepoBranch);
             } catch (InvalidConfigFileError e) {
@@ -242,7 +249,7 @@ public class CodeSyncSetup {
         payload.put("name", repoName);
         payload.put("is_public", isPublic);
         payload.put("branch", branchName);
-        payload.put("files_data", filesData);
+        payload.put("files_data", filesData.toJSONString());
 
         JSONObject response = codeSyncClient.uploadRepo(accessToken, payload);
 
@@ -274,10 +281,15 @@ public class CodeSyncSetup {
         try {
             Map<String, Integer> filePathAndIds = new HashMap<>();
             repoId = ((Long) response.get("repo_id")).intValue();
-            JSONObject filePathAndIdsObject = (JSONObject) response.get("file_path_and_ids");
+            JSONObject filePathAndIdsObject = (JSONObject) response.get("file_path_and_id");
+
+            if (filePathAndIdsObject == null) {
+                CodeSyncLogger.logEvent("Invalid response from /init endpoint. Missing `file_path_and_id` key.");
+
+                return;
+            }
 
             filePathAndIds = new ObjectMapper().readValue(filePathAndIdsObject.toJSONString(), new TypeReference<Map<String, Integer>>(){});
-
             // Save File IDs
             saveFileIds(branchName, accessToken, email, repoId, filePathAndIds, configRepo, configFile);
         } catch (ClassCastException | JsonProcessingException err) {
@@ -291,6 +303,11 @@ public class CodeSyncSetup {
         try {
             Map<String, Object> fileUrls = new HashMap<>();
             JSONObject urls = (JSONObject) response.get("urls");
+            if (urls == null) {
+                CodeSyncLogger.logEvent("Invalid response from /init endpoint. Missing `urls` key.");
+
+                return;
+            }
             fileUrls = new ObjectMapper().readValue(urls.toJSONString(), new TypeReference<Map<String, Object>>(){});
 
             // Upload file to S3.
@@ -386,7 +403,10 @@ public class CodeSyncSetup {
 
         for (Map.Entry<String, Object> fileUrl : fileUrls.entrySet()) {
             File originalsFile = new File(Paths.get(originalsRepoBranchPath, fileUrl.getKey()).toString());
-
+            if (fileUrl.getValue() == "") {
+                // Skip if file is empty.
+                 continue;
+            }
             try {
                 codeSyncClient.uploadToS3(
                         originalsFile,

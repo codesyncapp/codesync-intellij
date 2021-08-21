@@ -12,7 +12,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
-import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -39,7 +38,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       return;
     }
 
-//    CodeSyncSetup.setupCodeSyncRepo(project.getBasePath(), project.getName());
+    CodeSyncSetup.setupCodeSyncRepo(project.getBasePath(), project.getName());
 
     // Schedule buffer handler.
     HandleBuffer.scheduleBufferHandler();
@@ -78,11 +77,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       @Override
       public void documentChanged(@NotNull DocumentEvent event) {
         ChangesHandler(event, project);
-
-        // TODO: Remove after testing.
-//        CodeSyncSetup.syncRepo("/Users/saleemlatif/dev/codesync/codesyncserver");
-//        NotificationManager.notifyError("user made some changes.");
-
       }
     }, Disposer.newDisposable());
   }

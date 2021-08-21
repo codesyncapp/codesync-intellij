@@ -110,7 +110,7 @@ public class UserFile extends CodeSyncYmlFile {
         } catch (FileNotFoundException | InvalidYmlFileError e) {
             return null;
         }
-        UserFile.User user = userFile.getUser(email);
+        UserFile.User user = email == null ? userFile.getUser(): userFile.getUser(email);
         if (user != null) {
             return user.getAccessToken();
         }
