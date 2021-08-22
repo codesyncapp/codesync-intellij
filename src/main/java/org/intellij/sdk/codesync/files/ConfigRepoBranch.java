@@ -25,4 +25,25 @@ public class ConfigRepoBranch {
     public void removeFileId (String fileRelativePath) {
         this.files.remove(fileRelativePath);
     }
+
+    /*
+    Update all files of this branch.
+     */
+    public void updateFiles (Map<String, Integer> files) {
+        this.files = files;
+    }
+
+    /*
+    Check if any file in this branch has invalid files or not. Files with `null` values are considered invalid.
+    */
+    public boolean hasInvalidFiles() {
+        for (Map.Entry<String, Integer> fileEntry : files.entrySet()) {
+            if (fileEntry.getValue() == null){
+                return true;
+            }
+        }
+
+        // No invalid file found.
+        return false;
+    }
 }

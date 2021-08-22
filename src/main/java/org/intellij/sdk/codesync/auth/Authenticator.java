@@ -3,7 +3,9 @@ package org.intellij.sdk.codesync.auth;
 import com.auth0.jwt.interfaces.Claim;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
+import org.intellij.sdk.codesync.exceptions.RequestError;
 import org.intellij.sdk.codesync.files.UserFile;
 import org.json.simple.JSONObject;
 
@@ -18,7 +20,7 @@ import com.auth0.jwt.*;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
-import org.intellij.sdk.codesync.clients.Utils;
+import org.intellij.sdk.codesync.clients.ClientUtils;
 import static org.intellij.sdk.codesync.Constants.*;
 
 
@@ -48,14 +50,17 @@ public class Authenticator extends HttpServlet {
         }
         JSONObject payload = new JSONObject();
         payload.putAll(claims);
-        JSONObject jsonResponse = Utils.sendPost(API_USERS, payload, accessToken);
+        JSONObject jsonResponse;
 
-        if (jsonResponse == null) {
+        try {
+            jsonResponse = ClientUtils.sendPost(API_USERS, payload, accessToken);
+        } catch (RequestError | InvalidJsonError error) {
             CodeSyncLogger.logEvent(
                     String.format("[INTELLIJ_AUTH_ERROR]: Error while creating the user. access token: '%s'", accessToken)
             );
             return;
         }
+
         if (jsonResponse.containsKey("error")) {
             CodeSyncLogger.logEvent(
                     String.format("[INTELLIJ_AUTH_ERROR]: Error while creating the user. server error: '%s'", jsonResponse.get("error"))

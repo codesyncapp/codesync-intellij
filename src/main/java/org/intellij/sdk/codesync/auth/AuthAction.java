@@ -17,7 +17,7 @@ public class AuthAction extends AnAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         // Using the event, implement an action. For example, create and show a dialog.
-        CodeSyncAuthServer server = null;
+        CodeSyncAuthServer server;
         try {
             server =  CodeSyncAuthServer.getInstance();
             BrowserUtil.browse(server.getAuthorizationUrl());

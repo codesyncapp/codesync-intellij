@@ -1,11 +1,15 @@
 package org.intellij.sdk.codesync.clients;
 
+import kotlin.Pair;
+
 import org.apache.http.client.methods.HttpGet;
+import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.DiffFile;
 import static org.intellij.sdk.codesync.Constants.*;
+import org.intellij.sdk.codesync.models.User;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -13,6 +17,7 @@ import org.apache.http.util.EntityUtils;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.intellij.sdk.codesync.models.UserPlan;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -40,6 +45,47 @@ public class CodeSyncClient {
             return response.getStatusLine().getStatusCode() == 200;
         } catch (IOException e) {
             return false;
+        }
+    }
+
+    /*
+    Get the user associated with the access token and validate if token is valid or not.
+
+    @return  Pair<Boolean, User>  First item of the pair shows of token is valid and secod is the user instance.
+     */
+    public Pair<Boolean, User> getUser(String accessToken) throws RequestError {
+        JSONObject response;
+        try {
+            response = ClientUtils.sendGet(API_USERS, accessToken);
+        } catch (RequestError | InvalidJsonError error) {
+            CodeSyncLogger.logEvent("Could not make a successful request to CodeSync server.");
+            throw new RequestError("Could not make a successful request to CodeSync server.");
+        }
+
+        // If server returned an error then token is not valid.
+        boolean isTokenValid = !response.containsKey("error");
+        if (!isTokenValid) {
+            return new Pair<>(false, null);
+        }
+
+        try { JSONObject userPlanObject = (JSONObject) response.get("plan");
+            UserPlan userPlan = new UserPlan(
+                (Long) userPlanObject.get("SIZE"),
+                (Long) userPlanObject.get("FILE_COUNT"),
+                (Long) userPlanObject.get("REPO_COUNT")
+            );
+            User user = new User(
+                (String) response.get("email"),
+                (Long) response.get("repo_count"),
+                userPlan
+            );
+
+            return new Pair<>(true, user);
+        } catch (ClassCastException err) {
+            CodeSyncLogger.logEvent(String.format(
+                "Error parsing the response of /users endpoint. Error: %s", err.getMessage()
+            ));
+            throw new RequestError("Error parsing the response from the server.");
         }
     }
 
@@ -151,5 +197,17 @@ public class CodeSyncClient {
         } catch (IOException e) {
             throw new RequestError(String.format("Error uploading file. Error: %s", e.getMessage()));
         }
+    }
+
+    public JSONObject uploadRepo(String accessToken, JSONObject payload) {
+        try {
+            return ClientUtils.sendPost(API_INIT, payload, accessToken);
+        } catch (RequestError | InvalidJsonError error) {
+            error.printStackTrace();
+
+            CodeSyncLogger.logEvent(String.format("Error while repo init, %s", error.getMessage()));
+            return null;
+        }
+
     }
 }

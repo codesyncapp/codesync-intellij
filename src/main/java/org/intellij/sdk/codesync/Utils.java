@@ -492,6 +492,24 @@ public class Utils {
         return pattern.format(date.toMillis());
     }
 
+    /*
+    Convert Date object to POSIX time.
+     */
+    public static Long getPosixTime(Date date) {
+        return date.getTime() / 1000L;
+    }
+
+    /*
+    Convert Date String to POSIX time.
+     */
+    public static Long getPosixTime(String dateString) {
+        Date date = parseDate(dateString);
+        if (date ==  null) {
+            return null;
+        }
+        return date.getTime() / 1000L;
+    }
+
     public static Map<String, Object> getFileInfo(String filePath) throws FileInfoError {
         Map<String, Object> fileInfo = new HashMap<>();
         File file = new File(filePath);
