@@ -12,9 +12,15 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import org.intellij.sdk.codesync.files.IgnoreFile;
 import org.jetbrains.annotations.NotNull;
 
+
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static org.intellij.sdk.codesync.Constants.*;
@@ -77,6 +83,23 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       @Override
       public void documentChanged(@NotNull DocumentEvent event) {
         ChangesHandler(event, project);
+
+        // TODO: remove after testing.
+//        String repoPath = project.getBasePath();
+//        try {
+//          assert repoPath != null;
+//          IgnoreFile ignoreFile = new IgnoreFile(Paths.get(repoPath, ".gitignore").toString());
+//          String[] filePaths = Files.walk(Paths.get(repoPath))
+//                  .filter(Files::isRegularFile)
+//                  .map(Path::toString)
+//                  .toArray(String[]::new);
+//
+//          for(String filePath: filePaths) {
+//            System.out.printf(ignoreFile.shouldIgnore(filePath) ? "Ignored: %s%n" : "Accepted: %s%n", filePath);
+//          }
+//        } catch (IOException e) {
+//          e.printStackTrace();
+//        }
       }
     }, Disposer.newDisposable());
   }

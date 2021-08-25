@@ -30,8 +30,8 @@ public class CodeSyncAuthServer {
     }
 
     public void start() throws Exception {
-        int maxThreads = 100;
-        int minThreads = 10;
+        int maxThreads = 10;
+        int minThreads = 2;
         int idleTimeout = 120;
 
         QueuedThreadPool threadPool = new QueuedThreadPool(maxThreads, minThreads, idleTimeout);
