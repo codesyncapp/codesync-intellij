@@ -12,6 +12,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

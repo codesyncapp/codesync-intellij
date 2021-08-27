@@ -58,6 +58,9 @@
               icon="SdkIcons.codeSyncIcon"
       >
       </action>
+      <action id="org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetupAction" class="org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetupAction"
+              text="Initialize Repo" description="Initialize repo with CodeSync" icon="SdkIcons.codeSyncIcon">
+      </action>
     </group>
   </actions>
 

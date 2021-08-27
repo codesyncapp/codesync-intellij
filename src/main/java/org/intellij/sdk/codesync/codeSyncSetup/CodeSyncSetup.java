@@ -1,4 +1,4 @@
-package org.intellij.sdk.codesync;
+package org.intellij.sdk.codesync.codeSyncSetup;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.Messages;
 import kotlin.Pair;
+import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.NotificationManager;
+import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.exceptions.*;
