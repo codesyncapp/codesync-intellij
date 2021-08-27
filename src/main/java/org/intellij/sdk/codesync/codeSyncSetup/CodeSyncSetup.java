@@ -4,6 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.DataConstants;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import kotlin.Pair;
 import org.intellij.sdk.codesync.CodeSyncLogger;
@@ -11,11 +18,13 @@ import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
+import org.intellij.sdk.codesync.commands.ResumeCodeSyncCommand;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.files.*;
 import org.intellij.sdk.codesync.models.User;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
+import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
 import java.io.File;
@@ -25,19 +34,31 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
 public class CodeSyncSetup {
     public static final Set<String> reposBeingSynced = new HashSet<>();
 
-    public static void setupCodeSyncRepo(String repoPath, String repoName) {
+    public static void setupCodeSyncRepo(Project project, boolean skipSyncPrompt) {
+        String repoPath = project.getBasePath();
+        String repoName = project.getName();
+
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
 
             ConfigRepo repo = configFile.getRepo(repoPath);
 
             if (!configFile.isRepoSynced(repoPath) || !repo.isSuccessfullySynced()) {
+                String branchName = Utils.GetGitBranch(repoPath);
+
+                if (skipSyncPrompt) {
+                    if (checkUserAccess(project, branchName)) {
+                        syncRepoAsync(project, branchName);
+                    }
+                    return;
+                }
 
                 // Do not ask user to sync repo, if it is already in progress.
                 if (!reposBeingSynced.contains(repoPath)) {
@@ -51,9 +72,9 @@ public class CodeSyncSetup {
                     ) == Messages.YES;;
 
                     if (shouldSyncRepo) {
-                        boolean hasAccessToken = checkUserAccess();
+                        boolean hasAccessToken = checkUserAccess(project, branchName);
                         if (hasAccessToken) {
-                            syncRepoAsync(repoPath, repoName, Utils.GetGitBranch(repoPath));
+                            syncRepoAsync(project, branchName);
                         }
                     }
                 }
@@ -77,16 +98,51 @@ public class CodeSyncSetup {
     }
 
     /*
-    Check if the user has proper access for repo initialization, or not.
-
-    This will also trigger the authentication flow if user does not have access token setup.
-     */
-    public static boolean checkUserAccess() {
+    Validate given access token, return true if valid, false otherwise.
+    The things this function will validate are listed below, if any of the following is not satisfied token is
+    considered invalid.
+        1. Validate that code sync server is up.
+        2. Validate access token is not expired by sending a request to the server.
+        3. Validate that user's plan has not been exhausted.
+    */
+    public static boolean validateAccessToken(String accessToken) throws InvalidAccessTokenError {
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         if (!codeSyncClient.isServerUp()) {
             NotificationManager.notifyError(Notification.SERVICE_NOT_AVAILABLE);
             return false;
         }
+
+        try {
+            Pair<Boolean, User> userPair = codeSyncClient.getUser(accessToken);
+            Boolean isTokenValid = userPair.component1();
+
+            // If token is not valid then need to authenticate again.
+            if (!isTokenValid) {
+                throw new InvalidAccessTokenError("Invalid access token, needs to be refreshed.");
+            }
+
+            User user = userPair.component2();
+            if (user.repoCount >= user.plan.repoCount) {
+                NotificationManager.notifyError(Notification.UPGRADE_PLAN);
+                return false;
+            }
+
+            // User has access to repo sync, and can proceed.
+            return true;
+        } catch (RequestError e) {
+            // Unknown token status, need to authenticate again.
+            return false;
+        }
+    }
+
+    /*
+    Check if the user has proper access for repo initialization, or not.
+
+    This will also trigger the authentication flow if user does not have access token setup.
+     */
+    public static boolean checkUserAccess(Project project, String branchName) {
+        String repoPath = project.getBasePath();
+        String repoName = project.getName();
 
         String accessToken = null;
         try {
@@ -103,25 +159,9 @@ public class CodeSyncSetup {
         // User already has access token, no need to proceed.
         if (accessToken != null) {
             try {
-                Pair<Boolean, User> userPair = codeSyncClient.getUser(accessToken);
-                Boolean isTokenValid = userPair.component1();
-
-                // If token is not valid then need to authenticate again.
-                if (!isTokenValid) {
-                    return false;
-                }
-
-                User user = userPair.component2();
-                if (user.repoCount >= user.plan.repoCount) {
-                    NotificationManager.notifyError(Notification.UPGRADE_PLAN);
-                    return false;
-                }
-
-                // User has access to repo sync, and can proceed.
-                return true;
-            } catch (RequestError e) {
-                // Unknown token status, need to authenticate again.
-                return false;
+                return validateAccessToken(accessToken);
+            } catch (InvalidAccessTokenError invalidAccessTokenError) {
+                // no action needed, user will be prompted for authenticated later by default.
             }
         }
 
@@ -139,10 +179,20 @@ public class CodeSyncSetup {
             return false;
         }
 
+        // We need to ask this first, otherwise we run into errors that it can not be done from outside of event thread.
+        boolean isPublic = Messages.showYesNoDialog(
+                project,
+                Notification.PUBLIC_OR_PRIVATE,
+                Notification.PUBLIC_OR_PRIVATE,
+                Notification.YES,
+                Notification.NO,
+                Messages.getQuestionIcon()
+        ) == Messages.YES;
+
         CodeSyncAuthServer server;
-        // TODO: Add code to resume repo-sync after successful login. This might be already happening, need to test.
         try {
             server =  CodeSyncAuthServer.getInstance();
+            CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(project, branchName, isPublic));
             BrowserUtil.browse(server.getAuthorizationUrl());
         } catch (Exception exc) {
             exc.printStackTrace();
@@ -154,26 +204,48 @@ public class CodeSyncSetup {
 
         return false;
     }
+    public static void syncRepoAsync(Project project, String branchName) {
+        syncRepoAsync(project, branchName, null);
+    }
 
     /*
     Start an async task to sync repo.
      */
-    public static void syncRepoAsync(String repoPath, String repoName, String branchName) {
-        boolean isPublic = Messages.showYesNoDialog(
-                Notification.PUBLIC_OR_PRIVATE,
-                Notification.PUBLIC_OR_PRIVATE,
-                Notification.YES,
-                Notification.NO,
-                Messages.getQuestionIcon()
-        ) == Messages.YES;
+    public static void syncRepoAsync(Project project, String branchName, Boolean isPublic) {
+        String repoPath = project.getBasePath();
+        String repoName = project.getName();
 
-        Thread newThread = new Thread(() -> {
-            syncRepo(repoPath, repoName, branchName, isPublic);
-        });
-        newThread.start();
+
+        if (isPublic == null) {
+            isPublic = Messages.showYesNoDialog(
+                    project,
+                    Notification.PUBLIC_OR_PRIVATE,
+                    Notification.PUBLIC_OR_PRIVATE,
+                    Notification.YES,
+                    Notification.NO,
+                    Messages.getQuestionIcon()
+            ) == Messages.YES;
+        }
+
+        Boolean finalIsPublic = isPublic;
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
+            public void run(@NotNull ProgressIndicator progressIndicator) {
+
+                // Set the progress bar percentage and text
+                progressIndicator.setFraction(0.10);
+                progressIndicator.setText("90% to finish");
+
+                // start your process
+                syncRepo(repoPath, repoName, branchName, finalIsPublic);
+
+                // Finished
+                progressIndicator.setFraction(1.0);
+                progressIndicator.setText("Repo initialized");
+
+            }});
     }
 
-    public static void syncRepo(String repoPath, String repoName, String branchName, boolean isPublic) {
+    public static void syncRepo(String repoPath, String repoName, String branchName, Boolean isPublic) {
         // create .syncignore file.
         createSyncIgnore(repoPath);
 
@@ -195,7 +267,7 @@ public class CodeSyncSetup {
         originalsRepoManager.delete();
     }
 
-    public static void  uploadRepo(String repoPath, String repoName, String[] filePaths, boolean isPublic) {
+    public static void  uploadRepo(String repoPath, String repoName, String[] filePaths, Boolean isPublic) {
         ConfigFile configFile = null;
         try {
             configFile = new ConfigFile(CONFIG_PATH);
@@ -450,17 +522,23 @@ public class CodeSyncSetup {
         IgnoreFile ignoreFile;
 
         try {
-            ignoreFile = new IgnoreFile(Paths.get(directory, ".gitignore").toString());
+            Stream<Path> filePathStream = filePathStream = Files.walk(Paths.get(directory))
+                    .filter(Files::isRegularFile);
 
-            filePaths = Files.walk(Paths.get(directory))
-                    .filter(Files::isRegularFile)
-                    .filter(path -> !ignoreFile.shouldIgnore(path.toFile()))
-                    .map(Path::toString)
-                    .toArray(String[]::new);
-        } catch (IOException e) {
+            try {
+                ignoreFile = new IgnoreFile(Paths.get(directory).toString());
+                filePathStream = filePathStream.filter(path -> !ignoreFile.shouldIgnore(path.toFile()));
+            } catch (FileNotFoundError error) {
+                // Do not filter anything if ignore file is not present.
+            }
+
+            filePaths = filePathStream.map(Path::toString).toArray(String[]::new);
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
-        return filePaths;
+
+       return filePaths;
     }
 
     public static void createSyncIgnore(String repoPath) {

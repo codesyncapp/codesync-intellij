@@ -18,7 +18,7 @@ public class CodeSyncSetupAction extends AnAction {
         // Using the event, implement an action. For example, create and show a dialog.
         Project project = e.getProject();
         if (project != null) {
-            CodeSyncSetup.setupCodeSyncRepo(project.getBasePath(), project.getName());
+            CodeSyncSetup.setupCodeSyncRepo(project, true);
         } else {
             CodeSyncLogger.logEvent(
                     "[CODESYNC_SETUP_ACTION] Could not trigger CodeSyncSetupAction because of null value of project."

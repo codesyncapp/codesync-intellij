@@ -8,8 +8,11 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.commands.Command;
 
 import java.net.URISyntaxException;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -17,6 +20,7 @@ import static org.intellij.sdk.codesync.Constants.*;
 public class CodeSyncAuthServer {
     private static CodeSyncAuthServer singletonInstance;
     private Server server;
+    private static final Queue<Command> commandQueue = new LinkedList<>();
 
     private CodeSyncAuthServer() throws Exception {
         start();
@@ -68,5 +72,18 @@ public class CodeSyncAuthServer {
 
     public String getAuthorizationUrl() {
         return getAuthorizationUrl(false);
+    }
+
+    public static void registerPostAuthCommand(Command command) {
+        commandQueue.add(command);
+    }
+
+    public static void executePostAuthCommands() {
+        for (Command command: commandQueue) {
+            command.execute();
+        }
+
+        // Clear the queue.
+        commandQueue.clear();
     }
 }

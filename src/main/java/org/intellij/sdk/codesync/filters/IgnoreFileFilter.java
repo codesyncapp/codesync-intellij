@@ -2,6 +2,8 @@ package org.intellij.sdk.codesync.filters;
 
 import com.neva.commons.gitignore.GitIgnore;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
+import org.intellij.sdk.codesync.files.IgnoreFile;
+import org.intellij.sdk.codesync.overrides.SyncIgnore;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -20,11 +22,15 @@ public class IgnoreFileFilter extends AbstractFileFilter {
         }
     }
 
-    public IgnoreFileFilter(String repoPath) {
+    public IgnoreFileFilter(String repoPath, IgnoreFile.IgnoreFileType ignoreFileType) {
         if (repoPath == null) {
             throw new IllegalArgumentException("The repoPath must not be null");
         } else {
-            this.gitIgnore = new GitIgnore(new File(repoPath));
+            if (ignoreFileType == IgnoreFile.IgnoreFileType.GITIGNORE) {
+                this.gitIgnore = new GitIgnore(new File(repoPath));
+            } else {
+                this.gitIgnore = new SyncIgnore(new File(repoPath));
+            }
         }
     }
 
