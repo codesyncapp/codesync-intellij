@@ -4,6 +4,7 @@ import com.neva.commons.gitignore.GitIgnore;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 
@@ -31,6 +32,10 @@ public class IgnoreFileFilter extends AbstractFileFilter {
         PathMatcher gitFileMatcher = new GitFileMatcher();
 
         return !this.gitIgnore.isExcluded(file) && !gitFileMatcher.matches(Paths.get(file.getPath()));
+    }
+
+    public boolean accept(Path path) {
+        return this.accept(path.toFile());
     }
 
     public boolean accept(String name) {

@@ -6,7 +6,6 @@ import org.intellij.sdk.codesync.filters.IgnoreFileFilter;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.IOException;
 
 /*
 File for handling .*ignore files like .gitignore, .syncignore etc.

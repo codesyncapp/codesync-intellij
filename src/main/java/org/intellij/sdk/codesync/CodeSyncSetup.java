@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -443,13 +444,15 @@ public class CodeSyncSetup {
      */
     public static String[] listFiles(String directory) {
         String[] filePaths = {};
+        IgnoreFile ignoreFile;
+
         try {
+            ignoreFile = new IgnoreFile(Paths.get(directory, ".gitignore").toString());
+
             filePaths = Files.walk(Paths.get(directory))
                     .filter(Files::isRegularFile)
-                    .map(name -> name.toString().replace(directory, ""))
-                    .map(name -> name.replaceFirst("/", ""))
-                    .filter((name) -> !Utils.shouldIgnoreFile(name, directory))
-                    .map((name) -> String.format("%s/%s", directory.replaceFirst("/$",""), name))
+                    .filter(path -> !ignoreFile.shouldIgnore(path.toFile()))
+                    .map(Path::toString)
                     .toArray(String[]::new);
         } catch (IOException e) {
             e.printStackTrace();
