@@ -2,12 +2,14 @@ package org.intellij.sdk.codesync;
 
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.project.Project;
 
 public class NotificationManager {
     public static void notify(String content, NotificationType notificationType) {
+        Project project = Utils.getCurrentProject();
         NotificationGroupManager.getInstance().getNotificationGroup("CodeSync Notifications")
                 .createNotification(content, notificationType)
-                .notify(null);
+                .notify(project);
     }
 
     public static void notifyError(String content) {

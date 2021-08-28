@@ -6,6 +6,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.util.Disposer;
@@ -13,6 +16,7 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
+import org.intellij.sdk.codesync.messages.CodeSyncMessages;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -39,7 +43,25 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       return;
     }
 
-    CodeSyncSetup.setupCodeSyncRepo(project, false);
+    // TODO: remove after testing.
+    ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
+      public void run(@NotNull ProgressIndicator progressIndicator) {
+
+        // Set the progress bar percentage and text
+        progressIndicator.setFraction(0.10);
+        progressIndicator.setText("Initializing repo");
+
+        boolean result = CodeSyncMessages.showYesNoMessage("This is a test title.", "This is a test title.", project);
+        System.out.printf("User selected: %s%n", result ? "Yes": "No");
+
+        // Finished
+        progressIndicator.setFraction(1.0);
+        progressIndicator.setText("Repo initialized");
+
+      }});
+
+
+    CodeSyncSetup.setupCodeSyncRepoAsync(project, false);
 
     // Schedule buffer handler.
     HandleBuffer.scheduleBufferHandler();

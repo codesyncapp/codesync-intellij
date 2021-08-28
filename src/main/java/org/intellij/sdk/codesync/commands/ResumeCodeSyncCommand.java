@@ -16,20 +16,17 @@ This command is useful in cases where code sync setup needs to be resumed after 
 */
 public class ResumeCodeSyncCommand implements Command {
     private final String branchName;
-    private boolean isPublic;
     private boolean skipIfAuthError = false;
     private final Project project;
 
-    public ResumeCodeSyncCommand(Project project, String branchName, boolean isPublic) {
+    public ResumeCodeSyncCommand(Project project, String branchName) {
         this.project = project;
         this.branchName = branchName;
-        this.isPublic = isPublic;
     }
 
-    public ResumeCodeSyncCommand(Project project, String branchName, boolean isPublic, boolean skipIfAuthError) {
+    public ResumeCodeSyncCommand(Project project, String branchName, boolean skipIfAuthError) {
         this.project = project;
         this.branchName = branchName;
-        this.isPublic = isPublic;
         this.skipIfAuthError = skipIfAuthError;
     }
 
@@ -38,7 +35,7 @@ public class ResumeCodeSyncCommand implements Command {
 
         try {
             if (accessToken != null && CodeSyncSetup.validateAccessToken(accessToken)) {
-                CodeSyncSetup.syncRepoAsync(project, branchName, isPublic);
+                CodeSyncSetup.syncRepoAsync(project, branchName);
             }
         } catch (InvalidAccessTokenError error) {
             if (this.skipIfAuthError) {
