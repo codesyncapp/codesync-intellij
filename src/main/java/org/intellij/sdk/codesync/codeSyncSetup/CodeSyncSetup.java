@@ -4,9 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.ide.BrowserUtil;
-import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.DataConstants;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -233,7 +230,7 @@ public class CodeSyncSetup {
 
                 // Set the progress bar percentage and text
                 progressIndicator.setFraction(0.10);
-                progressIndicator.setText("90% to finish");
+                progressIndicator.setText("Initializing repo");
 
                 // start your process
                 syncRepo(repoPath, repoName, branchName, finalIsPublic);
@@ -250,7 +247,6 @@ public class CodeSyncSetup {
         createSyncIgnore(repoPath);
 
         String[] filePaths = listFiles(repoPath);
-        System.out.println(Arrays.toString(filePaths));
 
         // Copy files to shadow repo.
         ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branchName);
@@ -261,21 +257,29 @@ public class CodeSyncSetup {
         originalsRepoManager.copyFiles(filePaths);
 
         // Upload the repo.
-        uploadRepo(repoPath, repoName, filePaths, isPublic);
+        boolean wasUploadSuccessful = uploadRepo(repoPath, repoName, filePaths, isPublic);
 
-        // Remove originals repo.
-        originalsRepoManager.delete();
+        if (wasUploadSuccessful) {
+            // Remove originals repo if it was uploaded successfully.
+            originalsRepoManager.delete();
+        }
     }
 
-    public static void  uploadRepo(String repoPath, String repoName, String[] filePaths, Boolean isPublic) {
-        ConfigFile configFile = null;
+    /*
+    upload the repo and returns status as a boolean.
+
+    @return: true if all repo upload operations (including repo upload and S3 upload) completed successfully,
+        false otherwise.
+    */
+    public static boolean uploadRepo(String repoPath, String repoName, String[] filePaths, Boolean isPublic) {
+        ConfigFile configFile;
         try {
             configFile = new ConfigFile(CONFIG_PATH);
         } catch (InvalidConfigFileError e) {
             e.printStackTrace();
 
             // Can not proceed. This should never happen as the same check is applied at the start.
-            return;
+            return false;
         }
         String branchName = Utils.GetGitBranch(repoPath);
 
@@ -317,7 +321,7 @@ public class CodeSyncSetup {
                 e.printStackTrace();
 
                 // Can not proceed. This should never happen as the same check is applied at the start.
-                return;
+                return false;
             }
         } else if(!configRepo.containsBranch(branchName)) {
             ConfigRepoBranch configRepoBranch = new ConfigRepoBranch(branchName, branchFiles);
@@ -327,13 +331,13 @@ public class CodeSyncSetup {
                 e.printStackTrace();
 
                 // Can not proceed. This should never happen as the same check is applied at the start.
-                return;
+                return false;
             }
         }
         String accessToken = UserFile.getAccessToken();
         if (accessToken == null) {
             // Can not proceed. This should never happen as the same check is applied at the start.
-            return;
+            return false;
         }
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         JSONObject payload = new JSONObject();
@@ -347,7 +351,7 @@ public class CodeSyncSetup {
 
         if (response.containsKey("error")) {
             NotificationManager.notifyError(Notification.ERROR_SYNCING_REPO);
-            return;
+            return false;
         }
         String email;
         try {
@@ -363,11 +367,8 @@ public class CodeSyncSetup {
                     "Error parsing the response of /init endpoint. Error: %s", err.getMessage()
             ));
 
-            return;
+            return false;
         }
-
-        // Save sequence token file.
-        saveSequenceToken(email);
 
         int repoId;
         try {
@@ -378,7 +379,7 @@ public class CodeSyncSetup {
             if (filePathAndIdsObject == null) {
                 CodeSyncLogger.logEvent("Invalid response from /init endpoint. Missing `file_path_and_id` key.");
 
-                return;
+                return false;
             }
 
             filePathAndIds = new ObjectMapper().readValue(filePathAndIdsObject.toJSONString(), new TypeReference<Map<String, Integer>>(){});
@@ -389,7 +390,7 @@ public class CodeSyncSetup {
                     "Error parsing the response of /init endpoint. Error: %s", err.getMessage()
             ));
 
-            return;
+            return false;
         }
 
         try {
@@ -398,7 +399,7 @@ public class CodeSyncSetup {
             if (urls == null) {
                 CodeSyncLogger.logEvent("Invalid response from /init endpoint. Missing `urls` key.");
 
-                return;
+                return false;
             }
             fileUrls = new ObjectMapper().readValue(urls.toJSONString(), new TypeReference<Map<String, Object>>(){});
 
@@ -408,8 +409,11 @@ public class CodeSyncSetup {
             CodeSyncLogger.logEvent(String.format(
                     "Error parsing the response of /init endpoint. Error: %s", err.getMessage()
             ));
-            return;
+            return false;
         }
+
+        // Everything completed successfully.
+        return true;
     }
 
     public static void saveIamUser(String email, String iamAccessKey, String iamSecretKey) {
@@ -441,27 +445,6 @@ public class CodeSyncSetup {
         } catch (FileNotFoundException | InvalidYmlFileError error) {
             CodeSyncLogger.logEvent(
                     String.format("[INTELLI_REPO_INIT_ERROR]: Could not write to user auth file. Error %s", error.getMessage())
-            );
-        }
-    }
-
-    public static void saveSequenceToken(String email) {
-        try {
-            SequenceTokenFile sequenceTokenFile = new SequenceTokenFile(SEQUENCE_TOKEN_FILE_PATH, true);
-            if (sequenceTokenFile.getSequenceToken(email) == null) {
-                sequenceTokenFile.updateSequenceToken(email, "");
-            }
-        } catch (InvalidYmlFileError error) {
-            CodeSyncLogger.logEvent(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: Invalid sequence token file. Error: %s", error.getMessage())
-            );
-        } catch (FileNotFoundException error) {
-            CodeSyncLogger.logEvent(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: sequence token file not found. Error: %s", error.getMessage())
-            );
-        } catch (FileNotCreatedError error) {
-            CodeSyncLogger.logEvent(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: Could not create sequence token file. Error %s", error.getMessage())
             );
         }
     }

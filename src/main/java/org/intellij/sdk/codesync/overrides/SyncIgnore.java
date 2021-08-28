@@ -1,6 +1,5 @@
 package org.intellij.sdk.codesync.overrides;
 
-import com.neva.commons.gitignore.ExcludeUtils;
 import com.neva.commons.gitignore.GitIgnore;
 import com.neva.commons.gitignore.PathPatternList;
 

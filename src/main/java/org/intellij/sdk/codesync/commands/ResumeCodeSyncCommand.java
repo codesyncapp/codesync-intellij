@@ -43,7 +43,7 @@ public class ResumeCodeSyncCommand implements Command {
         } catch (InvalidAccessTokenError error) {
             if (this.skipIfAuthError) {
                 // if skipIfAuthError is set to true then do not try to ask for user authentication again.
-                // This is useful to avoid loops/
+                // This is useful to avoid loops.
                 return;
             }
 
