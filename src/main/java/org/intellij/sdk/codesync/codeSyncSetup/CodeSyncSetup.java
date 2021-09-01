@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -304,27 +305,34 @@ public class CodeSyncSetup {
     }
 
     public static void askUserToUpdateSyncIgnore(Project project, String branchName){
-        // Ask user to modify the syncignore file
-        VirtualFile syncIgnoreFile = Utils.findSingleFile(".syncignore", project);
-        if (syncIgnoreFile != null) {
-            new OpenFileDescriptor(project, syncIgnoreFile, 0).navigate(true);
+        CodeSyncMessages.invokeAndWait(
+                () -> {
+                    // Ask user to modify the syncignore file
+                    VirtualFile syncIgnoreFile = Utils.findSingleFile(".syncignore", project);
+                    if (syncIgnoreFile != null) {
+                        new OpenFileDescriptor(project, syncIgnoreFile, 0).navigate(true);
 
-            ToolWindow codeSyncToolWindow = ToolWindowManager.getInstance(project).getToolWindow("CodeSyncToolWindow");
-            if (codeSyncToolWindow != null) {
-                codeSyncToolWindow.show();
-            }
+                        ToolWindow codeSyncToolWindow = ToolWindowManager.getInstance(project).getToolWindow("CodeSyncToolWindow");
+                        if (codeSyncToolWindow != null) {
+                            codeSyncToolWindow.show();
+                        }
 
-            registerResumeUploadCommand(project, branchName);
-        } else {
-            boolean shouldRetry = CodeSyncMessages.showYesNoMessage(
-                    "Something went wrong!",
-                    "Do you want to try again? If problem persists please contact support.",
-                    project
-            );
-            if (shouldRetry) {
-                new ResumeRepoUploadCommand(project, branchName).execute();
-            }
-        }
+                        registerResumeUploadCommand(project, branchName);
+                    } else {
+                        boolean shouldRetry = CodeSyncMessages.showYesNoMessage(
+                                "Something went wrong!",
+                                "Do you want to try again? If problem persists please contact support.",
+                                project
+                        );
+                        if (shouldRetry) {
+                            new ResumeRepoUploadCommand(project, branchName).execute();
+                        }
+                    }
+
+                    return null;
+                },
+                ModalityState.defaultModalityState()
+        );
     }
 
     /*
