@@ -66,5 +66,9 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup id="CodeSync Notifications" displayType="BALLOON" key="codesync.notification"/>
+
+    <toolWindow id="CodeSyncToolWindow" secondary="true" icon="SdkIcons.codeSyncIcon" anchor="left"
+                factoryClass="org.intellij.sdk.codesync.toolWindows.CodeSyncToolWindowFactory"
+    />
   </extensions>
 </idea-plugin>

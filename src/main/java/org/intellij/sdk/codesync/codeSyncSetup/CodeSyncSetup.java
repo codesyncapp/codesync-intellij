@@ -10,13 +10,17 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import kotlin.Pair;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
+import org.intellij.sdk.codesync.commands.Command;
 import org.intellij.sdk.codesync.commands.ResumeCodeSyncCommand;
+import org.intellij.sdk.codesync.commands.ResumeRepoUploadCommand;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.files.*;
 import org.intellij.sdk.codesync.messages.CodeSyncMessages;
@@ -41,6 +45,22 @@ import static org.intellij.sdk.codesync.Constants.*;
 
 public class CodeSyncSetup {
     public static final Set<String> reposBeingSynced = new HashSet<>();
+
+    // TODO: need to figure out a way to improve this.
+    private static Command resumeUploadCommand = null;
+
+    public static void registerResumeUploadCommand(Project project, String branchName) {
+        resumeUploadCommand = new ResumeRepoUploadCommand(project, branchName);
+    }
+
+    public static void executeResumeUploadCommand() {
+        if (resumeUploadCommand != null){
+            resumeUploadCommand.execute();
+
+            // This is done to avoid multiple invocations.
+            resumeUploadCommand = null;
+        }
+    }
 
     public static void setupCodeSyncRepoAsync(Project project, boolean skipSyncPrompt) {
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
@@ -225,18 +245,40 @@ public class CodeSyncSetup {
     }
 
     /*
-    upload the repo and returns status as a boolean.
+    This method is useful when repo upload needs to be resumed after user has updated syncignore file.
+     */
+    public static void resumeRepoUploadAsync(Project project, String branchName) {
+        String repoPath = project.getBasePath();
+        String repoName = project.getName();
 
-    @return: true if all repo upload operations (including repo upload and S3 upload) completed successfully,
-        false otherwise.
-    */
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo") {
+            public void run(@NotNull ProgressIndicator progressIndicator) {
+                CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
+
+                // Set the progress bar percentage and text
+                codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
+                syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, true);
+
+                // Finished
+                codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
+            }
+        });
+    }
 
     public static void syncRepo(String repoPath, String repoName, String branchName, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator) {
+        syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, false);
+    }
+
+    public static void syncRepo(String repoPath, String repoName, String branchName, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean ignoreSyncIgnoreUpdate) {
         // create .syncignore file.
         createSyncIgnore(repoPath);
 
-        // Ask user to modify the syncignore fil
-        askUserToUpdateSyncIgnore(project);
+        if (!ignoreSyncIgnoreUpdate) {
+            // Ask user to modify the syncignore fil
+            askUserToUpdateSyncIgnore(project, branchName);
+
+            return;
+        }
 
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.FETCH_FILES);
         String[] filePaths = listFiles(repoPath);
@@ -261,15 +303,36 @@ public class CodeSyncSetup {
         }
     }
 
-    public static void askUserToUpdateSyncIgnore(Project project){
-
+    public static void askUserToUpdateSyncIgnore(Project project, String branchName){
         // Ask user to modify the syncignore file
         VirtualFile syncIgnoreFile = Utils.findSingleFile(".syncignore", project);
         if (syncIgnoreFile != null) {
             new OpenFileDescriptor(project, syncIgnoreFile, 0).navigate(true);
+
+            ToolWindow codeSyncToolWindow = ToolWindowManager.getInstance(project).getToolWindow("CodeSyncToolWindow");
+            if (codeSyncToolWindow != null) {
+                codeSyncToolWindow.show();
+            }
+
+            registerResumeUploadCommand(project, branchName);
+        } else {
+            boolean shouldRetry = CodeSyncMessages.showYesNoMessage(
+                    "Something went wrong!",
+                    "Do you want to try again? If problem persists please contact support.",
+                    project
+            );
+            if (shouldRetry) {
+                new ResumeRepoUploadCommand(project, branchName).execute();
+            }
         }
     }
 
+    /*
+    upload the repo and returns status as a boolean.
+
+    @return: true if all repo upload operations (including repo upload and S3 upload) completed successfully,
+        false otherwise.
+    */
     public static boolean uploadRepo(String repoPath, String repoName, String[] filePaths, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator) {
         ConfigFile configFile;
         try {
