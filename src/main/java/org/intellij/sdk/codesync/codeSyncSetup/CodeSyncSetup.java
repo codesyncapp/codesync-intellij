@@ -4,10 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import kotlin.Pair;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
@@ -233,6 +235,9 @@ public class CodeSyncSetup {
         // create .syncignore file.
         createSyncIgnore(repoPath);
 
+        // Ask user to modify the syncignore fil
+        askUserToUpdateSyncIgnore(project);
+
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.FETCH_FILES);
         String[] filePaths = listFiles(repoPath);
 
@@ -255,6 +260,16 @@ public class CodeSyncSetup {
             originalsRepoManager.delete();
         }
     }
+
+    public static void askUserToUpdateSyncIgnore(Project project){
+
+        // Ask user to modify the syncignore file
+        VirtualFile syncIgnoreFile = Utils.findSingleFile(".syncignore", project);
+        if (syncIgnoreFile != null) {
+            new OpenFileDescriptor(project, syncIgnoreFile, 0).navigate(true);
+        }
+    }
+
     public static boolean uploadRepo(String repoPath, String repoName, String[] filePaths, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator) {
         ConfigFile configFile;
         try {

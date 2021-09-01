@@ -9,8 +9,13 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import com.intellij.openapi.wm.WindowManager;
+import com.intellij.psi.search.FilenameIndex;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.PathUtil;
+import com.intellij.util.containers.ContainerUtil;
 import name.fraser.neil.plaintext.diff_match_patch;
 import org.intellij.sdk.codesync.exceptions.FileInfoError;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 import org.yaml.snakeyaml.DumperOptions;
@@ -602,4 +607,19 @@ public class Utils {
 
         return foundProject;
     }
+
+    @Nullable
+    public static VirtualFile findSingleFile(@NotNull String fileName, @NotNull Project project) {
+        if (PathUtil.isValidFileName(fileName)) {
+            Collection<VirtualFile> files = FilenameIndex.getVirtualFilesByName(
+                    project, fileName, GlobalSearchScope.allScope(project)
+            );
+            if (files.size() == 1) {
+                return ContainerUtil.getFirstItem(files);
+            }
+
+        }
+        return null;
+    }
+
 }
