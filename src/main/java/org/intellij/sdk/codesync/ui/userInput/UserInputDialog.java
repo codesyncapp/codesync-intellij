@@ -1,4 +1,4 @@
-package org.intellij.sdk.codesync.userInput;
+package org.intellij.sdk.codesync.ui.userInput;
 
 import com.intellij.openapi.ui.DialogWrapper;
 

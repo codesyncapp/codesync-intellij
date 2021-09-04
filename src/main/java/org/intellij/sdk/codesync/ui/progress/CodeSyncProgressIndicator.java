@@ -1,4 +1,4 @@
-package org.intellij.sdk.codesync.progress;
+package org.intellij.sdk.codesync.ui.progress;
 
 import com.intellij.openapi.progress.ProgressIndicator;
 

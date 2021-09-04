@@ -1,4 +1,4 @@
-package org.intellij.sdk.codesync.toolWindows;
+package org.intellij.sdk.codesync.ui.toolWindows;
 
 import com.intellij.openapi.wm.ToolWindow;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;

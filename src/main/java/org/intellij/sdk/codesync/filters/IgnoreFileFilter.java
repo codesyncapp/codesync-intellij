@@ -1,8 +1,8 @@
 package org.intellij.sdk.codesync.filters;
 
-import com.neva.commons.gitignore.GitIgnore;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.intellij.sdk.codesync.files.IgnoreFile;
+import org.intellij.sdk.codesync.overrides.GitIgnore;
 import org.intellij.sdk.codesync.overrides.SyncIgnore;
 
 import java.io.File;

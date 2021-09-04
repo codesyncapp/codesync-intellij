@@ -1,4 +1,4 @@
-package org.intellij.sdk.codesync.progress;
+package org.intellij.sdk.codesync.ui.progress;
 
 public final class InitRepoMilestones {
     private InitRepoMilestones() {

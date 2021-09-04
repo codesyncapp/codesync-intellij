@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-public class SyncIgnoreExcludeUtils {
+public class ExcludeUtils {
     static PathPatternList readExcludeFile(File file, String basePath) {
         if (file.exists() && file.canRead()) {
             BufferedReader reader = null;
