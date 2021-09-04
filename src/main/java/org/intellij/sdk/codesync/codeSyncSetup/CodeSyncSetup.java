@@ -30,6 +30,7 @@ import org.intellij.sdk.codesync.progress.CodeSyncProgressIndicator;
 import org.intellij.sdk.codesync.progress.InitRepoMilestones;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
+import org.intellij.sdk.codesync.userInput.UserInputDialog;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
@@ -248,7 +249,7 @@ public class CodeSyncSetup {
     /*
     This method is useful when repo upload needs to be resumed after user has updated syncignore file.
      */
-    public static void resumeRepoUploadAsync(Project project, String branchName) {
+    public static void resumeRepoUploadAsync(Project project, String branchName, boolean ignoreSyncIgnoreUpdate) {
         String repoPath = project.getBasePath();
         String repoName = project.getName();
 
@@ -258,7 +259,7 @@ public class CodeSyncSetup {
 
                 // Set the progress bar percentage and text
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, true);
+                syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, ignoreSyncIgnoreUpdate);
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
@@ -318,6 +319,14 @@ public class CodeSyncSetup {
                         }
 
                         registerResumeUploadCommand(project, branchName);
+
+                        new UserInputDialog(
+                                "Please update .syncignore file.",
+                                "Once you have updated the file, you can resume repo initialization " +
+                                        "process, by click 'Continue with Initialization' button on the left CodeSync " +
+                                        "menu."
+                        ).show();
+
                     } else {
                         boolean shouldRetry = CodeSyncMessages.showYesNoMessage(
                                 "Something went wrong!",
@@ -325,7 +334,7 @@ public class CodeSyncSetup {
                                 project
                         );
                         if (shouldRetry) {
-                            new ResumeRepoUploadCommand(project, branchName).execute();
+                            new ResumeRepoUploadCommand(project, branchName, false).execute();
                         }
                     }
 

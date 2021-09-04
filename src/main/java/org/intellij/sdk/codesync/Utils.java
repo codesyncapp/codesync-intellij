@@ -1,20 +1,16 @@
 package org.intellij.sdk.codesync;
 
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import com.intellij.openapi.wm.WindowManager;
-import com.intellij.psi.search.FilenameIndex;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.PathUtil;
-import com.intellij.util.containers.ContainerUtil;
 import name.fraser.neil.plaintext.diff_match_patch;
 import org.intellij.sdk.codesync.exceptions.FileInfoError;
 import org.jetbrains.annotations.NotNull;
@@ -613,15 +609,9 @@ public class Utils {
     @Nullable
     public static VirtualFile findSingleFile(@NotNull String fileName, @NotNull Project project) {
         if (PathUtil.isValidFileName(fileName)) {
-            Collection<VirtualFile> files = FilenameIndex.getVirtualFilesByName(
-                    project, fileName, GlobalSearchScope.allScope(project)
-            );
-            if (files.size() == 1) {
-                return ContainerUtil.getFirstItem(files);
-            }
-
+            File file = Paths.get(project.getBasePath(), fileName).toFile();
+            return LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
         }
         return null;
     }
-
 }
