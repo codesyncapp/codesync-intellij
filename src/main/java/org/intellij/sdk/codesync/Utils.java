@@ -4,17 +4,23 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.util.PathUtil;
 import name.fraser.neil.plaintext.diff_match_patch;
 import org.intellij.sdk.codesync.exceptions.FileInfoError;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 
+import java.awt.*;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.FileTime;
@@ -22,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.intellij.sdk.codesync.Constants.*;
@@ -579,5 +586,32 @@ public class Utils {
         SimpleDateFormat sdf = new SimpleDateFormat(DATE_TIME_FORMAT);
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         return sdf.format(currentTime);
+    }
+
+    public static Project getCurrentProject() {
+        Project[] allProjects = ProjectManager.getInstance().getOpenProjects();
+        Project foundProject = null;
+
+        for (Project project: allProjects) {
+            Window window = WindowManager.getInstance().suggestParentWindow(project);
+            if (window != null && window.isFocused()) {
+                foundProject = project;
+            }
+
+            if (foundProject != null) {
+                break;
+            }
+        }
+
+        return foundProject;
+    }
+
+    @Nullable
+    public static VirtualFile findSingleFile(@NotNull String fileName, @NotNull Project project) {
+        if (PathUtil.isValidFileName(fileName)) {
+            File file = Paths.get(project.getBasePath(), fileName).toFile();
+            return LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
+        }
+        return null;
     }
 }

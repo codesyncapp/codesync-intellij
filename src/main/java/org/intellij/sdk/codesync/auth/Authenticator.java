@@ -33,6 +33,9 @@ public class Authenticator extends HttpServlet {
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
 
+        // Execute all registered post authentication commands.
+        CodeSyncAuthServer.executePostAuthCommands();
+
         response.getWriter().print("<body><h1 class=\"\" style=\"text-align: center;\" >You are logged in, you can close this window now.</h1></body>\n");
     }
 
