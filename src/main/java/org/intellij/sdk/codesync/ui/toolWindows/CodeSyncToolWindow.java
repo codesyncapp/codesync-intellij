@@ -8,6 +8,7 @@ import javax.swing.*;
 public class CodeSyncToolWindow {
     private JPanel toolWindowContent;
     private JButton continueButton;
+    private JTextPane youCanClickTheTextPane;
 
 
     public CodeSyncToolWindow(ToolWindow toolWindow) {
