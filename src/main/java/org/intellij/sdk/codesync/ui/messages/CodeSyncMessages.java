@@ -1,4 +1,4 @@
-package org.intellij.sdk.codesync.messages;
+package org.intellij.sdk.codesync.ui.messages;
 
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;

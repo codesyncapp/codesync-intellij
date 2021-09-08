@@ -24,13 +24,13 @@ import org.intellij.sdk.codesync.commands.ResumeCodeSyncCommand;
 import org.intellij.sdk.codesync.commands.ResumeRepoUploadCommand;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.files.*;
-import org.intellij.sdk.codesync.messages.CodeSyncMessages;
+import org.intellij.sdk.codesync.ui.messages.CodeSyncMessages;
 import org.intellij.sdk.codesync.models.User;
-import org.intellij.sdk.codesync.progress.CodeSyncProgressIndicator;
-import org.intellij.sdk.codesync.progress.InitRepoMilestones;
+import org.intellij.sdk.codesync.ui.progress.CodeSyncProgressIndicator;
+import org.intellij.sdk.codesync.ui.progress.InitRepoMilestones;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
-import org.intellij.sdk.codesync.userInput.UserInputDialog;
+import org.intellij.sdk.codesync.ui.userInput.UserInputDialog;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
@@ -276,7 +276,7 @@ public class CodeSyncSetup {
         createSyncIgnore(repoPath);
 
         if (!ignoreSyncIgnoreUpdate) {
-            // Ask user to modify the syncignore fil
+            // Ask user to modify the .syncignore file.
             askUserToUpdateSyncIgnore(project, branchName);
 
             return;
