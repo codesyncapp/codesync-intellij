@@ -3,10 +3,11 @@ package org.intellij.sdk.codesync;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 public class NotificationManager {
     public static void notify(String content, NotificationType notificationType) {
-        Project project = Utils.getCurrentProject();
+        Project project = CommonUtils.getCurrentProject();
         NotificationGroupManager.getInstance().getNotificationGroup("CodeSync Notifications")
                 .createNotification(content, notificationType)
                 .notify(project);

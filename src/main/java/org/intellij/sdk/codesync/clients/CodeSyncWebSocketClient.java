@@ -2,15 +2,14 @@ package org.intellij.sdk.codesync.clients;
 
 import kotlin.Pair;
 import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.files.DiffFile;
 import org.intellij.sdk.codesync.exceptions.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Map;
 
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.JSONArray;
@@ -93,7 +92,7 @@ public class CodeSyncWebSocketClient {
         diff.put("is_deleted", diffFile.isDeleted);
         diff.put("is_rename", diffFile.isRename);
         diff.put("is_binary", diffFile.isBinary);
-        diff.put("created_at", Utils.formatDate(diffFile.createdAt));
+        diff.put("created_at", CommonUtils.formatDate(diffFile.createdAt));
         diff.put("path", diffFile.fileRelativePath);
         diff.put("diff_file_path", diffFile.originalDiffFile.getPath());
 
@@ -148,7 +147,7 @@ public class CodeSyncWebSocketClient {
             diff.put("is_deleted", diffFile.isDeleted);
             diff.put("is_rename", diffFile.isRename);
             diff.put("is_binary", diffFile.isBinary);
-            diff.put("created_at", Utils.formatDate(diffFile.createdAt));
+            diff.put("created_at", CommonUtils.formatDate(diffFile.createdAt));
             diff.put("path", diffFile.fileRelativePath);
             diff.put("diff_file_path", diffFile.originalDiffFile.getPath());
 

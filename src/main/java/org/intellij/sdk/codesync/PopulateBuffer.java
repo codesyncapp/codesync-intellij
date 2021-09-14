@@ -1,15 +1,15 @@
 package org.intellij.sdk.codesync;
 
-import name.fraser.neil.plaintext.diff_match_patch;
 import org.apache.commons.text.similarity.*;
-import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.exceptions.FileInfoError;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
+import org.intellij.sdk.codesync.factories.DiffFactory;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
-import org.json.simple.JSONObject;
+import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.FileUtils;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -71,7 +71,7 @@ public class PopulateBuffer {
             return diffs;
         }
 
-        String[] filePaths = CodeSyncSetup.listFiles(repoPath);
+        String[] filePaths = FileUtils.listFiles(repoPath);
         String[] relativeFilePaths = Arrays.stream(filePaths)
                 .map(filePath -> filePath.replace(repoPath, ""))
                 .map(filePath -> filePath.replaceFirst("/", ""))
@@ -81,7 +81,7 @@ public class PopulateBuffer {
         for (String relativeFilePath: relativeFilePaths) {
             Path filePath = Paths.get(repoPath, relativeFilePath);
             try {
-                fileInfoMap.put(relativeFilePath, Utils.getFileInfo(filePath.toString()));
+                fileInfoMap.put(relativeFilePath, FileUtils.getFileInfo(filePath.toString()));
             } catch (FileInfoError error) {
                 // Log the message and continue.
                 CodeSyncLogger.logEvent(String.format(
@@ -98,30 +98,25 @@ public class PopulateBuffer {
             Path filePath = Paths.get(repoPath, relativeFilePath);
             String previousFileContent = "", diff = "", currentFileContent;
             boolean isRename = false;
+            boolean isBinary = FileUtils.isBinaryFile(filePath.toFile());
             File shadowFile = shadowRepoManager.getFilePath(relativeFilePath).toFile();
-            boolean isBinary = Utils.isBinaryFile(filePath.toFile());
 
             // If file reference is present in the configFile, then we simply need to check if it was updated.
             // We only track changes to non-binary files, hence the check in here.
             if (configRepoBranch.hasFile(relativeFilePath) && !isBinary) {
-
                 if (shadowFile.exists()) {
                     // If shadow file exists then it means existing file was updated and we simple need to
                     // add a diff file.
-                    previousFileContent = ReadFileToString.readFileToString(shadowFile);
+                    previousFileContent = FileUtils.readFileToString(shadowFile);
                 } else {
                     Map<String, Object> fileInfo = fileInfoMap.get(relativeFilePath);
                     if (fileInfo != null && (Integer) fileInfo.get("size") > FILE_SIZE_AS_COPY) {
-                        previousFileContent = ReadFileToString.readFileToString(filePath.toFile());
+                        previousFileContent = FileUtils.readFileToString(filePath.toFile());
                     }
                 }
-                currentFileContent = ReadFileToString.readFileToString(filePath.toFile());
+                currentFileContent = FileUtils.readFileToString(filePath.toFile());
 
-                diff_match_patch dmp = new diff_match_patch();
-                LinkedList<diff_match_patch.Patch> patches = dmp.patch_make(previousFileContent, currentFileContent);
-
-                // Create text representation of patches objects
-                diff = dmp.patch_toText(patches);
+                diff = CommonUtils.computeDiff(previousFileContent, currentFileContent);
             }
 
             // If
@@ -129,7 +124,7 @@ public class PopulateBuffer {
             //  2. shadow file is not present
             // Then the file could either be a new file or a renamed file.
             //  We will first perform rename-check to either rule-out that possibility or handle file rename.
-            if (!configRepoBranch.hasFile(relativeFilePath) && !shadowFile.exists() && !Utils.isBinaryFile(filePath.toFile())) {
+            if (!configRepoBranch.hasFile(relativeFilePath) && !shadowFile.exists() && !FileUtils.isBinaryFile(filePath.toFile())) {
                 Map<String, Object> renameResult = checkForRename(repoPath, filePath.toString(), shadowRepoManager);
                 String shadowFilePath = (String) renameResult.get("shadowFilePath");
                 String oldRelativePath = shadowRepoManager.getRelativeFilePath(shadowFilePath);
@@ -142,13 +137,9 @@ public class PopulateBuffer {
                     // Remove old file from shadow repo.
                     shadowRepoManager.deleteFile(oldRelativePath);
 
-                    JSONObject diffObject = new JSONObject();
-                    diffObject.put("old_abs_path", oldProjectFilePath);
-                    diffObject.put("new_abs_path", newProjectFilePath);
-                    diffObject.put("old_rel_path", oldRelativePath);
-                    diffObject.put("new_rel_path", relativeFilePath);
-
-                    diff = diffObject.toJSONString();
+                    diff = DiffFactory.getFileRenameDiff(
+                            oldProjectFilePath, newProjectFilePath, oldRelativePath, relativeFilePath
+                    );
                     renamedFiles.add(oldRelativePath);
                 }
             }
@@ -167,21 +158,14 @@ public class PopulateBuffer {
 
             if (!diff.isEmpty() || isNewFile) {
                 Map<String, Object> diffContentMap = new HashMap<>();
-                Map<String, Object> fileInfo;
-
-                try {
-                    fileInfo = Utils.getFileInfo(filePath.toString());
-                } catch (FileInfoError error) {
-                    error.printStackTrace();
-                    continue;
-                }
-                Date date = Utils.parseDate((String) fileInfo.get("modifiedTime"));
+                Map<String, Object> fileInfo = fileInfoMap.get(relativeFilePath);
+                Date date = CommonUtils.parseDate((String) fileInfo.get("modifiedTime"));
 
                 diffContentMap.put("diff", diff);
                 diffContentMap.put("is_rename", isRename);
                 diffContentMap.put("is_new_file", isNewFile);
                 diffContentMap.put("is_binary", isBinary);
-                diffContentMap.put("created_at", Utils.formatDate(date, DATETIME_FORMAT));
+                diffContentMap.put("created_at", CommonUtils.formatDate(date, DATETIME_FORMAT));
 
                 diffs.put(relativeFilePath, diffContentMap);
             }
@@ -200,7 +184,7 @@ public class PopulateBuffer {
         String matchingFilePath = "";
         Map<String, Object> renameResult = new HashMap<>();
 
-        String fileContents = ReadFileToString.readFileToString(filePath);
+        String fileContents = FileUtils.readFileToString(filePath);
 
         if (fileContents.isEmpty()) {
             renameResult.put("isRename", false);
@@ -209,10 +193,10 @@ public class PopulateBuffer {
             return renameResult;
         }
 
-        String[] shadowFilePaths = CodeSyncSetup.listFiles(shadowRepoManager.getBaseRepoBranchDir());
+        String[] shadowFilePaths = FileUtils.listFiles(shadowRepoManager.getBaseRepoBranchDir());
         // Filter out binary files.
         shadowFilePaths = Arrays.stream(shadowFilePaths)
-                .filter(path -> !Utils.isBinaryFile(path))
+                .filter(path -> !FileUtils.isBinaryFile(path))
                 .toArray(String[]::new);
 
         for (String shadowFilePath: shadowFilePaths) {
@@ -223,7 +207,7 @@ public class PopulateBuffer {
                 continue;
             }
 
-            String shadowContent = ReadFileToString.readFileToString(shadowFilePath);
+            String shadowContent = FileUtils.readFileToString(shadowFilePath);
             Double similarityRatio = compare(fileContents, shadowContent);
 
             if (similarityRatio > SEQUENCE_MATCHER_RATIO) {

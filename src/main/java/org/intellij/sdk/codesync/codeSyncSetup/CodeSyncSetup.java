@@ -31,6 +31,8 @@ import org.intellij.sdk.codesync.ui.progress.InitRepoMilestones;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.ui.userInput.UserInputDialog;
+import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
@@ -38,10 +40,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Stream;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -283,7 +283,7 @@ public class CodeSyncSetup {
         }
 
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.FETCH_FILES);
-        String[] filePaths = listFiles(repoPath);
+        String[] filePaths = FileUtils.listFiles(repoPath);
 
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.COPY_FILES);
         // Copy files to shadow repo.
@@ -309,7 +309,7 @@ public class CodeSyncSetup {
         CodeSyncMessages.invokeAndWait(
                 () -> {
                     // Ask user to modify the syncignore file
-                    VirtualFile syncIgnoreFile = Utils.findSingleFile(".syncignore", project);
+                    VirtualFile syncIgnoreFile = CommonUtils.findSingleFile(".syncignore", project);
                     if (syncIgnoreFile != null) {
                         new OpenFileDescriptor(project, syncIgnoreFile, 0).navigate(true);
 
@@ -374,7 +374,7 @@ public class CodeSyncSetup {
             branchFiles.put(relativeFilePath, null);
             Map<String, Object> fileInfo;
             try {
-                fileInfo = Utils.getFileInfo(
+                fileInfo = FileUtils.getFileInfo(
                         String.format("%s/%s", repoPath.replaceFirst("/$",""), relativeFilePath)
                 );
             } catch (FileInfoError error) {
@@ -387,7 +387,7 @@ public class CodeSyncSetup {
             JSONObject item = new JSONObject();
             item.put("is_binary",  fileInfo.get("isBinary"));
             item.put("size", fileInfo.get("size"));
-            item.put("created_at", Utils.getPosixTime((String) fileInfo.get("creationTime")));
+            item.put("created_at", CommonUtils.getPosixTime((String) fileInfo.get("creationTime")));
             filesData.put(relativeFilePath, item);
         }
         ConfigRepo configRepo = new ConfigRepo(repoPath);
@@ -581,35 +581,6 @@ public class CodeSyncSetup {
                 );
             }
         }
-    }
-
-    /*
-    List absolute file paths of all the files in a directory.
-
-    This is recursively list all the files containing in the given directory and all its sub-directories.
-     */
-    public static String[] listFiles(String directory) {
-        String[] filePaths = {};
-        IgnoreFile ignoreFile;
-
-        try {
-            Stream<Path> filePathStream = Files.walk(Paths.get(directory))
-                    .filter(Files::isRegularFile);
-
-            try {
-                ignoreFile = new IgnoreFile(Paths.get(directory).toString());
-                filePathStream = filePathStream.filter(path -> !ignoreFile.shouldIgnore(path.toFile()));
-            } catch (FileNotFoundError error) {
-                // Do not filter anything if ignore file is not present.
-            }
-
-            filePaths = filePathStream.map(Path::toString).toArray(String[]::new);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-
-       return filePaths;
     }
 
     public static void createSyncIgnore(String repoPath) {

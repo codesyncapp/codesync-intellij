@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.Date;
 
 
-import org.intellij.sdk.codesync.ReadFileToString;
-import org.intellij.sdk.codesync.Utils;
+import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -22,7 +22,7 @@ public class DiffFile {
 
     public DiffFile(@NotNull File originalDiffFile) {
         this.originalDiffFile = originalDiffFile;
-        String contents = ReadFileToString.readLineByLineJava8(originalDiffFile.getPath());
+        String contents = FileUtils.readLineByLineJava8(originalDiffFile.getPath());
 
         Yaml yaml = new Yaml();
         Map<String, Object> obj = yaml.load(contents);
@@ -32,17 +32,17 @@ public class DiffFile {
         try {
             this.createdAt = (Date) obj.get("created_at");
         } catch (ClassCastException e) {
-            this.createdAt = Utils.parseDate((String) obj.get("created_at"));
+            this.createdAt = CommonUtils.parseDate((String) obj.get("created_at"));
         }
         this.fileRelativePath = (String) obj.get("file_relative_path");
 
         this.repoPath = (String) obj.get("repo_path");
 
-        this.isBinary = Utils.getBoolValue(obj, "is_binary", false);
-        this.isDeleted = Utils.getBoolValue(obj, "is_deleted", false);
-        this.isNewFile = Utils.getBoolValue(obj, "is_new_file", false);
-        this.isRename = Utils.getBoolValue(obj, "is_rename", false);
-        this.isDirRename = Utils.getBoolValue(obj, "is_dir_rename", false);
+        this.isBinary = CommonUtils.getBoolValue(obj, "is_binary", false);
+        this.isDeleted = CommonUtils.getBoolValue(obj, "is_deleted", false);
+        this.isNewFile = CommonUtils.getBoolValue(obj, "is_new_file", false);
+        this.isRename = CommonUtils.getBoolValue(obj, "is_rename", false);
+        this.isDirRename = CommonUtils.getBoolValue(obj, "is_dir_rename", false);
 
         if (this.isDirRename) {
             try {
