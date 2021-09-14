@@ -1,25 +1,26 @@
 package org.intellij.sdk.codesync.repoManagers;
 
-import org.apache.commons.io.FileUtils;
-
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
 import static org.intellij.sdk.codesync.Constants.ORIGINALS_REPO;
 
 public class OriginalsRepoManager extends BaseRepoManager {
-    String originalsDirectory, repoPath, branchName;
+    String originalsDirectory, projectRepoPath, branchName;
+
+    private String originalsRepoDir;
 
     /*
     Constructor for OriginalsRepoManager.
 
     @param  repoPath  an absolute path giving the base location of the repo.
     */
-    public OriginalsRepoManager(String repoPath, String branchName) {
+    public OriginalsRepoManager(String projectRepoPath, String branchName) {
         this.originalsDirectory = ORIGINALS_REPO;
-        this.repoPath = repoPath;
+        this.projectRepoPath = projectRepoPath;
         this.branchName = branchName;
+
+        this.originalsRepoDir  = Paths.get(this.originalsDirectory, this.projectRepoPath, this.branchName).toString();
     }
 
     /*
@@ -28,10 +29,16 @@ public class OriginalsRepoManager extends BaseRepoManager {
     @param  originalsDirectory  an absolute path giving the directory containing all original repos.
     @param  repoPath  an absolute path giving the base location of the repo.
     */
-    public OriginalsRepoManager(String originalsDirectory, String repoPath, String branchName) {
+    public OriginalsRepoManager(String originalsDirectory, String projectRepoPath, String branchName) {
         this.originalsDirectory = originalsDirectory;
-        this.repoPath = repoPath;
+        this.projectRepoPath = projectRepoPath;
         this.branchName = branchName;
+
+        this.originalsRepoDir  = Paths.get(this.originalsDirectory, this.projectRepoPath, this.branchName).toString();
+    }
+
+    public String getBaseRepoBranchDir(){
+        return this.originalsRepoDir;
     }
 
     /*
@@ -40,10 +47,8 @@ public class OriginalsRepoManager extends BaseRepoManager {
     @param  filePaths  list of absolute paths of the files to copy.
      */
     public void copyFiles(String[] filePaths) {
-        String originalsRepoDir  = Paths.get(this.originalsDirectory, this.repoPath, this.branchName).toString();
-
         for (String filePath: filePaths) {
-            String to = Paths.get(originalsRepoDir, filePath.replace(this.repoPath, "")).toString();
+            String to = Paths.get(this.originalsRepoDir, filePath.replace(this.projectRepoPath, "")).toString();
 
             try {
                 this.copyFile(filePath, to);
@@ -52,14 +57,4 @@ public class OriginalsRepoManager extends BaseRepoManager {
             }
         }
     }
-
-    public void delete() {
-        try {
-            String originalsDirectory = Paths.get(this.originalsDirectory, this.repoPath, this.branchName).toString();
-            FileUtils.deleteDirectory(new File(originalsDirectory));
-        } catch (IOException e) {
-            // Ignore error/
-        }
-    }
-
 }

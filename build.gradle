@@ -59,6 +59,9 @@ dependencies {
 
   // https://github.com/auth0/java-jwt
   implementation 'com.auth0:java-jwt:3.18.1'
+
+  // https://commons.apache.org/proper/commons-text/dependency-info.html
+  implementation 'org.apache.commons:commons-text:1.9'
 }
 publishPlugin {
   token = System.getenv("ORG_GRADLE_PROJECT_intellijPublishToken")

@@ -488,7 +488,11 @@ public class Utils {
     }
 
     public static String formatDate(Date date) {
-        SimpleDateFormat pattern = new SimpleDateFormat(DATE_TIME_FORMAT);
+        return formatDate(date, DATE_TIME_FORMAT);
+    }
+
+    public static String formatDate(Date date, String format) {
+        SimpleDateFormat pattern = new SimpleDateFormat(format);
         pattern.setTimeZone(TimeZone.getTimeZone("UTC"));
         return pattern.format(date);
     }
@@ -542,13 +546,19 @@ public class Utils {
         return dmp.patch_toText(patches);
     }
 
-    public static boolean isBinaryFile(File f) throws IOException {
+    public static boolean isBinaryFile(String filePath){
+        return isBinaryFile(new File(filePath));
+    }
+
+    /*
+    Check if the given file is a binary or a text file.
+     */
+    public static boolean isBinaryFile(File file) {
         try {
-            return !isTextFile(f);
+            return !isTextFile(file);
         } catch (Exception e){
             return false;
         }
-
     }
 
     public static boolean getBoolValue(Map<String, Object> map, String key, boolean defaultValue) {

@@ -90,7 +90,7 @@ public class CodeSyncSetup {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
             ConfigRepo configRepo = configFile.getRepo(repoPath);
 
-            if (!configFile.isRepoSynced(repoPath) || !configRepo.isSuccessfullySynced()) {
+            if (configFile.isRepoDisconnected(repoPath) || !configRepo.isSuccessfullySynced()) {
                 String branchName = Utils.GetGitBranch(repoPath);
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CHECK_USER_ACCESS);
 
@@ -391,7 +391,7 @@ public class CodeSyncSetup {
             filesData.put(relativeFilePath, item);
         }
         ConfigRepo configRepo = new ConfigRepo(repoPath);
-        if(!configFile.isRepoSynced(repoPath)) {
+        if(configFile.isRepoDisconnected(repoPath)) {
             configRepo.updateRepoBranch(branchName, new ConfigRepoBranch(branchName, branchFiles));
             configFile.updateRepo(repoPath, configRepo);
             try {
@@ -593,7 +593,7 @@ public class CodeSyncSetup {
         IgnoreFile ignoreFile;
 
         try {
-            Stream<Path> filePathStream = filePathStream = Files.walk(Paths.get(directory))
+            Stream<Path> filePathStream = Files.walk(Paths.get(directory))
                     .filter(Files::isRegularFile);
 
             try {
