@@ -5,10 +5,13 @@ import org.intellij.sdk.codesync.exceptions.FileInfoError;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.factories.DiffFactory;
 import org.intellij.sdk.codesync.files.ConfigFile;
+import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
+import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.DiffUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 
 import static org.intellij.sdk.codesync.Constants.*;
@@ -17,6 +20,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /*
@@ -40,14 +44,29 @@ import java.util.*;
         If a file is not in the project repo but is present in the shadow repo and the config file then it was deleted.
 */
 public class PopulateBuffer {
-    public static final Set<String> renamedFiles = new HashSet<>();
+    public Set<String> renamedFiles = new HashSet<>();
+    String repoPath, branchName;
+    ConfigFile configFile;
+    ConfigRepo configRepo;
+    ConfigRepoBranch configRepoBranch;
 
-    /*
-        This will iterate through the files in the project repo and the see which files were updated and the changes
-        were not captured by the IDE. It will then populate the buffer (i.e. create diff files) for those changes.
-    */
-    public static Map<String, Object> populateBufferForRepo(String repoPath, String branchName) {
-        Map<String, Object> diffs = new HashMap<>();
+    ShadowRepoManager shadowRepoManager;
+    DeletedRepoManager deletedRepoManager;
+    OriginalsRepoManager originalsRepoManager;
+
+    Date repoModifiedAt = null;
+    Map<String, Date> repoLastSyncedAtMap = new HashMap<>();
+
+    String[] filePaths, relativeFilePaths;
+    Map<String, Map<String, Object>> fileInfoMap = new HashMap<>();
+
+    public PopulateBuffer(String repoPath, String branchName) {
+        this.repoPath = repoPath;
+        this.branchName = branchName;
+
+        this.shadowRepoManager = new ShadowRepoManager(this.repoPath, this.branchName);
+        this.deletedRepoManager = new DeletedRepoManager(this.repoPath, this.branchName);
+        this.originalsRepoManager = new OriginalsRepoManager(this.repoPath, this.branchName);
 
         ConfigFile configFile;
         try {
@@ -56,32 +75,33 @@ public class PopulateBuffer {
             CodeSyncLogger.logEvent(String.format(
                     "[INTELLIJ_PLUGIN][POPULATE_BUFFER] Config file error, %s.\n", error.getMessage()
             ));
-            return diffs;
+            return ;
         }
-
-        if (configFile.isRepoDisconnected(repoPath)){
-            // Repo is not being synced, so no need to populate buffer for this repo.
-            return diffs;
+        ConfigRepo configRepo = configFile.getRepo(repoPath);
+        if (configRepo == null) {
+            return;
         }
 
         ConfigRepoBranch configRepoBranch = configFile.getRepo(repoPath).getRepoBranch(branchName);
         if (configRepoBranch == null) {
             // Branch is not synced yet, we need to call init for this branch. That will be handled by other flows
             // We can simply ignore this.
-            return diffs;
+            return ;
         }
+        this.configFile = configFile;
+        this.configRepo = configFile.getRepo(repoPath);
+        this.configRepoBranch = configRepoBranch;
 
-        String[] filePaths = FileUtils.listFiles(repoPath);
-        String[] relativeFilePaths = Arrays.stream(filePaths)
-                .map(filePath -> filePath.replace(repoPath, ""))
+        this.filePaths = FileUtils.listFiles(repoPath);
+        this.relativeFilePaths = Arrays.stream(this.filePaths)
+                .map(filePath -> filePath.replace(this.repoPath, ""))
                 .map(filePath -> filePath.replaceFirst("/", ""))
                 .toArray(String[]::new);
 
-        Map<String, Map<String, Object>> fileInfoMap = new HashMap<>();
-        for (String relativeFilePath: relativeFilePaths) {
+        for (String relativeFilePath: this.relativeFilePaths) {
             Path filePath = Paths.get(repoPath, relativeFilePath);
             try {
-                fileInfoMap.put(relativeFilePath, FileUtils.getFileInfo(filePath.toString()));
+                this.fileInfoMap.put(relativeFilePath, FileUtils.getFileInfo(filePath.toString()));
             } catch (FileInfoError error) {
                 // Log the message and continue.
                 CodeSyncLogger.logEvent(String.format(
@@ -89,27 +109,124 @@ public class PopulateBuffer {
                 ));
             }
         }
+    }
 
-        ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branchName);
-        OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath, branchName);
+    public static void populateBufferForMissedEvents(Map<String, String> readyRepos) {
+        for (Map.Entry<String, String> repoEntry : readyRepos.entrySet()) {
+            String repoPath = repoEntry.getKey();
+            String branchName = repoEntry.getValue();
+            Map<String, Object> diffsForFileUpdates = new HashMap<>();
+            Map<String, Object> diffsForDeletedFiles = new HashMap<>();
+            Map<String, Object> diffs = new HashMap<>();
 
-        for (String relativeFilePath: relativeFilePaths) {
-            Path repoBranchPath = Paths.get(repoPath, branchName);
-            Path filePath = Paths.get(repoPath, relativeFilePath);
+            PopulateBuffer populateBuffer = new PopulateBuffer(repoPath, branchName);
+            if (populateBuffer.configFile == null || populateBuffer.configRepoBranch == null || populateBuffer.configRepo == null) {
+                // Skip it for now, it will be handled in future.
+                CodeSyncLogger.logEvent(String.format(
+                        "[INTELLIJ][NON_IDE_EVENTS] Could not populate for missed events, because config file for repo '%s' could not be opened.",
+                        repoPath
+                ));
+
+                if (!populateBuffer.configRepo.isDisconnected) {
+                    if (populateBuffer.isModifiedSinceLastSync()) {
+                        diffsForFileUpdates = populateBuffer.getDiffsForFileUpdates();
+                    }
+                    diffsForDeletedFiles = populateBuffer.getDiffsOfDeletedFiles();
+
+                }
+
+                diffs.putAll(diffsForFileUpdates);
+                diffs.putAll(diffsForDeletedFiles);
+
+                // Finally add diffs to .diff directory
+                populateBufferWithDiffs(diffs, populateBuffer);
+            }
+        }
+    }
+
+    public static void populateBufferWithDiffs(Map<String, Object> diffs, PopulateBuffer populateBuffer) {
+        for (Map.Entry<String, Object> diffEntry : diffs.entrySet()) {
+            String relativeFilePath = diffEntry.getKey();
+            Map<String, Object> diffData = (Map<String, Object>) diffEntry.getValue();
+            String diff = (String) diffData.get("diff");
+
+            Boolean isNewFile = CommonUtils.getBoolValue(diffData, "is_new_file", false);
+            Boolean isDeleted = CommonUtils.getBoolValue(diffData, "is_deleted", false);
+            Boolean isRename = CommonUtils.getBoolValue(diffData, "is_rename", false);
+
+            if (diff.isEmpty() && !isNewFile && !isDeleted) {
+                // Skipping empty file.
+                continue;
+            }
+
+            if (diffData.containsKey("created_at")) {
+                String createdAt = (String) diffData.get("created_at");
+                DiffUtils.writeDiffToYml(
+                        populateBuffer.repoPath, populateBuffer.branchName, relativeFilePath, diff,
+                        isNewFile, isDeleted, isRename, false, createdAt
+                );
+            } else {
+                DiffUtils.writeDiffToYml(
+                        populateBuffer.repoPath, populateBuffer.branchName, relativeFilePath, diff,
+                        isNewFile, isDeleted, isRename, false
+                );
+            }
+
+        }
+    }
+
+    public boolean isModifiedSinceLastSync() {
+        Optional<Date> maxModifiedTimeOptional = this.fileInfoMap.values().stream()
+                .map(item -> CommonUtils.parseDate((String) item.get("modifiedTime")))
+                .filter(Objects::nonNull)
+                .max(Date::compareTo);
+
+        Optional<Date> maxCreationTimeOptional = this.fileInfoMap.values().stream()
+                .map(item -> CommonUtils.parseDate((String) item.get("creationTime")))
+                .filter(Objects::nonNull)
+                .max(Date::compareTo);
+
+        Date maxModifiedTime = maxModifiedTimeOptional.orElse(null);
+        Date maxCreationTime = maxCreationTimeOptional.orElse(null);
+
+        if (maxModifiedTime != null && maxCreationTime!= null){
+            this.repoModifiedAt = maxModifiedTime.compareTo(maxCreationTime) > 0 ? maxModifiedTime: maxCreationTime;
+        } else{
+            this.repoModifiedAt = maxModifiedTime != null ? maxModifiedTime: maxCreationTime;
+        }
+
+        if (this.repoLastSyncedAtMap.containsKey(this.repoPath)) {
+            Date repoLastSyncedAt = this.repoLastSyncedAtMap.get(this.repoPath);
+            return this.repoModifiedAt == null || this.repoModifiedAt.compareTo(repoLastSyncedAt) > 0;
+        } else {
+            return true;
+        }
+    }
+
+    /*
+        This will iterate through the files in the project repo and the see which files were updated and the changes
+        were not captured by the IDE. It will then populate the buffer (i.e. create diff files) for those changes.
+    */
+    public Map<String, Object> getDiffsForFileUpdates() {
+        Map<String, Object> diffs = new HashMap<>();
+        Path repoBranchPath = Paths.get(repoPath, branchName);
+
+        for (String relativeFilePath: this.relativeFilePaths) {
+            Path filePath = Paths.get(this.repoPath, relativeFilePath);
             String previousFileContent = "", diff = "", currentFileContent;
             boolean isRename = false;
             boolean isBinary = FileUtils.isBinaryFile(filePath.toFile());
-            File shadowFile = shadowRepoManager.getFilePath(relativeFilePath).toFile();
+            File shadowFile = this.shadowRepoManager.getFilePath(relativeFilePath).toFile();
 
             // If file reference is present in the configFile, then we simply need to check if it was updated.
             // We only track changes to non-binary files, hence the check in here.
-            if (configRepoBranch.hasFile(relativeFilePath) && !isBinary) {
+            if (this.configRepoBranch.hasFile(relativeFilePath) && !isBinary) {
                 if (shadowFile.exists()) {
                     // If shadow file exists then it means existing file was updated and we simple need to
                     // add a diff file.
                     previousFileContent = FileUtils.readFileToString(shadowFile);
                 } else {
-                    Map<String, Object> fileInfo = fileInfoMap.get(relativeFilePath);
+                    Map<String, Object> fileInfo = this.fileInfoMap.get(relativeFilePath);
                     if (fileInfo != null && (Integer) fileInfo.get("size") > FILE_SIZE_AS_COPY) {
                         previousFileContent = FileUtils.readFileToString(filePath.toFile());
                     }
@@ -124,10 +241,10 @@ public class PopulateBuffer {
             //  2. shadow file is not present
             // Then the file could either be a new file or a renamed file.
             //  We will first perform rename-check to either rule-out that possibility or handle file rename.
-            if (!configRepoBranch.hasFile(relativeFilePath) && !shadowFile.exists() && !FileUtils.isBinaryFile(filePath.toFile())) {
-                Map<String, Object> renameResult = checkForRename(repoPath, filePath.toString(), shadowRepoManager);
+            if (!this.configRepoBranch.hasFile(relativeFilePath) && !shadowFile.exists() && !FileUtils.isBinaryFile(filePath.toFile())) {
+                Map<String, Object> renameResult = checkForRename(filePath.toString());
                 String shadowFilePath = (String) renameResult.get("shadowFilePath");
-                String oldRelativePath = shadowRepoManager.getRelativeFilePath(shadowFilePath);
+                String oldRelativePath = this.shadowRepoManager.getRelativeFilePath(shadowFilePath);
                 String oldProjectFilePath = Paths.get(repoBranchPath.toString(), oldRelativePath).toString();
                 String newProjectFilePath = Paths.get(repoBranchPath.toString(), relativeFilePath).toString();
 
@@ -135,30 +252,30 @@ public class PopulateBuffer {
 
                 if (isRename) {
                     // Remove old file from shadow repo.
-                    shadowRepoManager.deleteFile(oldRelativePath);
+                    this.shadowRepoManager.deleteFile(oldRelativePath);
 
                     diff = DiffFactory.getFileRenameDiff(
                             oldProjectFilePath, newProjectFilePath, oldRelativePath, relativeFilePath
                     );
-                    renamedFiles.add(oldRelativePath);
+                    this.renamedFiles.add(oldRelativePath);
                 }
             }
 
-            Boolean isNewFile = !configRepoBranch.hasFile(relativeFilePath) &&
+            boolean isNewFile = !this.configRepoBranch.hasFile(relativeFilePath) &&
                     !isRename &&
-                    !originalsRepoManager.getFilePath(relativeFilePath).toFile().exists() &&
-                    !shadowRepoManager.getFilePath(relativeFilePath).toFile().exists();
+                    !this.originalsRepoManager.hasFile(relativeFilePath) &&
+                    !this.shadowRepoManager.hasFile(relativeFilePath);
 
             if (isNewFile) {
                 diff = "";
-                originalsRepoManager.copyFiles(new String[]{filePath.toString()});
+                this.originalsRepoManager.copyFiles(new String[]{filePath.toString()});
             }
 
-            shadowRepoManager.copyFiles(new String[]{filePath.toString()});
+            this.shadowRepoManager.copyFiles(new String[]{filePath.toString()});
 
             if (!diff.isEmpty() || isNewFile) {
                 Map<String, Object> diffContentMap = new HashMap<>();
-                Map<String, Object> fileInfo = fileInfoMap.get(relativeFilePath);
+                Map<String, Object> fileInfo = this.fileInfoMap.get(relativeFilePath);
                 Date date = CommonUtils.parseDate((String) fileInfo.get("modifiedTime"));
 
                 diffContentMap.put("diff", diff);
@@ -179,7 +296,7 @@ public class PopulateBuffer {
 
     returns true if this file is a result of a rename, false otherwise.
     */
-    public static Map<String, Object> checkForRename(String repoPath, String filePath, ShadowRepoManager shadowRepoManager) {
+    public Map<String, Object> checkForRename(String filePath) {
         int matchingFilesCount = 0;
         String matchingFilePath = "";
         Map<String, Object> renameResult = new HashMap<>();
@@ -193,16 +310,16 @@ public class PopulateBuffer {
             return renameResult;
         }
 
-        String[] shadowFilePaths = FileUtils.listFiles(shadowRepoManager.getBaseRepoBranchDir());
+        String[] shadowFilePaths = FileUtils.listFiles(this.shadowRepoManager.getBaseRepoBranchDir());
         // Filter out binary files.
         shadowFilePaths = Arrays.stream(shadowFilePaths)
                 .filter(path -> !FileUtils.isBinaryFile(path))
                 .toArray(String[]::new);
 
         for (String shadowFilePath: shadowFilePaths) {
-            String relativeFilePath = shadowRepoManager.getRelativeFilePath(shadowFilePath);
+            String relativeFilePath = this.shadowRepoManager.getRelativeFilePath(shadowFilePath);
 
-            if (Paths.get(repoPath, relativeFilePath).toFile().exists()) {
+            if (Paths.get(this.repoPath, relativeFilePath).toFile().exists()) {
                 // Skip the shadow files that have corresponding files in the project repo.
                 continue;
             }
@@ -223,5 +340,33 @@ public class PopulateBuffer {
     public static Double compare(String first, String second) {
         JaroWinklerSimilarity jaroWinklerSimilarity = new JaroWinklerSimilarity();
         return jaroWinklerSimilarity.apply(first, second);
+    }
+
+    public Map<String, Object> getDiffsOfDeletedFiles(){
+        Map<String, Object> diffs = new HashMap<>();
+
+        Set<String> relativeFilePaths = Arrays.stream(this.relativeFilePaths)
+                .collect(Collectors.toSet());
+
+        for (String relativeFilePath : this.configRepoBranch.getFiles().keySet()) {
+            // Check if we should ignore this file.
+            if (
+                    relativeFilePaths.contains(relativeFilePath) ||
+                    this.renamedFiles.contains(relativeFilePath) ||
+                    this.deletedRepoManager.hasFile(relativeFilePath) ||
+                    !this.shadowRepoManager.hasFile(relativeFilePath)
+            ) {
+                continue;
+            }
+            Map<String, Object> diffContentMap = new HashMap<>();
+
+            diffContentMap.put("is_deleted", true);
+            diffContentMap.put("diff", null);  // Diff will be computed later while handling buffer.
+
+            diffs.put(relativeFilePath, diffContentMap);
+            this.deletedRepoManager.copyFiles(new String[]{this.shadowRepoManager.getFilePath(relativeFilePath).toString()});
+        }
+
+        return diffs;
     }
 }

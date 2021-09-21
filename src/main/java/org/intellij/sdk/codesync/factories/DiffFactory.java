@@ -19,4 +19,13 @@ public class DiffFactory {
 
         return diffObject.toJSONString();
     }
+
+    public static String getFileDeleteDiff() {
+        JSONObject diffObject = new JSONObject();
+        diffObject.put("is_deleted", true);
+        diffObject.put("diff", null);  // Diff will be computed later while handling buffer.
+
+        return diffObject.toJSONString();
+    }
+
 }

@@ -29,6 +29,9 @@ public class ConfigRepoBranch {
         return this.files.containsKey(relativeFilePath);
     }
 
+    public Map<String, Integer> getFiles () {
+        return this.files;
+    }
     /*
     Update all files of this branch.
      */

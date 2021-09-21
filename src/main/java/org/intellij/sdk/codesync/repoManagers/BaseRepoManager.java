@@ -64,6 +64,16 @@ public abstract class BaseRepoManager {
     }
 
     /*
+    Given the relative file path check if the file exists in the repo.
+
+     @param relativeFilePath  relative path of the file whose presence needs to be checked.
+    */
+    public boolean hasFile(String relativeFilePath) {
+        return this.getFilePath(relativeFilePath).toFile().exists();
+    }
+
+
+    /*
     Given the absolute file path, return the relative path of the corresponding file inside the repo.
 
     @param relativeFilePath  absolute path of the file whose relative path is needed.
