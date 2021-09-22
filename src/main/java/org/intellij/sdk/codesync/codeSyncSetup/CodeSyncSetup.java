@@ -344,6 +344,22 @@ public class CodeSyncSetup {
         );
     }
 
+    public static void uploadRepoAsync(String repoPath, String repoName, String[] filePaths, Project project){
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
+            public void run(@NotNull ProgressIndicator progressIndicator) {
+                CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
+
+                // Set the progress bar percentage and text
+                codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
+                uploadRepo(repoPath, repoName, filePaths, project, codeSyncProgressIndicator);
+
+                // Finished
+                codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
+
+            }
+        });
+    }
+
     /*
     upload the repo and returns status as a boolean.
 

@@ -78,6 +78,10 @@ public class ConfigFile extends CodeSyncYmlFile {
         return this.repos.get(repoPath);
     }
 
+    public Map<String, ConfigRepo> getRepos() {
+        return this.repos;
+    }
+
     public void updateRepo(String repoPath, ConfigRepo newRepo) {
         this.repos.put(repoPath, newRepo);
     }

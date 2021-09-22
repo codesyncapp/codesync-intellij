@@ -68,6 +68,9 @@ public class ConfigRepo {
         return this.branches.get(branchName);
     }
     public boolean containsBranch(String branchName) { return this.branches.containsKey(branchName); }
+    public boolean hasValidEmail() {
+        return this.email != null && !this.email.isEmpty();
+    }
 
     public void updateRepoBranch(String branchName, ConfigRepoBranch newBranch) {
         this.branches.put(branchName, newBranch);

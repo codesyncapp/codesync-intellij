@@ -1,12 +1,16 @@
 package org.intellij.sdk.codesync;
 
+import com.intellij.openapi.project.Project;
 import org.apache.commons.text.similarity.*;
+import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.exceptions.FileInfoError;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
+import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.factories.DiffFactory;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
+import org.intellij.sdk.codesync.files.UserFile;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
@@ -17,6 +21,7 @@ import org.intellij.sdk.codesync.utils.FileUtils;
 import static org.intellij.sdk.codesync.Constants.*;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -368,5 +373,96 @@ public class PopulateBuffer {
         }
 
         return diffs;
+    }
+
+    public Map<String, String> detectBranchChange(){
+        Map<String, String> reposToUpdate = new HashMap<>();
+
+        ConfigFile configFile;
+        try {
+            configFile = new ConfigFile(CONFIG_PATH);
+        } catch (InvalidConfigFileError error) {
+            CodeSyncLogger.logEvent(String.format(
+                    "[INTELLIJ_PLUGIN][POPULATE_BUFFER] Config file error, %s.\n", error.getMessage()
+            ));
+            return reposToUpdate;
+        }
+        Map<String, ConfigRepo> configRepoMap = configFile.getRepos();
+        UserFile userFile;
+
+        try {
+            userFile = new UserFile(USER_FILE_PATH);
+        } catch (FileNotFoundException | InvalidYmlFileError error) {
+            CodeSyncLogger.logEvent(String.format(
+                    "[INTELLIJ_PLUGIN][POPULATE_BUFFER] User file error, %s.\n", error.getMessage()
+            ));
+            return reposToUpdate;
+        }
+
+        for (Map.Entry<String, ConfigRepo> configRepoEntry: configRepoMap.entrySet()) {
+            String repoPath = configRepoEntry.getKey();
+            ConfigRepo configRepo = configRepoEntry.getValue();
+
+            if (configRepo.isDisconnected) {
+                // No need to check updates for this repo.
+                continue;
+            }
+
+            if (!configRepo.hasValidEmail()) {
+                // Repo does not have a correct email address, skipping this as well.
+                continue;
+            }
+
+            UserFile.User user = userFile.getUser(configRepo.email);
+            if (user == null) {
+                // Could not find the user with this email in user.yml file.
+                continue;
+            }
+
+            if (user.getAccessToken() == null) {
+                CodeSyncLogger.logEvent(String.format("Access token not found for repo: %s, %s`.", repoPath, configRepo.email));
+                continue;
+            }
+
+            String branchName = Utils.GetGitBranch(repoPath);
+            ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branchName);
+
+            // Get the path of the shadow repo, one level above the branch name.
+            // We do not want to include branch name in the path name that is why `getParent` is being called.
+            Path shadowRepoDirectory = Paths.get(shadowRepoManager.getBaseRepoBranchDir()).getParent();
+
+            if (!shadowRepoDirectory.toFile().exists() || !Paths.get(repoPath).toFile().exists()) {
+                // TODO: Handle out of sync repo.
+                continue;
+            }
+            OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath, branchName);
+             if (!configRepo.containsBranch(branchName)) {
+                 Project project = CommonUtils.getCurrentProject();
+                 if (Paths.get(originalsRepoManager.getBaseRepoBranchDir()).toFile().exists()) {
+                     String[] filePaths = FileUtils.listFiles(repoPath);
+
+                     CodeSyncSetup.uploadRepoAsync(repoPath, project.getName(), filePaths, project);
+                 } else {
+                     CodeSyncSetup.setupCodeSyncRepoAsync(project, false);
+                 }
+
+                 continue;
+             }
+
+             if (!configRepoBranch.hasValidFiles()) {
+                 Project project = CommonUtils.getCurrentProject();
+
+                 String[] filePaths = FileUtils.listFiles(repoPath);
+                 CodeSyncSetup.uploadRepoAsync(repoPath, project.getName(), filePaths, project);
+
+                 // this repo can be checked in the next iteration.
+                 continue;
+             }
+
+             reposToUpdate.put(repoPath, branchName);
+        }
+
+        return reposToUpdate;
+
     }
 }
