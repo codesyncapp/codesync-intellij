@@ -5,6 +5,8 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,11 +64,11 @@ public class DiffUtils {
         options.setPrettyFlow(true);
 
         Yaml yaml = new Yaml(options);
-        String diffFileName = String.format("%s/%s.yml", DIFFS_REPO, System.currentTimeMillis());
+        Path diffFilePath = Paths.get(DIFFS_REPO, String.format("%s.yml", System.currentTimeMillis()));
         // Write diff file
         FileWriter writer = null;
         try {
-            writer = new FileWriter(diffFileName);
+            writer = new FileWriter(diffFilePath.toFile());
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,5 +1,7 @@
 package org.intellij.sdk.codesync;
 
+import java.nio.file.Paths;
+
 public final class Constants {
 
     private Constants() {
@@ -12,13 +14,13 @@ public final class Constants {
     }
 
     public static String CODESYNC_ROOT = Constants.expanduser("~/.codesync");
-    public static String DIFFS_REPO = String.format("%s/.diffs/.intellij", CODESYNC_ROOT);
-    public static String ORIGINALS_REPO = String.format("%s/.originals", CODESYNC_ROOT);
-    public static String DELETED_REPO = String.format("%s/.deleted", CODESYNC_ROOT);
-    public static String SHADOW_REPO = String.format("%s/.shadow", CODESYNC_ROOT);
-    public static String CONFIG_PATH = String.format("%s/config.yml", CODESYNC_ROOT);
-    public static String USER_FILE_PATH = String.format("%s/user.yml", CODESYNC_ROOT);
-    public static String SEQUENCE_TOKEN_FILE_PATH = String.format("%s/sequence_token.yml", CODESYNC_ROOT);
+    public static String DIFFS_REPO = Paths.get(CODESYNC_ROOT, ".diffs", ".intellij").toString();
+    public static String ORIGINALS_REPO = Paths.get(CODESYNC_ROOT, ".originals").toString();
+    public static String DELETED_REPO = Paths.get(CODESYNC_ROOT, ".deleted").toString();
+    public static String SHADOW_REPO = Paths.get(CODESYNC_ROOT, ".shadow").toString();
+    public static String CONFIG_PATH = Paths.get(CODESYNC_ROOT, "config.yml").toString();
+    public static String USER_FILE_PATH = Paths.get(CODESYNC_ROOT, "user.yml").toString();
+    public static String SEQUENCE_TOKEN_FILE_PATH = Paths.get(CODESYNC_ROOT, "sequence_token.yml").toString();
 
     public static String DEFAULT_BRANCH = "default";
     public static String GIT_REPO = ".git";

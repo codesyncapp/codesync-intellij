@@ -80,8 +80,23 @@ public abstract class BaseRepoManager {
      */
     public String getRelativeFilePath(String filePath) {
         String relativeFilePath = filePath.replace(this.getBaseRepoBranchDir(), "");
-        relativeFilePath = relativeFilePath.replaceFirst("/", "");
+        relativeFilePath = relativeFilePath.replaceFirst(String.valueOf(File.separatorChar), "");
 
         return relativeFilePath;
+    }
+
+    /*
+
+     */
+    public boolean renameFile(String oldRelativePath, String newRelativePath) {
+        Path oldShadowPath = this.getFilePath(oldRelativePath);
+        Path newShadowPath = this.getFilePath(newRelativePath);
+
+        File oldShadowFile = oldShadowPath.toFile();
+        if (oldShadowFile.exists()) {
+            return oldShadowFile.renameTo(newShadowPath.toFile());
+        }
+
+        return false;
     }
 }
