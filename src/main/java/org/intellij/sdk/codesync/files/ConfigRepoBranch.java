@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync.files;
 
+import java.util.Collections;
 import java.util.Map;
 
 public class ConfigRepoBranch {
@@ -22,10 +23,16 @@ public class ConfigRepoBranch {
     public void updateFileId (String relativeFilePath, Integer fileId) {
         this.files.put(relativeFilePath, fileId);
     }
-    public void removeFileId (String fileRelativePath) {
-        this.files.remove(fileRelativePath);
+    public void removeFileId (String relativeFilePath) {
+        this.files.remove(relativeFilePath);
+    }
+    public boolean hasFile (String relativeFilePath) {
+        return this.files.containsKey(relativeFilePath);
     }
 
+    public Map<String, Integer> getFiles () {
+        return this.files;
+    }
     /*
     Update all files of this branch.
      */
@@ -46,4 +53,17 @@ public class ConfigRepoBranch {
         // No invalid file found.
         return false;
     }
+
+    /*
+    Check if this branch has valid files or not. Files with `null` values are considered invalid. This check is useful
+    to query if all files are invalid or not.
+    */
+    public boolean hasValidFiles() {
+        if (files.size() == 0) {
+            return true;
+        }
+
+        // return `true` if even a single file is valid (i.e. is not `null`).
+        return Collections.frequency(files.values(), null) != files.size();
+     }
 }

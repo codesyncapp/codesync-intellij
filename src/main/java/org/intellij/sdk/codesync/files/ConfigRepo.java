@@ -2,6 +2,7 @@ package org.intellij.sdk.codesync.files;
 
 import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,10 +42,10 @@ public class ConfigRepo {
 
         this.token = (String) configRepoMap.get("token");
 
-        this.isInSync = Utils.getBoolValue(configRepoMap, "is_in_sync", true);
-        this.isDeleted = Utils.getBoolValue(configRepoMap, "is_deleted", false);
-        this.isDisconnected = Utils.getBoolValue(configRepoMap, "is_disconnected", false);
-        this.pauseNotification = Utils.getBoolValue(configRepoMap, "pause_notification", false);
+        this.isInSync = CommonUtils.getBoolValue(configRepoMap, "is_in_sync", true);
+        this.isDeleted = CommonUtils.getBoolValue(configRepoMap, "is_deleted", false);
+        this.isDisconnected = CommonUtils.getBoolValue(configRepoMap, "is_disconnected", false);
+        this.pauseNotification = CommonUtils.getBoolValue(configRepoMap, "pause_notification", false);
     }
 
     public Map<String, Object> getYMLAsHashMap() {
@@ -67,6 +68,9 @@ public class ConfigRepo {
         return this.branches.get(branchName);
     }
     public boolean containsBranch(String branchName) { return this.branches.containsKey(branchName); }
+    public boolean hasValidEmail() {
+        return this.email != null && !this.email.isEmpty();
+    }
 
     public void updateRepoBranch(String branchName, ConfigRepoBranch newBranch) {
         this.branches.put(branchName, newBranch);

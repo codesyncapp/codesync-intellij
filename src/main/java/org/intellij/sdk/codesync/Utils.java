@@ -4,30 +4,19 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
-import com.intellij.openapi.wm.WindowManager;
-import com.intellij.util.PathUtil;
 import name.fraser.neil.plaintext.diff_match_patch;
-import org.intellij.sdk.codesync.exceptions.FileInfoError;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.intellij.sdk.codesync.utils.DiffUtils;
+import org.intellij.sdk.codesync.utils.FileUtils;
 import org.json.simple.JSONObject;
-import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 
-import java.awt.*;
 import java.io.*;
 import java.nio.file.*;
-import java.nio.file.attribute.FileTime;
-import java.text.SimpleDateFormat;
-import java.text.ParseException;
 import java.util.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -75,7 +64,7 @@ public class Utils {
 
         String relBaseDir = String.join("/", Arrays.copyOfRange(basePathArr, 0, basePathArr.length-1));
         // Read file
-        String syncIgnore = ReadFileToString.readLineByLineJava8(syncIgnorePath);
+        String syncIgnore = FileUtils.readLineByLineJava8(syncIgnorePath);
         String[] patterns = syncIgnore.split("\n");
         List<String> syncIgnoreDirectories = new ArrayList<String>();
         List<String> excludePaths = new ArrayList<String>();
@@ -145,49 +134,6 @@ public class Utils {
         return branch;
     }
 
-    public static void WriteDiffToYml(String repoPath, String branch, String relPath, String diffs,
-                                      Boolean isNewFile, Boolean isDeleted, Boolean isRename, Boolean isDirRename) {
-        String DIFF_SOURCE = "intellij";
-
-        // Create YAML dump
-        Map<String, Object> data = new HashMap<>();
-        data.put("repo_path", repoPath);
-        data.put("branch", branch);
-        data.put("file_relative_path", relPath);
-        if (!diffs.isEmpty()) {
-            data.put("diff", diffs);
-        }
-        if (isNewFile) {
-            data.put("is_new_file", true);
-        }
-        if (isDeleted) {
-            data.put("is_deleted", true);
-        }
-        if (isRename) {
-            data.put("is_rename", true);
-        }
-        if (isDirRename) {
-            data.put("is_dir_rename", true);
-        }
-        data.put("source", DIFF_SOURCE);
-        data.put("created_at", getCurrentDatetime());
-
-        final DumperOptions options = new DumperOptions();
-        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-        options.setPrettyFlow(true);
-
-        Yaml yaml = new Yaml(options);
-        String diffFileName = String.format("%s/%s.yml", DIFFS_REPO, System.currentTimeMillis());
-        // Write diff file
-        FileWriter writer = null;
-        try {
-            writer = new FileWriter(diffFileName);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        yaml.dump(data, writer);
-    }
-
     public static void FileCreateHandler(String filePath, String repoPath) {
         // Skip in case of directory
         File eventFile = new File(filePath);
@@ -233,8 +179,9 @@ public class Utils {
             e.printStackTrace();
             return;
         }
-        Utils.WriteDiffToYml(repoPath, branch, relPath, "", true,
-                false, false, false);
+        DiffUtils.writeDiffToYml(repoPath, branch, relPath, "", true,
+                false, false, false
+        );
         System.out.println(String.format("FileCreated: %s", filePath));
     }
 
@@ -274,7 +221,7 @@ public class Utils {
             e.printStackTrace();
         }
 
-        Utils.WriteDiffToYml(repoPath, branch, relPath, "", false,
+        DiffUtils.writeDiffToYml(repoPath, branch, relPath, "", false,
                 true, false, false);
         System.out.println(String.format("FileDeleted: %s", filePath));
     }
@@ -312,7 +259,7 @@ public class Utils {
 
                 }
 
-                Utils.WriteDiffToYml(repoPath, branch, relativeFilePath, "", false,
+                DiffUtils.writeDiffToYml(repoPath, branch, relativeFilePath, "", false,
                         true, false, false);
                 System.out.printf("FileDeleted: %s%n", filePath);
             });
@@ -366,7 +313,7 @@ public class Utils {
         diff.put("new_abs_path", newAbsPath);
         diff.put("old_rel_path", oldRelPath);
         diff.put("new_rel_path", newRelPath);
-        Utils.WriteDiffToYml(repoPath, branch, newRelPath, diff.toJSONString(),
+        DiffUtils.writeDiffToYml(repoPath, branch, newRelPath, diff.toJSONString(),
                 false, false, true, false);
     }
 
@@ -386,7 +333,7 @@ public class Utils {
                 diff.put("new_abs_path", newFilePath);
                 diff.put("old_rel_path", oldRelativePath);
                 diff.put("new_rel_path", newRelativePath);
-                Utils.WriteDiffToYml(
+                DiffUtils.writeDiffToYml(
                         repoPath, branch, newRelativePath, diff.toJSONString(),
                         false, false, true, false
                 );
@@ -454,7 +401,7 @@ public class Utils {
         }
 
         // Read shadow file
-        String shadowText = ReadFileToString.readLineByLineJava8(shadowPath);
+        String shadowText = FileUtils.readLineByLineJava8(shadowPath);
         // If shadow text is same as current content, no need to compute diffs
         if (shadowText.equals(currentText)) {
             return;
@@ -473,145 +420,7 @@ public class Utils {
 
         // Create text representation of patches objects
         String diffs = dmp.patch_toText(patches);
-        Utils.WriteDiffToYml(repoPath, branch, relPath, diffs, false,
+        DiffUtils.writeDiffToYml(repoPath, branch, relPath, diffs, false,
                 false, false, false);
-    }
-
-    @Nullable
-    public static Date parseDate(String dateString) {
-        SimpleDateFormat pattern = new SimpleDateFormat(DATE_TIME_FORMAT);
-        try {
-            return new Date(pattern.parse(dateString).getTime());
-        } catch (ParseException pe) {
-            return null;
-        }
-    }
-
-    public static String formatDate(Date date) {
-        SimpleDateFormat pattern = new SimpleDateFormat(DATE_TIME_FORMAT);
-        pattern.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return pattern.format(date);
-    }
-
-    public static String formatDate(FileTime date) {
-        SimpleDateFormat pattern = new SimpleDateFormat(DATE_TIME_FORMAT);
-        pattern.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return pattern.format(date.toMillis());
-    }
-
-    /*
-    Convert Date object to POSIX time.
-     */
-    public static Long getPosixTime(Date date) {
-        return date.getTime() / 1000L;
-    }
-
-    /*
-    Convert Date String to POSIX time.
-     */
-    public static Long getPosixTime(String dateString) {
-        Date date = parseDate(dateString);
-        if (date ==  null) {
-            return null;
-        }
-        return date.getTime() / 1000L;
-    }
-
-    public static Map<String, Object> getFileInfo(String filePath) throws FileInfoError {
-        Map<String, Object> fileInfo = new HashMap<>();
-        File file = new File(filePath);
-        Path path = file.toPath();
-        try {
-            BasicFileAttributes fileAttributes = Files.readAttributes(path, BasicFileAttributes.class);
-            fileInfo.put("size", fileAttributes.size());
-            fileInfo.put("creationTime", formatDate(fileAttributes.creationTime()));
-            fileInfo.put("modifiedTime", formatDate(fileAttributes.lastModifiedTime()));
-            fileInfo.put("isBinary", isBinaryFile(file));
-        } catch (IOException error) {
-            throw new FileInfoError(error.getMessage());
-        }
-
-        return fileInfo;
-    }
-
-    public static String computeDiff(String initialVersion, String latterVersion) {
-        diff_match_patch dmp = new diff_match_patch();
-        LinkedList<diff_match_patch.Patch> patches = dmp.patch_make(initialVersion, latterVersion);
-
-        // return text representation of patches objects
-        return dmp.patch_toText(patches);
-    }
-
-    public static boolean isBinaryFile(File f) throws IOException {
-        try {
-            return !isTextFile(f);
-        } catch (Exception e){
-            return false;
-        }
-
-    }
-
-    public static boolean getBoolValue(Map<String, Object> map, String key, boolean defaultValue) {
-        Boolean binaryValue = (Boolean) map.getOrDefault(key, defaultValue);
-        return (binaryValue != null ? binaryValue: false);
-    }
-
-    private static boolean isTextFile(File f) throws Exception {
-        if(!f.exists())
-            return false;
-        FileInputStream in = new FileInputStream(f);
-        int size = in.available();
-        if(size > 1000)
-            size = 1000;
-        byte[] data = new byte[size];
-        in.read(data);
-        in.close();
-        String s = new String(data, "ISO-8859-1");
-        String s2 = s.replaceAll(
-                "[a-zA-Z0-9ßöäü\\.\\*!\"§\\$\\%&/()=\\?@~'#:,;\\"+
-                        "+><\\|\\[\\]\\{\\}\\^°²³\\\\ \\n\\r\\t_\\-`´âêîô"+
-                        "ÂÊÔÎáéíóàèìòÁÉÍÓÀÈÌÒ©‰¢£¥€±¿»«¼½¾™ª]", "");
-        // will delete all text signs
-
-        if (s.length() == 0 | s2.length() == 0) {
-            return true;
-        }
-        double d = (double)(s.length() - s2.length()) / (double)(s.length());
-        // percentage of text signs in the text
-        return d > 0.95;
-    }
-
-    public static String getCurrentDatetime()  {
-        Date currentTime = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_TIME_FORMAT);
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return sdf.format(currentTime);
-    }
-
-    public static Project getCurrentProject() {
-        Project[] allProjects = ProjectManager.getInstance().getOpenProjects();
-        Project foundProject = null;
-
-        for (Project project: allProjects) {
-            Window window = WindowManager.getInstance().suggestParentWindow(project);
-            if (window != null && window.isFocused()) {
-                foundProject = project;
-            }
-
-            if (foundProject != null) {
-                break;
-            }
-        }
-
-        return foundProject;
-    }
-
-    @Nullable
-    public static VirtualFile findSingleFile(@NotNull String fileName, @NotNull Project project) {
-        if (PathUtil.isValidFileName(fileName)) {
-            File file = Paths.get(project.getBasePath(), fileName).toFile();
-            return LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
-        }
-        return null;
     }
 }

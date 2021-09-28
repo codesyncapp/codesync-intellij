@@ -13,9 +13,11 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
+import org.intellij.sdk.codesync.utils.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.intellij.sdk.codesync.Constants.*;
@@ -40,6 +42,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     }
 
     CodeSyncSetup.setupCodeSyncRepoAsync(project, false);
+    PopulateBuffer.startPopulateBufferDaemon();
 
     // Schedule buffer handler.
     HandleBuffer.scheduleBufferHandler();

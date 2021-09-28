@@ -8,6 +8,8 @@ import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
 import org.intellij.sdk.codesync.files.DiffFile;
+import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.FileUtils;
 
 import java.io.*;
 import java.util.*;
@@ -288,7 +290,7 @@ public class HandleBuffer {
             return diff;
         }
         try {
-            Map<String, Object> fileInfo = Utils.getFileInfo(shadowPath);
+            Map<String, Object> fileInfo = FileUtils.getFileInfo(shadowPath);
             if ((Boolean) fileInfo.get("isBinary")) {
                 cleanUpDeletedDiff(configFile,  configRepo, configRepoBranch, diffFile, shadowPath);
                 return diff;
@@ -296,8 +298,8 @@ public class HandleBuffer {
         } catch (FileInfoError error) {
             error.printStackTrace();
         }
-        String shadowText = ReadFileToString.readLineByLineJava8(shadowPath);
-        diff = Utils.computeDiff(shadowText, "");
+        String shadowText = FileUtils.readLineByLineJava8(shadowPath);
+        diff = CommonUtils.computeDiff(shadowText, "");
         cleanUpDeletedDiff(configFile,  configRepo, configRepoBranch, diffFile, shadowPath);
 
         return diff;

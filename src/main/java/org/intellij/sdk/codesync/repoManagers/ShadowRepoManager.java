@@ -1,25 +1,26 @@
 package org.intellij.sdk.codesync.repoManagers;
 
-import org.apache.commons.io.FileUtils;
-
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
 import static org.intellij.sdk.codesync.Constants.SHADOW_REPO;
 
 public class ShadowRepoManager extends BaseRepoManager {
-    String shadowDirectory, repoPath, branchName;
+    String shadowDirectory, projectRepoPath, branchName;
+
+    private String shadowRepoDir;
 
     /*
     Constructor for ShadowRepoManager.
 
     @param  repoPath  an absolute path giving the base location of the repo.
     */
-    public ShadowRepoManager (String repoPath, String branchName) {
+    public ShadowRepoManager (String projectRepoPath, String branchName) {
         this.shadowDirectory = SHADOW_REPO;
-        this.repoPath = repoPath;
+        this.projectRepoPath = projectRepoPath;
         this.branchName = branchName;
+
+        this.shadowRepoDir  = Paths.get(this.shadowDirectory, this.projectRepoPath, this.branchName).toString();
     }
 
     /*
@@ -28,11 +29,18 @@ public class ShadowRepoManager extends BaseRepoManager {
     @param  shadowDirectory  an absolute path giving the directory containing all shadow repos.
     @param  repoPath  an absolute path giving the base location of the repo.
     */
-    public ShadowRepoManager (String shadowDirectory, String repoPath, String branchName) {
+    public ShadowRepoManager (String shadowDirectory, String projectRepoPath, String branchName) {
         this.shadowDirectory = shadowDirectory;
-        this.repoPath = repoPath;
+        this.projectRepoPath = projectRepoPath;
         this.branchName = branchName;
+
+        this.shadowRepoDir  = Paths.get(this.shadowDirectory, this.projectRepoPath, this.branchName).toString();
     }
+
+    public String getBaseRepoBranchDir(){
+        return this.shadowRepoDir;
+    }
+
 
     /*
     Copy all the files provided in the argument to shadow repo.
@@ -40,10 +48,19 @@ public class ShadowRepoManager extends BaseRepoManager {
     @param  filePaths  list of absolute paths of the files to copy.
      */
     public void copyFiles(String[] filePaths) {
-        String shadowRepoDir  = Paths.get(this.shadowDirectory, this.repoPath, this.branchName).toString();
+        copyFiles(filePaths, this.projectRepoPath);
+    }
 
+    /*
+    Copy all the files provided in the argument to shadow repo.
+
+    @param  filePaths  list of absolute paths of the files to copy.
+    @param  projectRepoPath  String path of the project root of the source file, this is used to
+        generated relative path in the target repo.
+     */
+    public void copyFiles(String[] filePaths, String projectRepoPath) {
         for (String filePath: filePaths) {
-            String to = Paths.get(shadowRepoDir, filePath.replace(this.repoPath, "")).toString();
+            String to = Paths.get(this.shadowRepoDir, filePath.replace(projectRepoPath, "")).toString();
             try {
                 this.copyFile(filePath, to);
             } catch (IOException e) {
@@ -51,14 +68,4 @@ public class ShadowRepoManager extends BaseRepoManager {
             }
         }
     }
-
-    public void delete() {
-        try {
-            String shadowDirectory = Paths.get(this.shadowDirectory, this.repoPath, this.branchName).toString();
-            FileUtils.deleteDirectory(new File(shadowDirectory));
-        } catch (IOException e) {
-            // Ignore error/
-        }
-    }
-
 }

@@ -4,7 +4,6 @@ import kotlin.Pair;
 
 import org.apache.http.client.methods.HttpGet;
 import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.DiffFile;
@@ -18,6 +17,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.intellij.sdk.codesync.models.UserPlan;
+import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.FileUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -105,7 +106,7 @@ public class CodeSyncClient {
         JSONObject data = new JSONObject();
         Map<String, Object> fileInfo;
         try {
-            fileInfo = Utils.getFileInfo(originalsFile.getAbsolutePath());
+            fileInfo = FileUtils.getFileInfo(originalsFile.getAbsolutePath());
         } catch (FileInfoError error) {
             throw new FileInfoError(String.format("File Info could not be found for %s", diffFile.fileRelativePath));
         }
@@ -115,7 +116,7 @@ public class CodeSyncClient {
         data.put("is_binary", (Boolean) fileInfo.get("isBinary"));
         data.put("size", (long) fileInfo.get("size"));
         data.put("file_path", diffFile.fileRelativePath);
-        data.put("created_at", Utils.formatDate(diffFile.createdAt));
+        data.put("created_at", CommonUtils.formatDate(diffFile.createdAt));
 
         StringEntity dataStr;
         try {

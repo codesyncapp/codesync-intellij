@@ -60,6 +60,11 @@ public class ConfigFile extends CodeSyncYmlFile {
     }
 
     private void loadYmlContent () throws InvalidConfigFileError {
+        if (!this.contentsMap.containsKey("repos")) {
+            // Empty config file.
+            return;
+        }
+
         try {
             Map<String, Map<String, Object>> repos = (Map<String, Map<String, Object>>) this.contentsMap.get("repos");
 
@@ -76,6 +81,10 @@ public class ConfigFile extends CodeSyncYmlFile {
 
     public ConfigRepo getRepo(String repoPath) {
         return this.repos.get(repoPath);
+    }
+
+    public Map<String, ConfigRepo> getRepos() {
+        return this.repos;
     }
 
     public void updateRepo(String repoPath, ConfigRepo newRepo) {
@@ -112,12 +121,12 @@ public class ConfigFile extends CodeSyncYmlFile {
         }
     }
 
-    public boolean isRepoSynced (String repoPath) {
+    public boolean isRepoDisconnected(String repoPath) {
         ConfigRepo repo = this.getRepo(repoPath);
         if (repo == null) {
-            return false;
+            return true;
         }
 
-        return !repo.isDisconnected;
+        return repo.isDisconnected;
     }
 }

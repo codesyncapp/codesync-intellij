@@ -31,6 +31,8 @@ import org.intellij.sdk.codesync.ui.progress.InitRepoMilestones;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.ui.userInput.UserInputDialog;
+import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
@@ -38,10 +40,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Stream;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -90,7 +90,7 @@ public class CodeSyncSetup {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
             ConfigRepo configRepo = configFile.getRepo(repoPath);
 
-            if (!configFile.isRepoSynced(repoPath) || !configRepo.isSuccessfullySynced()) {
+            if (configFile.isRepoDisconnected(repoPath) || !configRepo.isSuccessfullySynced()) {
                 String branchName = Utils.GetGitBranch(repoPath);
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CHECK_USER_ACCESS);
 
@@ -130,6 +130,14 @@ public class CodeSyncSetup {
         for (String systemFolder : systemFolders) {
             File folder = new File(systemFolder);
             folder.mkdirs();
+        }
+        String[] systemFilePaths = {CONFIG_PATH, USER_FILE_PATH, SEQUENCE_TOKEN_FILE_PATH};
+        for (String systemFilePath: systemFilePaths) {
+            File systemFile = new File(systemFilePath);
+
+            if (!systemFile.exists()) {
+                CodeSyncYmlFile.createFile(systemFilePath);
+            }
         }
     }
 
@@ -283,7 +291,7 @@ public class CodeSyncSetup {
         }
 
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.FETCH_FILES);
-        String[] filePaths = listFiles(repoPath);
+        String[] filePaths = FileUtils.listFiles(repoPath);
 
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.COPY_FILES);
         // Copy files to shadow repo.
@@ -309,7 +317,7 @@ public class CodeSyncSetup {
         CodeSyncMessages.invokeAndWait(
                 () -> {
                     // Ask user to modify the syncignore file
-                    VirtualFile syncIgnoreFile = Utils.findSingleFile(".syncignore", project);
+                    VirtualFile syncIgnoreFile = CommonUtils.findSingleFile(".syncignore", project);
                     if (syncIgnoreFile != null) {
                         new OpenFileDescriptor(project, syncIgnoreFile, 0).navigate(true);
 
@@ -344,6 +352,22 @@ public class CodeSyncSetup {
         );
     }
 
+    public static void uploadRepoAsync(String repoPath, String repoName, String[] filePaths, Project project){
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
+            public void run(@NotNull ProgressIndicator progressIndicator) {
+                CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
+
+                // Set the progress bar percentage and text
+                codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
+                uploadRepo(repoPath, repoName, filePaths, project, codeSyncProgressIndicator);
+
+                // Finished
+                codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
+
+            }
+        });
+    }
+
     /*
     upload the repo and returns status as a boolean.
 
@@ -374,7 +398,7 @@ public class CodeSyncSetup {
             branchFiles.put(relativeFilePath, null);
             Map<String, Object> fileInfo;
             try {
-                fileInfo = Utils.getFileInfo(
+                fileInfo = FileUtils.getFileInfo(
                         String.format("%s/%s", repoPath.replaceFirst("/$",""), relativeFilePath)
                 );
             } catch (FileInfoError error) {
@@ -387,11 +411,11 @@ public class CodeSyncSetup {
             JSONObject item = new JSONObject();
             item.put("is_binary",  fileInfo.get("isBinary"));
             item.put("size", fileInfo.get("size"));
-            item.put("created_at", Utils.getPosixTime((String) fileInfo.get("creationTime")));
+            item.put("created_at", CommonUtils.getPosixTime((String) fileInfo.get("creationTime")));
             filesData.put(relativeFilePath, item);
         }
         ConfigRepo configRepo = new ConfigRepo(repoPath);
-        if(!configFile.isRepoSynced(repoPath)) {
+        if(configFile.isRepoDisconnected(repoPath)) {
             configRepo.updateRepoBranch(branchName, new ConfigRepoBranch(branchName, branchFiles));
             configFile.updateRepo(repoPath, configRepo);
             try {
@@ -581,35 +605,6 @@ public class CodeSyncSetup {
                 );
             }
         }
-    }
-
-    /*
-    List absolute file paths of all the files in a directory.
-
-    This is recursively list all the files containing in the given directory and all its sub-directories.
-     */
-    public static String[] listFiles(String directory) {
-        String[] filePaths = {};
-        IgnoreFile ignoreFile;
-
-        try {
-            Stream<Path> filePathStream = filePathStream = Files.walk(Paths.get(directory))
-                    .filter(Files::isRegularFile);
-
-            try {
-                ignoreFile = new IgnoreFile(Paths.get(directory).toString());
-                filePathStream = filePathStream.filter(path -> !ignoreFile.shouldIgnore(path.toFile()));
-            } catch (FileNotFoundError error) {
-                // Do not filter anything if ignore file is not present.
-            }
-
-            filePaths = filePathStream.map(Path::toString).toArray(String[]::new);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-
-       return filePaths;
     }
 
     public static void createSyncIgnore(String repoPath) {
