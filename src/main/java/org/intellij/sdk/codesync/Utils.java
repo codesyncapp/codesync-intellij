@@ -8,6 +8,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import name.fraser.neil.plaintext.diff_match_patch;
+import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
+import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
+import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.utils.DiffUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.json.simple.JSONObject;
@@ -53,9 +56,9 @@ public class Utils {
 
     public static boolean shouldIgnoreFile(String relPath, String repoPath) {
         if (relPath.startsWith("/") || Utils.IsGitFile(relPath)) {  return true; }
-        String syncIgnorePath = String.format("%s/.syncignore", repoPath);
-        File f = new File(syncIgnorePath);
-        if (!f.exists()) {
+
+        Path syncIgnorePath = Paths.get(repoPath, ".syncignore");
+        if (!syncIgnorePath.toFile().exists()) {
             return false;
         }
         Boolean shouldIgnoreByMatch = false;
@@ -74,18 +77,18 @@ public class Utils {
                 pattern = pattern
                         .replace(REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION, "")
                         .replace("!", "");
-                if (pattern.endsWith("/")) {
+                if (pattern.endsWith(String.valueOf(File.separatorChar))) {
                     pattern = pattern.substring(0, pattern.length() - 1);
                 }
                 excludePaths.add(pattern);
                 continue;
             }
             shouldIgnoreByMatch = match(relPath, pattern) || shouldIgnoreByMatch;
-            String dirPattern = pattern.replace("/", "");
+            String dirPattern = pattern.replace(String.valueOf(File.separatorChar), "");
             if (dirPattern.endsWith("*")) {
                 dirPattern = dirPattern.substring(0, dirPattern.length() - 1);
             }
-            File file = new File(String.format("%s/%s", repoPath, dirPattern));
+            File file = Paths.get(repoPath, dirPattern).toFile();
             if (file.exists() && file.isDirectory()) {
                 syncIgnoreDirectories.add(dirPattern);
             }
@@ -137,110 +140,77 @@ public class Utils {
     public static void FileCreateHandler(String filePath, String repoPath) {
         // Skip in case of directory
         File eventFile = new File(filePath);
-        if (eventFile.isDirectory()) { return; }
-        String s = String.format("%s/", repoPath);
-        String[] rel_path_arr = filePath.split(s);
-        String relPath = rel_path_arr[rel_path_arr.length - 1];
-        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relPath, repoPath)) { return; }
-        String branch = Utils.GetGitBranch(repoPath);
-
-        String destOriginals = String.format("%s/%s/%s/%s", ORIGINALS_REPO, repoPath.substring(1), branch, relPath);
-        String[] destOriginalsPathSplit = destOriginals.split("/");
-        String[] newArray = Arrays.copyOfRange(destOriginalsPathSplit, 0, destOriginalsPathSplit.length-1);
-        String destOriginalsBasePath = String.join("/", newArray);
-
-        String destShadow = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, relPath);
-        String[] destShadowPathSplit = destShadow.split("/");
-        newArray = Arrays.copyOfRange(destShadowPathSplit, 0, destShadowPathSplit.length-1);
-        String destShadowBasePath = String.join("/", newArray);
-
-        File f_originals_base = new File(destOriginalsBasePath);
-        f_originals_base.mkdirs();
-        File f_shadow_base = new File(destShadowBasePath);
-        f_shadow_base.mkdirs();
-
-        File file = new File(filePath);
-        File f_originals = new File(destOriginals);
-        File f_shadow = new File(destShadow);
-
-        try {
-            Files.copy(file.toPath(), f_originals.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } catch (FileAlreadyExistsException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            Files.copy(file.toPath(), f_shadow.toPath());
-        } catch (FileAlreadyExistsException e) {
-            return;
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (eventFile.isDirectory()) {
             return;
         }
-        DiffUtils.writeDiffToYml(repoPath, branch, relPath, "", true,
+
+        String relativeFilePath = filePath
+                .replace(repoPath, "")
+                .replaceFirst(String.valueOf(File.separatorChar), "");
+
+        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relativeFilePath, repoPath)) { return; }
+        String branchName = Utils.GetGitBranch(repoPath);
+
+        OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath, branchName);
+        originalsRepoManager.copyFiles(new String[] {filePath});
+
+        ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branchName);
+        shadowRepoManager.copyFiles(new String[] {filePath});
+
+        DiffUtils.writeDiffToYml(repoPath, branchName, relativeFilePath, "", true,
                 false, false, false
         );
         System.out.println(String.format("FileCreated: %s", filePath));
     }
 
     public static void FileDeleteHandler(VFileEvent event, String repoPath) {
-        String filePath = event.getFile().getPath();
-        String s = String.format("%s/", repoPath);
-        String[] rel_path_arr = filePath.split(s);
-        String relPath = rel_path_arr[rel_path_arr.length - 1];
-        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relPath, repoPath)) { return; }
-        String branch = Utils.GetGitBranch(repoPath);
+        String filePath = Objects.requireNonNull(event.getFile()).getPath();
+
+        String relativeFilePath = filePath
+                .replace(repoPath, "")
+                .replaceFirst(String.valueOf(File.separatorChar), "");
+
+        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relativeFilePath, repoPath)) { return; }
+        String branchName = Utils.GetGitBranch(repoPath);
+
         if (event.getFile().isDirectory()) {
-            handleDirDelete(repoPath, branch, relPath);
+            handleDirDelete(repoPath, branchName, relativeFilePath);
             return;
         }
 
-        String destDeleted = String.format("%s/%s/%s/%s", DELETED_REPO, repoPath.substring(1), branch, relPath);
-        String[] destDeletedPathSplit = destDeleted.split("/");
-        String[] newArray = Arrays.copyOfRange(destDeletedPathSplit, 0, destDeletedPathSplit.length-1);
-        String destDeletedBasePath = String.join("/", newArray);
+        DeletedRepoManager deletedRepoManager = new DeletedRepoManager(repoPath, branchName);
+        ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branchName);
 
-        String shadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, relPath);
+        deletedRepoManager.copyFiles(
+                new String[]{shadowRepoManager.getFilePath(relativeFilePath).toString()},
+                shadowRepoManager.getBaseRepoBranchDir()
+        );
 
-        File f_deleted_base = new File(destDeletedBasePath);
-        f_deleted_base.mkdirs();
-
-        File f_deleted = new File(destDeleted);
-        File f_shadow = new File(shadowPath);
-
-        if (f_deleted.exists()) { return; }
-        if (!f_shadow.exists()) { return; }
-
-        try {
-            Files.copy(f_shadow.toPath(), f_deleted.toPath());
-        } catch (FileAlreadyExistsException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        DiffUtils.writeDiffToYml(repoPath, branch, relPath, "", false,
+        DiffUtils.writeDiffToYml(repoPath, branchName, relativeFilePath, "", false,
                 true, false, false);
         System.out.println(String.format("FileDeleted: %s", filePath));
     }
 
     public static void handleDirDelete(String repoPath, String branch, String relativeDirPath) {
         System.out.printf("Populating buffer for dir '%S' delete.", relativeDirPath);
-        String shadowDirPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, relativeDirPath);
+        DeletedRepoManager deletedRepoManager = new DeletedRepoManager(repoPath, branch);
+        ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branch);
+        Path shadowDirectoryPath = shadowRepoManager.getFilePath(relativeDirPath);
 
         try {
-            Stream<Path> files = Files.walk(Paths.get(shadowDirPath)).filter(Files::isRegularFile);
+            Stream<Path> files = Files.walk(shadowDirectoryPath).filter(Files::isRegularFile);
             files.forEach((path) -> {
                 String filePath = path.toString();
+                String relativeFilePath = filePath
+                        .replace(repoPath, "")
+                        .replaceFirst(String.valueOf(File.separatorChar), "");
 
-                String relativeFilePath = filePath.split(String.format("%s/%s/", repoPath.substring(1), branch))[1];
-                String shadowFilePath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, relativeFilePath);
 
-                String deletedRepoFilePath = String.format("%s/%s/%s/%s", DELETED_REPO, repoPath.substring(1), branch, relativeFilePath);
-                File deletedRepoFile = new File(deletedRepoFilePath);
-                File shadowFile = new File(shadowFilePath);
+                Path shadowFilePath = shadowRepoManager.getFilePath(relativeFilePath);
+                Path deletedFilePath = deletedRepoManager.getFilePath(relativeFilePath);
+
+                File deletedRepoFile = deletedFilePath.toFile();
+                File shadowFile = shadowFilePath.toFile();
 
                 if (deletedRepoFile.exists() || !shadowFile.exists()) {
                     // If file already exists in .deleted directory or does not exist in shadow repo
@@ -248,16 +218,10 @@ public class Utils {
                     return;
                 }
 
-                String deletedFileDirectoryPath = deletedRepoFile.getParent();
-                File deletedFileDirectory = new File(deletedFileDirectoryPath);
-                deletedFileDirectory.mkdirs();
-
-                try {
-                    Files.copy(shadowFile.toPath(), deletedRepoFile.toPath());
-                } catch (IOException e) {
-                    e.printStackTrace();
-
-                }
+                deletedRepoManager.copyFiles(
+                        new String[]{shadowRepoManager.getFilePath(relativeFilePath).toString()},
+                        shadowRepoManager.getBaseRepoBranchDir()
+                );
 
                 DiffUtils.writeDiffToYml(repoPath, branch, relativeFilePath, "", false,
                         true, false, false);
@@ -271,11 +235,12 @@ public class Utils {
     public static void FileRenameHandler(VFileEvent event, String repoPath) throws IOException {
         String oldAbsPath = ((VFilePropertyChangeEvent) event).getOldPath();
         String newAbsPath = ((VFilePropertyChangeEvent) event).getNewPath();
-        String s = String.format("%s/", repoPath);
-        String[] newRelPathArr = newAbsPath.split(s);
-        String newRelPath = newRelPathArr[newRelPathArr.length - 1];
 
-        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(newRelPath, repoPath)) { return; }
+        String newRelativeFilePath = newAbsPath
+                .replace(repoPath, "")
+                .replaceFirst(String.valueOf(File.separatorChar), "");
+
+        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(newRelativeFilePath, repoPath)) { return; }
 
         String branch = Utils.GetGitBranch(repoPath);
         // See if it is for directory or a file
@@ -283,19 +248,21 @@ public class Utils {
         handleRename(repoPath, branch, oldAbsPath, newAbsPath, file.isFile());
     }
 
-    public static void handleRename(String repoPath, String branch, String oldAbsPath,
-                                    String newAbsPath, Boolean isFile) {
-        String s = String.format("%s/", repoPath);
-        String[] oldRelPathArr = oldAbsPath.split(s);
-        String oldRelPath = oldRelPathArr[oldRelPathArr.length - 1];
-        String[] newRelPathArr = newAbsPath.split(s);
-        String newRelPath = newRelPathArr[newRelPathArr.length - 1];
+    public static void handleRename(
+            String repoPath, String branch, String oldAbsPath, String newAbsPath, Boolean isFile
+    ) {
+        String newRelativeFilePath = newAbsPath
+                .replace(repoPath, "")
+                .replaceFirst(String.valueOf(File.separatorChar), "");
+
+        String oldRelativeFilePath = oldAbsPath
+                .replace(repoPath, "")
+                .replaceFirst(String.valueOf(File.separatorChar), "");
+
+        ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branch);
+
         // Rename shadow path
-        String oldShadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, oldRelPath);
-        String newShadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, newRelPath);
-        File oldShadow = new File(oldShadowPath);
-        File newShadow = new File(newShadowPath);
-        oldShadow.renameTo(newShadow);
+        shadowRepoManager.renameFile(oldRelativeFilePath, newRelativeFilePath);
 
         if (!isFile) {
             System.out.println(String.format("RepoRenamed: %s, %s", oldAbsPath, newAbsPath));
@@ -311,9 +278,9 @@ public class Utils {
         JSONObject diff = new JSONObject();
         diff.put("old_abs_path", oldAbsPath);
         diff.put("new_abs_path", newAbsPath);
-        diff.put("old_rel_path", oldRelPath);
-        diff.put("new_rel_path", newRelPath);
-        DiffUtils.writeDiffToYml(repoPath, branch, newRelPath, diff.toJSONString(),
+        diff.put("old_rel_path", oldRelativeFilePath);
+        diff.put("new_rel_path", newRelativeFilePath);
+        DiffUtils.writeDiffToYml(repoPath, branch, newRelativeFilePath, diff.toJSONString(),
                 false, false, true, false);
     }
 
@@ -325,8 +292,14 @@ public class Utils {
             files.forEach((path) -> {
                 String newFilePath = path.toString();
                 String oldFilePath = newFilePath.replace(newPath, oldPath);
-                String newRelativePath = newFilePath.replace(String.format("%s/", repoPath), "");
-                String oldRelativePath = oldFilePath.replace(String.format("%s/", repoPath), "");
+
+                String newRelativePath = newFilePath
+                        .replace(repoPath, "")
+                        .replaceFirst(String.valueOf(File.separatorChar), "");
+
+                String oldRelativePath = oldFilePath
+                        .replace(repoPath, "")
+                        .replaceFirst(String.valueOf(File.separatorChar), "");
 
                 JSONObject diff = new JSONObject();
                 diff.put("old_abs_path", oldFilePath);
@@ -359,32 +332,12 @@ public class Utils {
 
         String branch = Utils.GetGitBranch(repoPath);
         if (repoPath == null) { return; }
-        String s = String.format("%s/", repoPath);
-        String[] rel_path_arr = filePath.split(s);
-        String relPath = rel_path_arr[rel_path_arr.length - 1];
-        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relPath, repoPath)) { return; }
 
-        // Get current git branch name
-        ProcessBuilder processBuilder = new ProcessBuilder().directory(new File(repoPath));
-        // Run a shell command
-        processBuilder.command("/bin/bash", "-c", CURRENT_GIT_BRANCH_COMMAND);
-        try {
-            Process process = processBuilder.start();
-            StringBuilder output = new StringBuilder();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line);
-            }
-            int exitVal = process.waitFor();
-            if (exitVal == 0) {
-                branch = output.toString();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        String relativeFilePath = filePath
+                .replace(repoPath, "")
+                .replaceFirst(String.valueOf(File.separatorChar), "");
+
+        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relativeFilePath, repoPath)) { return; }
 
         // Skipping duplicate events for key press
         if (!filePath.contains(repoPath)) {
@@ -393,9 +346,9 @@ public class Utils {
 
         currentText = currentText.replace(MAGIC_STRING, "").trim();
 
-        String shadowPath = String.format("%s/%s/%s/%s", SHADOW_REPO, repoPath.substring(1), branch, relPath);
-        File f = new File(shadowPath);
-        if (!f.exists()) {
+        ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branch);
+        Path shadowPath = shadowRepoManager.getFilePath(relativeFilePath);
+        if (!shadowPath.toFile().exists()) {
             // TODO: Create shadow file?
             return;
         }
@@ -406,10 +359,9 @@ public class Utils {
         if (shadowText.equals(currentText)) {
             return;
         }
-//         System.out.println(String.format("%s, %s, %s, %s", System.currentTimeMillis(), filePath, currentText, shadowText));
         // Update shadow file
         try {
-            FileWriter myWriter = new FileWriter(shadowPath);
+            FileWriter myWriter = new FileWriter(shadowPath.toFile());
             myWriter.write(currentText);
             myWriter.close();
         } catch (IOException e) {
@@ -420,7 +372,7 @@ public class Utils {
 
         // Create text representation of patches objects
         String diffs = dmp.patch_toText(patches);
-        DiffUtils.writeDiffToYml(repoPath, branch, relPath, diffs, false,
+        DiffUtils.writeDiffToYml(repoPath, branch, relativeFilePath, diffs, false,
                 false, false, false);
     }
 }

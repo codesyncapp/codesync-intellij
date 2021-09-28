@@ -19,6 +19,10 @@ import java.util.stream.Stream;
 
 public class FileUtils
 {
+    public static String readLineByLineJava8(Path filePath) {
+        return readLineByLineJava8(filePath.toString());
+    }
+
     //Read file content into the string with - Files.lines(Path path, Charset cs)
     public static String readLineByLineJava8(String filePath)
     {

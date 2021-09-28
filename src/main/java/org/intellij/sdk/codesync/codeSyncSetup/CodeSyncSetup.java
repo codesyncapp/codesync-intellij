@@ -608,10 +608,8 @@ public class CodeSyncSetup {
     }
 
     public static void createSyncIgnore(String repoPath) {
-        String syncIgnorePath = String.format("%s/.syncignore", repoPath);
-        String gitIgnorePath = String.format("%s/.gitignore", repoPath);
-        File syncIgnoreFile = new File(syncIgnorePath);
-        File gitIgnoreFile = new File(gitIgnorePath);
+        File syncIgnoreFile = Paths.get(repoPath, ".syncignore").toFile();
+        File gitIgnoreFile = Paths.get(repoPath, ".gitignore").toFile();;
 
         // no need to create .syncignore if it already exists.
         if (syncIgnoreFile.exists()) {

@@ -100,7 +100,7 @@ public class PopulateBuffer {
         this.filePaths = FileUtils.listFiles(repoPath);
         this.relativeFilePaths = Arrays.stream(this.filePaths)
                 .map(filePath -> filePath.replace(this.repoPath, ""))
-                .map(filePath -> filePath.replaceFirst("/", ""))
+                .map(filePath -> filePath.replaceFirst(String.valueOf(File.separatorChar), ""))
                 .toArray(String[]::new);
 
         for (String relativeFilePath: this.relativeFilePaths) {

@@ -8,10 +8,15 @@ import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
 import org.intellij.sdk.codesync.files.DiffFile;
+import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
+import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
+import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static org.intellij.sdk.codesync.Constants.*;
@@ -100,7 +105,7 @@ public class HandleBuffer {
             System.out.printf("Processing diff file: %s.\n", diffFile.originalDiffFile.getPath());
 
             if (!diffFile.isValid()) {
-                String filePath = String.format("%s/%s", diffFile.repoPath, diffFile.fileRelativePath);
+                String filePath = Paths.get(diffFile.repoPath, diffFile.fileRelativePath).toString();
                 CodeSyncLogger.logEvent(String.format("Skipping invalid diff file: %s. data: %s.\n", filePath, diffFile.diff));
 
                 diffFile.delete();
@@ -179,12 +184,10 @@ public class HandleBuffer {
                 continue;
             }
             if (fileId == null && diffFile.isDeleted) {
+                ShadowRepoManager shadowRepoManager = new ShadowRepoManager(diffFile.repoPath, diffFile.branch);
                 cleanUpDeletedDiff(
                         configFile, configRepo, configRepoBranch, diffFile,
-                        String.format(
-                                "%s/%s/%s/%s", SHADOW_REPO, diffFile.repoPath.substring(1), diffFile.branch,
-                                diffFile.fileRelativePath
-                        )
+                        shadowRepoManager.getFilePath(diffFile.fileRelativePath)
                 );
                 diffFile.delete();
                 continue;
@@ -222,12 +225,11 @@ public class HandleBuffer {
     }
 
     public static boolean handleNewFile(CodeSyncClient client, DiffFile diffFile, ConfigFile configFile, ConfigRepo repo, ConfigRepoBranch configRepoBranch) {
-        String branch = Utils.GetGitBranch(repo.repoPath);
+        String branchName = Utils.GetGitBranch(repo.repoPath);
+        OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repo.repoPath, branchName);
 
-        String originalsFilePath = String.format(
-            "%s/%s/%s/%s", ORIGINALS_REPO, repo.repoPath.substring(1), branch, diffFile.fileRelativePath
-        );
-        File originalsFile = new File(originalsFilePath);
+        Path originalsFilePath = originalsRepoManager.getFilePath(diffFile.fileRelativePath);
+        File originalsFile = originalsFilePath.toFile();
 
         if (!originalsFile.exists()) {
             System.out.printf("Original file: %s not found.\n", originalsFilePath);
@@ -257,16 +259,9 @@ public class HandleBuffer {
     }
 
     public static boolean handleFileRename(ConfigFile configFile, ConfigRepo configRepo, ConfigRepoBranch configRepoBranch, DiffFile diffFile, Integer oldFileId) {
-        String oldShadowPath = String.format(
-            "%s/%s/%s/%s", SHADOW_REPO, diffFile.repoPath.substring(1), diffFile.branch, diffFile.oldRelativePath
-        );
-        String newShadowPath = String.format(
-            "%s/%s/%s/%s", SHADOW_REPO, diffFile.repoPath.substring(1), diffFile.branch, diffFile.fileRelativePath
-        );
-        File oldShadowFile = new File(oldShadowPath);
-        if (oldShadowFile.exists()) {
-            oldShadowFile.renameTo(new File(newShadowPath));
-        }
+        ShadowRepoManager shadowRepoManager = new ShadowRepoManager(diffFile.repoPath, diffFile.branch);
+        shadowRepoManager.renameFile(diffFile.oldRelativePath, diffFile.fileRelativePath);
+
         configRepoBranch.updateFileId(diffFile.fileRelativePath, oldFileId);
 
         try {
@@ -279,10 +274,10 @@ public class HandleBuffer {
     }
 
     public static String getDiffOfDeletedFile(ConfigFile configFile, ConfigRepo configRepo, ConfigRepoBranch configRepoBranch, DiffFile diffFile ) {
-        String shadowPath = String.format(
-            "%s/%s/%s/%s", SHADOW_REPO, diffFile.repoPath.substring(1), diffFile.branch, diffFile.fileRelativePath
-        );
-        File shadowFile = new File(shadowPath);
+        ShadowRepoManager shadowRepoManager = new ShadowRepoManager(diffFile.repoPath, diffFile.branch);
+        Path shadowPath = shadowRepoManager.getFilePath(diffFile.fileRelativePath);
+
+        File shadowFile = shadowPath.toFile();
         String diff = "";
 
         if (!shadowFile.exists()) {
@@ -290,7 +285,7 @@ public class HandleBuffer {
             return diff;
         }
         try {
-            Map<String, Object> fileInfo = FileUtils.getFileInfo(shadowPath);
+            Map<String, Object> fileInfo = FileUtils.getFileInfo(shadowPath.toString());
             if ((Boolean) fileInfo.get("isBinary")) {
                 cleanUpDeletedDiff(configFile,  configRepo, configRepoBranch, diffFile, shadowPath);
                 return diff;
@@ -305,22 +300,19 @@ public class HandleBuffer {
         return diff;
     }
 
-    public static void cleanUpDeletedDiff (ConfigFile configFile, ConfigRepo configRepo, ConfigRepoBranch configRepoBranch, DiffFile diffFile, String shadowPath) {
-        String originalsPath = String.format(
-            "%s/%s/%s/%s", ORIGINALS_REPO, diffFile.repoPath.substring(1), diffFile.branch, diffFile.fileRelativePath
-        );
-        String cacheFilePath = String.format(
-            "%s/%s/%s/%s", DELETED_REPO, diffFile.repoPath.substring(1), diffFile.branch, diffFile.fileRelativePath
-        );
-        File originalsFile = new File(originalsPath);
-        File cacheFile = new File(cacheFilePath);
-        File shadowFile = new File(shadowPath);
+    public static void cleanUpDeletedDiff (ConfigFile configFile, ConfigRepo configRepo, ConfigRepoBranch configRepoBranch, DiffFile diffFile, Path shadowPath) {
+        OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(diffFile.repoPath, diffFile.branch);
+        DeletedRepoManager deletedRepoManager = new DeletedRepoManager(diffFile.repoPath, diffFile.branch);
+
+        File originalsFile = originalsRepoManager.getFilePath(diffFile.fileRelativePath).toFile();
+        File deletedFile = deletedRepoManager.getFilePath(diffFile.fileRelativePath).toFile();
+        File shadowFile = shadowPath.toFile();
 
         if (originalsFile.exists()) {
             originalsFile.delete();
         }
-        if (cacheFile.exists()) {
-            cacheFile.delete();
+        if (deletedFile.exists()) {
+            deletedFile.delete();
         }
         if (shadowFile.exists()) {
             shadowFile.delete();
