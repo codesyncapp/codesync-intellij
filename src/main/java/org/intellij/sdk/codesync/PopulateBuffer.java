@@ -116,6 +116,123 @@ public class PopulateBuffer {
         }
     }
 
+    private static void populateBufferDaemon(final Timer timer) {
+        timer.schedule(new TimerTask() {
+            public void run() {
+                try {
+                    populateBuffer();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                populateBufferDaemon(timer);
+            }
+        }, DELAY_BETWEEN_BUFFER_TASKS);
+    }
+
+    public static void startPopulateBufferDaemon() {
+        Timer timer = new Timer(true);
+        populateBufferDaemon(timer);
+    }
+
+    public static void populateBuffer(){
+        Map<String, String> reposToUpdate = detectBranchChange();
+        populateBufferForMissedEvents(reposToUpdate);
+    }
+
+
+    public static Map<String, String> detectBranchChange() {
+        Map<String, String> reposToUpdate = new HashMap<>();
+
+        ConfigFile configFile;
+        try {
+            configFile = new ConfigFile(CONFIG_PATH);
+        } catch (InvalidConfigFileError error) {
+            CodeSyncLogger.logEvent(String.format(
+                    "[INTELLIJ_PLUGIN][POPULATE_BUFFER] Config file error, %s.\n", error.getMessage()
+            ));
+            return reposToUpdate;
+        }
+        Map<String, ConfigRepo> configRepoMap = configFile.getRepos();
+        UserFile userFile;
+
+        try {
+            userFile = new UserFile(USER_FILE_PATH);
+        } catch (FileNotFoundException | InvalidYmlFileError error) {
+            CodeSyncLogger.logEvent(String.format(
+                    "[INTELLIJ_PLUGIN][POPULATE_BUFFER] User file error, %s.\n", error.getMessage()
+            ));
+            return reposToUpdate;
+        }
+
+        for (Map.Entry<String, ConfigRepo> configRepoEntry: configRepoMap.entrySet()) {
+            String repoPath = configRepoEntry.getKey();
+            ConfigRepo configRepo = configRepoEntry.getValue();
+
+            if (configRepo.isDisconnected) {
+                // No need to check updates for this repo.
+                continue;
+            }
+
+            if (!configRepo.hasValidEmail()) {
+                // Repo does not have a correct email address, skipping this as well.
+                continue;
+            }
+
+            UserFile.User user = userFile.getUser(configRepo.email);
+            if (user == null) {
+                // Could not find the user with this email in user.yml file.
+                continue;
+            }
+
+            if (user.getAccessToken() == null) {
+                CodeSyncLogger.logEvent(String.format("Access token not found for repo: %s, %s`.", repoPath, configRepo.email));
+                continue;
+            }
+
+            String branchName = Utils.GetGitBranch(repoPath);
+            ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branchName);
+
+            // Get the path of the shadow repo, one level above the branch name.
+            // We do not want to include branch name in the path name that is why `getParent` is being called.
+            Path shadowRepoDirectory = Paths.get(shadowRepoManager.getBaseRepoBranchDir()).getParent();
+
+            if (!shadowRepoDirectory.toFile().exists() || !Paths.get(repoPath).toFile().exists()) {
+                // TODO: Handle out of sync repo.
+                continue;
+            }
+            OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath, branchName);
+            if (!configRepo.containsBranch(branchName)) {
+                Project project = CommonUtils.getCurrentProject();
+                if (Paths.get(originalsRepoManager.getBaseRepoBranchDir()).toFile().exists()) {
+                    String[] filePaths = FileUtils.listFiles(repoPath);
+
+                    CodeSyncSetup.uploadRepoAsync(repoPath, project.getName(), filePaths, project);
+                } else {
+                    CodeSyncSetup.setupCodeSyncRepoAsync(project, false);
+                }
+
+                continue;
+            }
+
+            ConfigRepoBranch configRepoBranch = configRepo.getRepoBranch(branchName);
+
+            if (!configRepoBranch.hasValidFiles()) {
+                Project project = CommonUtils.getCurrentProject();
+
+                String[] filePaths = FileUtils.listFiles(repoPath);
+                CodeSyncSetup.uploadRepoAsync(repoPath, project.getName(), filePaths, project);
+
+                // this repo can be checked in the next iteration.
+                continue;
+            }
+
+            reposToUpdate.put(repoPath, branchName);
+        }
+
+        return reposToUpdate;
+    }
+
     public static void populateBufferForMissedEvents(Map<String, String> readyRepos) {
         for (Map.Entry<String, String> repoEntry : readyRepos.entrySet()) {
             String repoPath = repoEntry.getKey();
@@ -131,21 +248,21 @@ public class PopulateBuffer {
                         "[INTELLIJ][NON_IDE_EVENTS] Could not populate for missed events, because config file for repo '%s' could not be opened.",
                         repoPath
                 ));
-
-                if (!populateBuffer.configRepo.isDisconnected) {
-                    if (populateBuffer.isModifiedSinceLastSync()) {
-                        diffsForFileUpdates = populateBuffer.getDiffsForFileUpdates();
-                    }
-                    diffsForDeletedFiles = populateBuffer.getDiffsOfDeletedFiles();
-
-                }
-
-                diffs.putAll(diffsForFileUpdates);
-                diffs.putAll(diffsForDeletedFiles);
-
-                // Finally add diffs to .diff directory
-                populateBufferWithDiffs(diffs, populateBuffer);
             }
+
+            if (!populateBuffer.configRepo.isDisconnected) {
+                if (populateBuffer.isModifiedSinceLastSync()) {
+                    diffsForFileUpdates = populateBuffer.getDiffsForFileUpdates();
+                }
+                diffsForDeletedFiles = populateBuffer.getDiffsOfDeletedFiles();
+
+            }
+
+            diffs.putAll(diffsForFileUpdates);
+            diffs.putAll(diffsForDeletedFiles);
+
+            // Finally add diffs to .diff directory
+            populateBufferWithDiffs(diffs, populateBuffer);
         }
     }
 
@@ -154,6 +271,9 @@ public class PopulateBuffer {
             String relativeFilePath = diffEntry.getKey();
             Map<String, Object> diffData = (Map<String, Object>) diffEntry.getValue();
             String diff = (String) diffData.get("diff");
+            if (diff == null) {
+                diff = "";
+            }
 
             Boolean isNewFile = CommonUtils.getBoolValue(diffData, "is_new_file", false);
             Boolean isDeleted = CommonUtils.getBoolValue(diffData, "is_deleted", false);
@@ -232,7 +352,7 @@ public class PopulateBuffer {
                     previousFileContent = FileUtils.readFileToString(shadowFile);
                 } else {
                     Map<String, Object> fileInfo = this.fileInfoMap.get(relativeFilePath);
-                    if (fileInfo != null && (Integer) fileInfo.get("size") > FILE_SIZE_AS_COPY) {
+                    if (fileInfo != null && (Long) fileInfo.get("size") > FILE_SIZE_AS_COPY) {
                         previousFileContent = FileUtils.readFileToString(filePath.toFile());
                     }
                 }
@@ -249,21 +369,24 @@ public class PopulateBuffer {
             if (!this.configRepoBranch.hasFile(relativeFilePath) && !shadowFile.exists() && !FileUtils.isBinaryFile(filePath.toFile())) {
                 Map<String, Object> renameResult = checkForRename(filePath.toString());
                 String shadowFilePath = (String) renameResult.get("shadowFilePath");
-                String oldRelativePath = this.shadowRepoManager.getRelativeFilePath(shadowFilePath);
-                String oldProjectFilePath = Paths.get(repoBranchPath.toString(), oldRelativePath).toString();
-                String newProjectFilePath = Paths.get(repoBranchPath.toString(), relativeFilePath).toString();
-
-                isRename = !oldRelativePath.equals(relativeFilePath);
+                isRename = (Boolean) renameResult.get("isRename");
 
                 if (isRename) {
-                    // Remove old file from shadow repo.
-                    this.shadowRepoManager.deleteFile(oldRelativePath);
+                    String oldRelativePath = this.shadowRepoManager.getRelativeFilePath(shadowFilePath);
+                    String oldProjectFilePath = Paths.get(repoBranchPath.toString(), oldRelativePath).toString();
+                    String newProjectFilePath = Paths.get(repoBranchPath.toString(), relativeFilePath).toString();
 
-                    diff = DiffFactory.getFileRenameDiff(
-                            oldProjectFilePath, newProjectFilePath, oldRelativePath, relativeFilePath
-                    );
-                    this.renamedFiles.add(oldRelativePath);
+                    if (!oldRelativePath.equals(relativeFilePath)) {
+                        // Remove old file from shadow repo.
+                        this.shadowRepoManager.deleteFile(oldRelativePath);
+
+                        diff = DiffFactory.getFileRenameDiff(
+                                oldProjectFilePath, newProjectFilePath, oldRelativePath, relativeFilePath
+                        );
+                        this.renamedFiles.add(oldRelativePath);
+                    }
                 }
+
             }
 
             boolean isNewFile = !this.configRepoBranch.hasFile(relativeFilePath) &&
@@ -287,7 +410,7 @@ public class PopulateBuffer {
                 diffContentMap.put("is_rename", isRename);
                 diffContentMap.put("is_new_file", isNewFile);
                 diffContentMap.put("is_binary", isBinary);
-                diffContentMap.put("created_at", CommonUtils.formatDate(date, DATETIME_FORMAT));
+                diffContentMap.put("created_at", CommonUtils.formatDate(date, DATE_TIME_FORMAT));
 
                 diffs.put(relativeFilePath, diffContentMap);
             }
@@ -369,100 +492,12 @@ public class PopulateBuffer {
             diffContentMap.put("diff", null);  // Diff will be computed later while handling buffer.
 
             diffs.put(relativeFilePath, diffContentMap);
-            this.deletedRepoManager.copyFiles(new String[]{this.shadowRepoManager.getFilePath(relativeFilePath).toString()});
+            this.deletedRepoManager.copyFiles(
+                    new String[]{this.shadowRepoManager.getFilePath(relativeFilePath).toString()},
+                    this.shadowRepoManager.getBaseRepoBranchDir()
+            );
         }
 
         return diffs;
-    }
-
-    public Map<String, String> detectBranchChange(){
-        Map<String, String> reposToUpdate = new HashMap<>();
-
-        ConfigFile configFile;
-        try {
-            configFile = new ConfigFile(CONFIG_PATH);
-        } catch (InvalidConfigFileError error) {
-            CodeSyncLogger.logEvent(String.format(
-                    "[INTELLIJ_PLUGIN][POPULATE_BUFFER] Config file error, %s.\n", error.getMessage()
-            ));
-            return reposToUpdate;
-        }
-        Map<String, ConfigRepo> configRepoMap = configFile.getRepos();
-        UserFile userFile;
-
-        try {
-            userFile = new UserFile(USER_FILE_PATH);
-        } catch (FileNotFoundException | InvalidYmlFileError error) {
-            CodeSyncLogger.logEvent(String.format(
-                    "[INTELLIJ_PLUGIN][POPULATE_BUFFER] User file error, %s.\n", error.getMessage()
-            ));
-            return reposToUpdate;
-        }
-
-        for (Map.Entry<String, ConfigRepo> configRepoEntry: configRepoMap.entrySet()) {
-            String repoPath = configRepoEntry.getKey();
-            ConfigRepo configRepo = configRepoEntry.getValue();
-
-            if (configRepo.isDisconnected) {
-                // No need to check updates for this repo.
-                continue;
-            }
-
-            if (!configRepo.hasValidEmail()) {
-                // Repo does not have a correct email address, skipping this as well.
-                continue;
-            }
-
-            UserFile.User user = userFile.getUser(configRepo.email);
-            if (user == null) {
-                // Could not find the user with this email in user.yml file.
-                continue;
-            }
-
-            if (user.getAccessToken() == null) {
-                CodeSyncLogger.logEvent(String.format("Access token not found for repo: %s, %s`.", repoPath, configRepo.email));
-                continue;
-            }
-
-            String branchName = Utils.GetGitBranch(repoPath);
-            ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branchName);
-
-            // Get the path of the shadow repo, one level above the branch name.
-            // We do not want to include branch name in the path name that is why `getParent` is being called.
-            Path shadowRepoDirectory = Paths.get(shadowRepoManager.getBaseRepoBranchDir()).getParent();
-
-            if (!shadowRepoDirectory.toFile().exists() || !Paths.get(repoPath).toFile().exists()) {
-                // TODO: Handle out of sync repo.
-                continue;
-            }
-            OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath, branchName);
-             if (!configRepo.containsBranch(branchName)) {
-                 Project project = CommonUtils.getCurrentProject();
-                 if (Paths.get(originalsRepoManager.getBaseRepoBranchDir()).toFile().exists()) {
-                     String[] filePaths = FileUtils.listFiles(repoPath);
-
-                     CodeSyncSetup.uploadRepoAsync(repoPath, project.getName(), filePaths, project);
-                 } else {
-                     CodeSyncSetup.setupCodeSyncRepoAsync(project, false);
-                 }
-
-                 continue;
-             }
-
-             if (!configRepoBranch.hasValidFiles()) {
-                 Project project = CommonUtils.getCurrentProject();
-
-                 String[] filePaths = FileUtils.listFiles(repoPath);
-                 CodeSyncSetup.uploadRepoAsync(repoPath, project.getName(), filePaths, project);
-
-                 // this repo can be checked in the next iteration.
-                 continue;
-             }
-
-             reposToUpdate.put(repoPath, branchName);
-        }
-
-        return reposToUpdate;
-
     }
 }

@@ -48,8 +48,19 @@ public class DeletedRepoManager extends BaseRepoManager {
     @param  filePaths  list of absolute paths of the files to copy.
      */
     public void copyFiles(String[] filePaths) {
+        copyFiles(filePaths, this.projectRepoPath);
+    }
+
+    /*
+    Copy all the files provided in the argument to deleted repo.
+
+    @param  filePaths  list of absolute paths of the files to copy.
+    @param  projectRepoPath  String path of the project root of the source file, this is used to
+        generated relative path in the target repo.
+    */
+    public void copyFiles(String[] filePaths, String projectRepoPath) {
         for (String filePath: filePaths) {
-            String to = Paths.get(this.deletedRepoDir, filePath.replace(this.projectRepoPath, "")).toString();
+            String to = Paths.get(this.deletedRepoDir, filePath.replace(projectRepoPath, "")).toString();
             try {
                 this.copyFile(filePath, to);
             } catch (IOException e) {
@@ -57,4 +68,5 @@ public class DeletedRepoManager extends BaseRepoManager {
             }
         }
     }
+
 }

@@ -131,6 +131,14 @@ public class CodeSyncSetup {
             File folder = new File(systemFolder);
             folder.mkdirs();
         }
+        String[] systemFilePaths = {CONFIG_PATH, USER_FILE_PATH, SEQUENCE_TOKEN_FILE_PATH};
+        for (String systemFilePath: systemFilePaths) {
+            File systemFile = new File(systemFilePath);
+
+            if (!systemFile.exists()) {
+                CodeSyncYmlFile.createFile(systemFilePath);
+            }
+        }
     }
 
     /*

@@ -66,7 +66,6 @@ public final class Constants {
 
     public static Integer FILE_SIZE_AS_COPY = 100;  // 100 bytes;
     public static double SEQUENCE_MATCHER_RATIO = 0.8; // 80% match ratio.
-    public static String DATETIME_FORMAT = "UTC:yyyy-mm-dd HH:MM:ss.l";
 
     public static final class Notification {
         private Notification() {
