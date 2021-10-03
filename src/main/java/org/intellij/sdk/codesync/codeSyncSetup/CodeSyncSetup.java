@@ -39,6 +39,7 @@ import org.json.simple.JSONObject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -283,13 +284,15 @@ public class CodeSyncSetup {
         // create .syncignore file.
         createSyncIgnore(repoPath);
 
+        /*
+        TODO: If we decide to keep this disabled, then we need to remove this and related code.
         if (!ignoreSyncIgnoreUpdate) {
             // Ask user to modify the .syncignore file.
             askUserToUpdateSyncIgnore(project, branchName);
 
             return;
         }
-
+        */
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.FETCH_FILES);
         String[] filePaths = FileUtils.listFiles(repoPath);
 
@@ -363,7 +366,6 @@ public class CodeSyncSetup {
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
-
             }
         });
     }
@@ -634,7 +636,11 @@ public class CodeSyncSetup {
         }
 
         try {
-            Files.copy(gitIgnoreFile.toPath(), syncIgnoreFile.toPath());
+            List<String> gitIgnoreLines = org.apache.commons.io.FileUtils.readLines(
+                    gitIgnoreFile, StandardCharsets.UTF_8
+            );
+            gitIgnoreLines.add(0, SYNC_IGNORE_COMMENT);
+            org.apache.commons.io.FileUtils.writeLines(syncIgnoreFile, gitIgnoreLines);
         } catch (IOException e) {
             // Ignore this error, user can create the file himself as well/
             NotificationManager.notifyError(

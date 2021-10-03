@@ -69,6 +69,8 @@ public final class Constants {
     public static Integer FILE_SIZE_AS_COPY = 100;  // 100 bytes;
     public static double SEQUENCE_MATCHER_RATIO = 0.8; // 80% match ratio.
 
+    public static String SYNC_IGNORE_COMMENT = "# CodeSync won't sync the files in the .syncignore. It follows same format as .gitignore.";
+
     public static final class Notification {
         private Notification() {
             // restrict instantiation
@@ -78,7 +80,7 @@ public final class Constants {
         public static String NO = "No";
         public static String SERVICE_NOT_AVAILABLE = "CodeSync Service is unavailable. Please try again in a moment.";
         public static String UPGRADE_PLAN = String.format("Upgrade your plan: %s", PLANS_URL);
-        public static String PUBLIC_OR_PRIVATE = "Do you want to make the repo public?";
+        public static String PUBLIC_OR_PRIVATE = "Do you want to make the repo public? (You can change this later.)";
         public static String ERROR_SYNCING_REPO = "Error syncing repo.";
     }
 }
