@@ -26,6 +26,23 @@ import java.util.stream.Stream;
 import static org.intellij.sdk.codesync.Constants.*;
 
 public class Utils {
+    private static String OS = System.getProperty("os.name").toLowerCase();
+
+    public static boolean isWindows() {
+        return OS.contains("win");
+    }
+
+    public static boolean isMac() {
+        return OS.contains("mac");
+    }
+
+    public static boolean isUnix() {
+        return (OS.contains("nix") || OS.contains("nux") || OS.contains("aix"));
+    }
+
+    public static boolean isSolaris() {
+        return OS.contains("sunos");
+    }
 
     public static Boolean shouldSkipEvent(String repoPath) {
         // Skip if config does not exist
@@ -115,8 +132,13 @@ public class Utils {
 
         // Get current git branch name
         ProcessBuilder processBuilder = new ProcessBuilder().directory(new File(repoPath));
-        // Run a shell command
-        processBuilder.command("/bin/bash", "-c", CURRENT_GIT_BRANCH_COMMAND);
+        if (isWindows()) {
+            processBuilder.command("cmd", "/C", CURRENT_GIT_BRANCH_COMMAND);
+        } else {
+            // Run a shell command
+            processBuilder.command("/bin/bash", "-c", CURRENT_GIT_BRANCH_COMMAND);
+        }
+
         try {
             Process process = processBuilder.start();
             StringBuilder output = new StringBuilder();

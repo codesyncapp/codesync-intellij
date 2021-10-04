@@ -38,7 +38,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return;
     }
-
+    String branchName = Utils.GetGitBranch("/Users/saleemlatif/dev/codesync/codesync-intellij");
     CodeSyncSetup.setupCodeSyncRepoAsync(project, false);
     PopulateBuffer.startPopulateBufferDaemon();
 
