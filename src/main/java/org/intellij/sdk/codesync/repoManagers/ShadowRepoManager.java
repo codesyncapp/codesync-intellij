@@ -1,5 +1,7 @@
 package org.intellij.sdk.codesync.repoManagers;
 
+import org.intellij.sdk.codesync.Utils;
+
 import java.io.IOException;
 import java.nio.file.Paths;
 
@@ -20,6 +22,10 @@ public class ShadowRepoManager extends BaseRepoManager {
         this.projectRepoPath = projectRepoPath;
         this.branchName = branchName;
 
+        if (Utils.isWindows()) {
+            this.projectRepoPath = this.projectRepoPath.replace(":", "");
+        }
+
         this.shadowRepoDir  = Paths.get(this.shadowDirectory, this.projectRepoPath, this.branchName).toString();
     }
 
@@ -33,6 +39,11 @@ public class ShadowRepoManager extends BaseRepoManager {
         this.shadowDirectory = shadowDirectory;
         this.projectRepoPath = projectRepoPath;
         this.branchName = branchName;
+
+        if (Utils.isWindows()) {
+            this.projectRepoPath = this.projectRepoPath.replace(":", "");
+        }
+
 
         this.shadowRepoDir  = Paths.get(this.shadowDirectory, this.projectRepoPath, this.branchName).toString();
     }
@@ -60,9 +71,14 @@ public class ShadowRepoManager extends BaseRepoManager {
      */
     public void copyFiles(String[] filePaths, String projectRepoPath) {
         for (String filePath: filePaths) {
+            String originalFilePath = filePath;
+
+            if (Utils.isWindows()) {
+                filePath = filePath.replace(":", "");
+            }
             String to = Paths.get(this.shadowRepoDir, filePath.replace(projectRepoPath, "")).toString();
             try {
-                this.copyFile(filePath, to);
+                this.copyFile(originalFilePath, to);
             } catch (IOException e) {
                 e.printStackTrace();
             }

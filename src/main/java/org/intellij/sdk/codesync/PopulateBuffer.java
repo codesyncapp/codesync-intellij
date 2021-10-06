@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -100,7 +101,7 @@ public class PopulateBuffer {
         this.filePaths = FileUtils.listFiles(repoPath);
         this.relativeFilePaths = Arrays.stream(this.filePaths)
                 .map(filePath -> filePath.replace(this.repoPath, ""))
-                .map(filePath -> filePath.replaceFirst(String.valueOf(File.separatorChar), ""))
+                .map(filePath -> filePath.replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), ""))
                 .toArray(String[]::new);
 
         for (String relativeFilePath: this.relativeFilePaths) {

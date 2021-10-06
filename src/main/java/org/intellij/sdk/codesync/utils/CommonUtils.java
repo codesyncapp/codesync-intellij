@@ -7,6 +7,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.util.PathUtil;
 import name.fraser.neil.plaintext.diff_match_patch;
+import org.intellij.sdk.codesync.Utils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -109,7 +110,14 @@ public class CommonUtils {
     @Nullable
     public static VirtualFile findSingleFile(@NotNull String fileName, @NotNull Project project) {
         if (PathUtil.isValidFileName(fileName)) {
-            File file = Paths.get(project.getBasePath(), fileName).toFile();
+            String repoPath = project.getBasePath();
+            if (Utils.isWindows()){
+                // For some reason people at intelli-j thought it would be a good idea to confuse users by using
+                // forward slashes in paths instead of windows path separator.
+                repoPath = repoPath.replaceAll("/", "\\\\");
+            }
+
+            File file = Paths.get(repoPath, fileName).toFile();
             return LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
         }
         return null;

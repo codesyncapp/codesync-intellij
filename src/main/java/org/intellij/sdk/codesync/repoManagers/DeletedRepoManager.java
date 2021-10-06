@@ -1,5 +1,7 @@
 package org.intellij.sdk.codesync.repoManagers;
 
+import org.intellij.sdk.codesync.Utils;
+
 import java.io.IOException;
 import java.nio.file.Paths;
 
@@ -20,6 +22,10 @@ public class DeletedRepoManager extends BaseRepoManager {
         this.projectRepoPath = projectRepoPath;
         this.branchName = branchName;
 
+        if (Utils.isWindows()) {
+            this.projectRepoPath = this.projectRepoPath.replace(":", "");
+        }
+
         this.deletedRepoDir  = Paths.get(this.deletedDirectory, this.projectRepoPath, this.branchName).toString();
     }
 
@@ -33,6 +39,10 @@ public class DeletedRepoManager extends BaseRepoManager {
         this.deletedDirectory = deletedDirectory;
         this.projectRepoPath = projectRepoPath;
         this.branchName = branchName;
+
+        if (Utils.isWindows()) {
+            this.projectRepoPath = this.projectRepoPath.replace(":", "");
+        }
 
         this.deletedRepoDir  = Paths.get(this.deletedDirectory, this.projectRepoPath, this.branchName).toString();
     }
@@ -60,9 +70,15 @@ public class DeletedRepoManager extends BaseRepoManager {
     */
     public void copyFiles(String[] filePaths, String projectRepoPath) {
         for (String filePath: filePaths) {
+            String originalFilePath = filePath;
+
+            if (Utils.isWindows()) {
+                filePath = filePath.replace(":", "");
+            }
+
             String to = Paths.get(this.deletedRepoDir, filePath.replace(projectRepoPath, "")).toString();
             try {
-                this.copyFile(filePath, to);
+                this.copyFile(originalFilePath, to);
             } catch (IOException e) {
                 e.printStackTrace();
             }

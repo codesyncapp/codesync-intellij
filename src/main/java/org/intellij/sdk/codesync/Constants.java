@@ -8,12 +8,8 @@ public final class Constants {
         // restrict instantiation
     }
 
-    public static String expanduser(String path) {
-        String user = System.getProperty("user.home");
-        return path.replaceFirst("~", user);
-    }
-
-    public static String CODESYNC_ROOT = Constants.expanduser("~/.codesync");
+    public static String USER_HOME = System.getProperty("user.home");
+    public static String CODESYNC_ROOT =Paths.get(USER_HOME, ".codeysnc").toString();
     public static String DIFFS_REPO = Paths.get(CODESYNC_ROOT, ".diffs", ".intellij").toString();
     public static String ORIGINALS_REPO = Paths.get(CODESYNC_ROOT, ".originals").toString();
     public static String DELETED_REPO = Paths.get(CODESYNC_ROOT, ".deleted").toString();

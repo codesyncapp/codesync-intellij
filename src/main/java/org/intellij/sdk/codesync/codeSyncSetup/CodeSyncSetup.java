@@ -40,9 +40,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -85,6 +85,11 @@ public class CodeSyncSetup {
         createSystemDirectories();
 
         String repoPath = project.getBasePath();
+        if (Utils.isWindows()){
+            // For some reason people at intelli-j thought it would be a good idea to confuse users by using
+            // forward slashes in paths instead of windows path separator.
+            repoPath = repoPath.replaceAll("/", "\\\\");
+        }
         String repoName = project.getName();
 
         try {
@@ -242,13 +247,20 @@ public class CodeSyncSetup {
         String repoPath = project.getBasePath();
         String repoName = project.getName();
 
+        if (Utils.isWindows()){
+            // For some reason people at intelli-j thought it would be a good idea to confuse users by using
+            // forward slashes in paths instead of windows path separator.
+            repoPath = repoPath.replaceAll("/", "\\\\");
+        }
+
+        String finalRepoPath = repoPath;
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
 
                 // Set the progress bar percentage and text
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator);
+                syncRepo(finalRepoPath, repoName, branchName, project, codeSyncProgressIndicator);
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
@@ -262,13 +274,20 @@ public class CodeSyncSetup {
         String repoPath = project.getBasePath();
         String repoName = project.getName();
 
+        if (Utils.isWindows()){
+            // For some reason people at intelli-j thought it would be a good idea to confuse users by using
+            // forward slashes in paths instead of windows path separator.
+            repoPath = repoPath.replaceAll("/", "\\\\");
+        }
+
+        String finalRepoPath = repoPath;
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo") {
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
 
                 // Set the progress bar percentage and text
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, ignoreSyncIgnoreUpdate);
+                syncRepo(finalRepoPath, repoName, branchName, project, codeSyncProgressIndicator, ignoreSyncIgnoreUpdate);
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
@@ -393,16 +412,14 @@ public class CodeSyncSetup {
 
         String[] relativeFilePaths = Arrays.stream(filePaths)
                 .map(filePath -> filePath.replace(repoPath, ""))
-                .map(filePath -> filePath.replaceFirst("/", ""))
+                .map(filePath -> filePath.replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), ""))
                 .toArray(String[]::new);
 
         for (String relativeFilePath: relativeFilePaths) {
             branchFiles.put(relativeFilePath, null);
             Map<String, Object> fileInfo;
             try {
-                fileInfo = FileUtils.getFileInfo(
-                        String.format("%s/%s", repoPath.replaceFirst("/$",""), relativeFilePath)
-                );
+                fileInfo = FileUtils.getFileInfo(Paths.get(repoPath, relativeFilePath).toString());
             } catch (FileInfoError error) {
                 CodeSyncLogger.logEvent(String.format("File Info could not be found for %s", relativeFilePath));
 
@@ -586,12 +603,11 @@ public class CodeSyncSetup {
             String repoPath, String branchName, String accessToken, String userEmail, Integer repoId,
             Map<String, Object> fileUrls
     ) {
-        String originalsRepoBranchPath = Paths.get(ORIGINALS_REPO, repoPath, branchName).toString();
-
+        OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath, branchName);
         CodeSyncClient codeSyncClient = new CodeSyncClient();
 
         for (Map.Entry<String, Object> fileUrl : fileUrls.entrySet()) {
-            File originalsFile = new File(Paths.get(originalsRepoBranchPath, fileUrl.getKey()).toString());
+            File originalsFile = originalsRepoManager.getFilePath(fileUrl.getKey()).toFile();
             if (fileUrl.getValue() == "") {
                 // Skip if file is empty.
                  continue;
