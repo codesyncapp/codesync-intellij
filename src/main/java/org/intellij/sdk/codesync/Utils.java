@@ -8,24 +8,42 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import name.fraser.neil.plaintext.diff_match_patch;
+import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
+import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.utils.DiffUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.json.simple.JSONObject;
-import org.yaml.snakeyaml.Yaml;
-
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
 public class Utils {
+    private static String OS = System.getProperty("os.name").toLowerCase();
+
+    public static boolean isWindows() {
+        return OS.contains("win");
+    }
+
+    public static boolean isMac() {
+        return OS.contains("mac");
+    }
+
+    public static boolean isUnix() {
+        return (OS.contains("nix") || OS.contains("nux") || OS.contains("aix"));
+    }
+
+    public static boolean isSolaris() {
+        return OS.contains("sunos");
+    }
 
     public static Boolean shouldSkipEvent(String repoPath) {
         // Skip if config does not exist
@@ -33,16 +51,12 @@ public class Utils {
         if (!config.exists()) {
             return true;
         }
-        // Ensure repo is synced
-        Yaml yaml = new Yaml();
-        InputStream inputStream;
         try {
-            inputStream = new FileInputStream(CONFIG_PATH);
-        } catch (FileNotFoundException e) {
+            ConfigFile configFile = new ConfigFile(CONFIG_PATH);
+            return configFile.hasRepo(repoPath);
+        } catch (InvalidConfigFileError e) {
             return true;
         }
-        Map<String, Map<String, Map<String, Object>>> obj = yaml.load(inputStream);
-        return !obj.get("repos").containsKey(repoPath);
     }
 
     public static Boolean IsGitFile(String path) {
@@ -115,8 +129,13 @@ public class Utils {
 
         // Get current git branch name
         ProcessBuilder processBuilder = new ProcessBuilder().directory(new File(repoPath));
-        // Run a shell command
-        processBuilder.command("/bin/bash", "-c", CURRENT_GIT_BRANCH_COMMAND);
+        if (isWindows()) {
+            processBuilder.command("cmd", "/C", CURRENT_GIT_BRANCH_COMMAND);
+        } else {
+            // Run a shell command
+            processBuilder.command("/bin/bash", "-c", CURRENT_GIT_BRANCH_COMMAND);
+        }
+
         try {
             Process process = processBuilder.start();
             StringBuilder output = new StringBuilder();
@@ -146,7 +165,7 @@ public class Utils {
 
         String relativeFilePath = filePath
                 .replace(repoPath, "")
-                .replaceFirst(String.valueOf(File.separatorChar), "");
+                .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
         if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relativeFilePath, repoPath)) { return; }
         String branchName = Utils.GetGitBranch(repoPath);
@@ -166,9 +185,13 @@ public class Utils {
     public static void FileDeleteHandler(VFileEvent event, String repoPath) {
         String filePath = Objects.requireNonNull(event.getFile()).getPath();
 
+        if (Utils.isWindows()){
+            filePath = filePath.replaceAll("/", "\\\\");
+        }
+
         String relativeFilePath = filePath
                 .replace(repoPath, "")
-                .replaceFirst(String.valueOf(File.separatorChar), "");
+                .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
         if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relativeFilePath, repoPath)) { return; }
         String branchName = Utils.GetGitBranch(repoPath);
@@ -203,7 +226,7 @@ public class Utils {
                 String filePath = path.toString();
                 String relativeFilePath = filePath
                         .replace(repoPath, "")
-                        .replaceFirst(String.valueOf(File.separatorChar), "");
+                        .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
 
                 Path shadowFilePath = shadowRepoManager.getFilePath(relativeFilePath);
@@ -236,9 +259,14 @@ public class Utils {
         String oldAbsPath = ((VFilePropertyChangeEvent) event).getOldPath();
         String newAbsPath = ((VFilePropertyChangeEvent) event).getNewPath();
 
+        if (Utils.isWindows()){
+            oldAbsPath = oldAbsPath.replaceAll("/", "\\\\");
+            newAbsPath = newAbsPath.replaceAll("/", "\\\\");
+        }
+
         String newRelativeFilePath = newAbsPath
                 .replace(repoPath, "")
-                .replaceFirst(String.valueOf(File.separatorChar), "");
+                .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
         if (shouldSkipEvent(repoPath) || shouldIgnoreFile(newRelativeFilePath, repoPath)) { return; }
 
@@ -253,11 +281,11 @@ public class Utils {
     ) {
         String newRelativeFilePath = newAbsPath
                 .replace(repoPath, "")
-                .replaceFirst(String.valueOf(File.separatorChar), "");
+                .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
         String oldRelativeFilePath = oldAbsPath
                 .replace(repoPath, "")
-                .replaceFirst(String.valueOf(File.separatorChar), "");
+                .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
         ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branch);
 
@@ -295,11 +323,11 @@ public class Utils {
 
                 String newRelativePath = newFilePath
                         .replace(repoPath, "")
-                        .replaceFirst(String.valueOf(File.separatorChar), "");
+                        .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
                 String oldRelativePath = oldFilePath
                         .replace(repoPath, "")
-                        .replaceFirst(String.valueOf(File.separatorChar), "");
+                        .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
                 JSONObject diff = new JSONObject();
                 diff.put("old_abs_path", oldFilePath);
@@ -319,7 +347,15 @@ public class Utils {
     public static void ChangesHandler(DocumentEvent event, Project project) {
         Document document = event.getDocument();
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
-        handleDocumentUpdates(file, project.getBasePath(), document.getText());
+
+        String repoPath = project.getBasePath();
+        if (Utils.isWindows()){
+            // For some reason people at intellij thought it would be a good idea to confuse users by using
+            // forward slashes in paths instead of windows path separator.
+            repoPath = repoPath.replaceAll("/", "\\\\");
+        }
+
+        handleDocumentUpdates(file, repoPath, document.getText());
     }
 
     public static void handleDocumentUpdates(VirtualFile file, String repoPath, String currentText) {
@@ -335,7 +371,7 @@ public class Utils {
 
         String relativeFilePath = filePath
                 .replace(repoPath, "")
-                .replaceFirst(String.valueOf(File.separatorChar), "");
+                .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
         if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relativeFilePath, repoPath)) { return; }
 

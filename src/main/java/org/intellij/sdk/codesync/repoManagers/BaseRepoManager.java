@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync.repoManagers;
 
 import org.apache.commons.io.FileUtils;
+import org.intellij.sdk.codesync.Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.regex.Pattern;
 
 public abstract class BaseRepoManager {
     /*
@@ -79,8 +81,13 @@ public abstract class BaseRepoManager {
     @param relativeFilePath  absolute path of the file whose relative path is needed.
      */
     public String getRelativeFilePath(String filePath) {
+
+        if (Utils.isWindows()) {
+            filePath = filePath.replace(":", "");
+        }
+
         String relativeFilePath = filePath.replace(this.getBaseRepoBranchDir(), "");
-        relativeFilePath = relativeFilePath.replaceFirst(String.valueOf(File.separatorChar), "");
+        relativeFilePath = relativeFilePath.replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
         return relativeFilePath;
     }

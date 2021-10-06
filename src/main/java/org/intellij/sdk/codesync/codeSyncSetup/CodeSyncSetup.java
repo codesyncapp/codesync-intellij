@@ -39,9 +39,10 @@ import org.json.simple.JSONObject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -84,6 +85,11 @@ public class CodeSyncSetup {
         createSystemDirectories();
 
         String repoPath = project.getBasePath();
+        if (Utils.isWindows()){
+            // For some reason people at intelli-j thought it would be a good idea to confuse users by using
+            // forward slashes in paths instead of windows path separator.
+            repoPath = repoPath.replaceAll("/", "\\\\");
+        }
         String repoName = project.getName();
 
         try {
@@ -241,13 +247,20 @@ public class CodeSyncSetup {
         String repoPath = project.getBasePath();
         String repoName = project.getName();
 
+        if (Utils.isWindows()){
+            // For some reason people at intelli-j thought it would be a good idea to confuse users by using
+            // forward slashes in paths instead of windows path separator.
+            repoPath = repoPath.replaceAll("/", "\\\\");
+        }
+
+        String finalRepoPath = repoPath;
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
 
                 // Set the progress bar percentage and text
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator);
+                syncRepo(finalRepoPath, repoName, branchName, project, codeSyncProgressIndicator);
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
@@ -261,13 +274,20 @@ public class CodeSyncSetup {
         String repoPath = project.getBasePath();
         String repoName = project.getName();
 
+        if (Utils.isWindows()){
+            // For some reason people at intelli-j thought it would be a good idea to confuse users by using
+            // forward slashes in paths instead of windows path separator.
+            repoPath = repoPath.replaceAll("/", "\\\\");
+        }
+
+        String finalRepoPath = repoPath;
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo") {
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
 
                 // Set the progress bar percentage and text
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, ignoreSyncIgnoreUpdate);
+                syncRepo(finalRepoPath, repoName, branchName, project, codeSyncProgressIndicator, ignoreSyncIgnoreUpdate);
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
@@ -283,13 +303,15 @@ public class CodeSyncSetup {
         // create .syncignore file.
         createSyncIgnore(repoPath);
 
+        /*
+        TODO: If we decide to keep this disabled, then we need to remove this and related code.
         if (!ignoreSyncIgnoreUpdate) {
             // Ask user to modify the .syncignore file.
             askUserToUpdateSyncIgnore(project, branchName);
 
             return;
         }
-
+        */
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.FETCH_FILES);
         String[] filePaths = FileUtils.listFiles(repoPath);
 
@@ -363,7 +385,6 @@ public class CodeSyncSetup {
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
-
             }
         });
     }
@@ -391,16 +412,14 @@ public class CodeSyncSetup {
 
         String[] relativeFilePaths = Arrays.stream(filePaths)
                 .map(filePath -> filePath.replace(repoPath, ""))
-                .map(filePath -> filePath.replaceFirst("/", ""))
+                .map(filePath -> filePath.replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), ""))
                 .toArray(String[]::new);
 
         for (String relativeFilePath: relativeFilePaths) {
             branchFiles.put(relativeFilePath, null);
             Map<String, Object> fileInfo;
             try {
-                fileInfo = FileUtils.getFileInfo(
-                        String.format("%s/%s", repoPath.replaceFirst("/$",""), relativeFilePath)
-                );
+                fileInfo = FileUtils.getFileInfo(Paths.get(repoPath, relativeFilePath).toString());
             } catch (FileInfoError error) {
                 CodeSyncLogger.logEvent(String.format("File Info could not be found for %s", relativeFilePath));
 
@@ -584,12 +603,11 @@ public class CodeSyncSetup {
             String repoPath, String branchName, String accessToken, String userEmail, Integer repoId,
             Map<String, Object> fileUrls
     ) {
-        String originalsRepoBranchPath = Paths.get(ORIGINALS_REPO, repoPath, branchName).toString();
-
+        OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath, branchName);
         CodeSyncClient codeSyncClient = new CodeSyncClient();
 
         for (Map.Entry<String, Object> fileUrl : fileUrls.entrySet()) {
-            File originalsFile = new File(Paths.get(originalsRepoBranchPath, fileUrl.getKey()).toString());
+            File originalsFile = originalsRepoManager.getFilePath(fileUrl.getKey()).toFile();
             if (fileUrl.getValue() == "") {
                 // Skip if file is empty.
                  continue;
@@ -634,7 +652,11 @@ public class CodeSyncSetup {
         }
 
         try {
-            Files.copy(gitIgnoreFile.toPath(), syncIgnoreFile.toPath());
+            List<String> gitIgnoreLines = org.apache.commons.io.FileUtils.readLines(
+                    gitIgnoreFile, StandardCharsets.UTF_8
+            );
+            gitIgnoreLines.add(0, SYNC_IGNORE_COMMENT);
+            org.apache.commons.io.FileUtils.writeLines(syncIgnoreFile, gitIgnoreLines);
         } catch (IOException e) {
             // Ignore this error, user can create the file himself as well/
             NotificationManager.notifyError(

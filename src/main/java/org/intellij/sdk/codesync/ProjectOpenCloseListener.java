@@ -50,12 +50,24 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       public void after(@NotNull List<? extends VFileEvent> events) {
         String repoPath = project.getBasePath();
 
+        if (Utils.isWindows()){
+          // For some reason people at intellij thought it would be a good idea to confuse users by using
+          // forward slashes in paths instead of windows path separator.
+          repoPath = repoPath.replaceAll("/", "\\\\");
+        }
+
         // handle the events
         for (VFileEvent event : events) {
           String eventString = event.toString();
 
           if (eventString.startsWith(FILE_CREATE_EVENT) | eventString.startsWith(FILE_COPY_EVENT)) {
-            FileCreateHandler(event.getPath(), repoPath);
+            String filePath = event.getPath();
+
+            if (Utils.isWindows()) {
+              filePath = filePath.replaceAll("/", "\\\\");
+            }
+
+            FileCreateHandler(filePath, repoPath);
             return;
           }
           if (eventString.startsWith(FILE_DELETE_EVENT)) {
