@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.0.0] - 2021-10-09
+- Added authentication flow with CodeSync.
+- Non-IDE (external) event handling, plugin detects and handles changes made outside the IDE.
+- Added support for windows paths, and added support for plugin on widows.
+- Added repo-init functionality right from the plugin.
+- Some Bug fixes and features enhancements
+
+## [2.0.0] - 2021-08-08
 - Daemon with basic functionality of checking server availability, validating and grouping diffs
 - Diffs are being uploaded to server via websocket
 - Docs added for handleBuffer, Fixed order of uploading diffs after authentication
