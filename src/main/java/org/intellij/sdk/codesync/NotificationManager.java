@@ -1,30 +1,21 @@
 package org.intellij.sdk.codesync;
 
-import com.intellij.notification.NotificationDisplayType;
+import com.intellij.diagnostic.ReportMessages;
+import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.BuildNumber;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 
 public class NotificationManager {
     public static void notify(String content, NotificationType notificationType) {
-        BuildNumber buildNumber = ApplicationInfo.getInstance().getBuild();
         Project project = CommonUtils.getCurrentProject();
-        if (buildNumber.getBaselineVersion() >= 203) {
-            com.intellij.notification.NotificationGroupManager.getInstance().getNotificationGroup("CodeSync Notifications")
-                    .createNotification(content, notificationType)
-                    .notify(project);
 
-        } else {
-            com.intellij.notification.NotificationGroup NOTIFICATION_GROUP =
-                    new com.intellij.notification.NotificationGroup(
-                            "CodeSync Notifications", NotificationDisplayType.BALLOON, true
-                    );
-
-            NOTIFICATION_GROUP.createNotification(content, NotificationType.ERROR)
-                    .notify(project);
-        }
+        ReportMessages.GROUP.createNotification(
+                "CodeSync notification",
+                content,
+                notificationType,
+                NotificationListener.URL_OPENING_LISTENER
+        ).setImportant(false).notify(project);
     }
 
     public static void notifyError(String content) {
