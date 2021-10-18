@@ -1,15 +1,25 @@
 package org.intellij.sdk.codesync;
 
+import org.intellij.sdk.codesync.configuration.Configuration;
+import org.intellij.sdk.codesync.configuration.ConfigurationFactory;
+
 import java.nio.file.Paths;
 
 public final class Constants {
+    private static final Configuration configuration = ConfigurationFactory.getConfiguration();
 
     private Constants() {
         // restrict instantiation
     }
+    // Values that can be overridden via environment based Configuration should go here.
+    private static final String CODESYNC_DIR_NAME = configuration.getCodeSyncDirName();
+    private static final String CODESYNC_DOMAIN = configuration.getCodeSyncDomain();
+    private static final String CODESYNC_HOST = configuration.getCodeSyncHost();
+    private static final String CODESYNC_APP = configuration.getCodeSyncAppURL();
+    private static final String WEB_APP_URL = configuration.getCodeSyncWebAppURL();
 
     public static String USER_HOME = System.getProperty("user.home");
-    public static String CODESYNC_ROOT =Paths.get(USER_HOME, ".codeysnc").toString();
+    public static String CODESYNC_ROOT =Paths.get(USER_HOME, CODESYNC_DIR_NAME).toString();
     public static String DIFFS_REPO = Paths.get(CODESYNC_ROOT, ".diffs", ".intellij").toString();
     public static String ORIGINALS_REPO = Paths.get(CODESYNC_ROOT, ".originals").toString();
     public static String DELETED_REPO = Paths.get(CODESYNC_ROOT, ".deleted").toString();
@@ -35,15 +45,8 @@ public final class Constants {
     public static String REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION = "/^\\!/";
     public static Integer DIFFS_PER_ITERATION = 50;
 
-    public static String CODESYNC_DOMAIN = "codesync-server.herokuapp.com";
-//     public static String CODESYNC_DOMAIN = "127.0.0.1:8000";
-    public static String CODESYNC_HOST = "https://codesync-server.herokuapp.com";
-//     public static String CODESYNC_HOST = "http://127.0.0.1:8000";
-    public static String CODESYNC_APP = "https://codesync.com";
     public static String WEBSOCKET_ENDPOINT = String.format("ws://%s/v1/websocket", CODESYNC_DOMAIN);
 
-//    public static String WEB_APP_URL = "http://localhost:3000";
-    public static String WEB_APP_URL = "https://www.codesync.com";
 
     public static String API_ENDPOINT = String.format("%s/v1", CODESYNC_HOST);
     public static String API_INIT = String.format("%s/init", API_ENDPOINT);
