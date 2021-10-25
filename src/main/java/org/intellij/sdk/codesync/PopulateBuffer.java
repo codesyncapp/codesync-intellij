@@ -335,7 +335,6 @@ public class PopulateBuffer {
     */
     public Map<String, Object> getDiffsForFileUpdates() {
         Map<String, Object> diffs = new HashMap<>();
-        Path repoBranchPath = Paths.get(repoPath, branchName);
 
         for (String relativeFilePath: this.relativeFilePaths) {
             Path filePath = Paths.get(this.repoPath, relativeFilePath);
@@ -374,20 +373,15 @@ public class PopulateBuffer {
 
                 if (isRename) {
                     String oldRelativePath = this.shadowRepoManager.getRelativeFilePath(shadowFilePath);
-                    String oldProjectFilePath = Paths.get(repoBranchPath.toString(), oldRelativePath).toString();
-                    String newProjectFilePath = Paths.get(repoBranchPath.toString(), relativeFilePath).toString();
 
                     if (!oldRelativePath.equals(relativeFilePath)) {
                         // Remove old file from shadow repo.
                         this.shadowRepoManager.deleteFile(oldRelativePath);
 
-                        diff = DiffFactory.getFileRenameDiff(
-                                oldProjectFilePath, newProjectFilePath, oldRelativePath, relativeFilePath
-                        );
+                        diff = DiffFactory.getFileRenameDiff(oldRelativePath, relativeFilePath);
                         this.renamedFiles.add(oldRelativePath);
                     }
                 }
-
             }
 
             boolean isNewFile = !this.configRepoBranch.hasFile(relativeFilePath) &&
