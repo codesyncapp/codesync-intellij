@@ -123,7 +123,7 @@ public class HandleBuffer {
                 continue;
             }
 
-            if (Utils.shouldIgnoreFile(diffFile.fileRelativePath, diffFile.repoPath)) {
+            if (FileUtils.shouldIgnoreFile(diffFile.fileRelativePath, diffFile.repoPath)) {
                 diffFile.delete();
                 continue;
             }

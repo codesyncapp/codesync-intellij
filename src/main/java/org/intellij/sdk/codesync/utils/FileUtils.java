@@ -9,13 +9,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
+
+import static org.intellij.sdk.codesync.Constants.GIT_REPO;
 
 public class FileUtils
 {
@@ -137,5 +137,25 @@ public class FileUtils
         }
 
         return fileInfo;
+    }
+
+    public static boolean shouldIgnoreFile(String relPath, String repoPath) {
+        if (relPath.startsWith("/") || IsGitFile(relPath)) {  return true; }
+        try {
+            IgnoreFile ignoreFile = new IgnoreFile(Paths.get(repoPath).toString());
+            return ignoreFile.shouldIgnore(Paths.get(relPath).toFile());
+        } catch (FileNotFoundError fileNotFoundError) {
+            fileNotFoundError.printStackTrace();
+            return false;
+        }
+    }
+
+    public static Boolean IsGitFile(String path) {
+        return path.startsWith(GIT_REPO);
+    }
+
+    public static boolean match(String path, String pattern) {
+        PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(String.format("glob:%s", pattern));
+        return pathMatcher.matches(Paths.get(path));
     }
 }

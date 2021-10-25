@@ -22,7 +22,7 @@ public class DiffFile {
 
     public DiffFile(@NotNull File originalDiffFile) {
         this.originalDiffFile = originalDiffFile;
-        String contents = FileUtils.readLineByLineJava8(originalDiffFile.getPath());
+        String contents = FileUtils.readFileToString(originalDiffFile);
 
         Yaml yaml = new Yaml();
         Map<String, Object> obj = yaml.load(contents);

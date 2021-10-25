@@ -13,6 +13,7 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -50,7 +51,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       public void after(@NotNull List<? extends VFileEvent> events) {
         String repoPath = project.getBasePath();
 
-        if (Utils.isWindows()){
+        if (CommonUtils.isWindows()){
           // For some reason people at intellij thought it would be a good idea to confuse users by using
           // forward slashes in paths instead of windows path separator.
           repoPath = repoPath.replaceAll("/", "\\\\");
@@ -63,7 +64,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
           if (eventString.startsWith(FILE_CREATE_EVENT) | eventString.startsWith(FILE_COPY_EVENT)) {
             String filePath = event.getPath();
 
-            if (Utils.isWindows()) {
+            if (CommonUtils.isWindows()) {
               filePath = filePath.replaceAll("/", "\\\\");
             }
 
