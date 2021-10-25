@@ -304,8 +304,6 @@ public class Utils {
         System.out.println(String.format("FileRenamed: %s, %s", oldAbsPath, newAbsPath));
         // Create diff
         JSONObject diff = new JSONObject();
-        diff.put("old_abs_path", oldAbsPath);
-        diff.put("new_abs_path", newAbsPath);
         diff.put("old_rel_path", oldRelativeFilePath);
         diff.put("new_rel_path", newRelativeFilePath);
         DiffUtils.writeDiffToYml(repoPath, branch, newRelativeFilePath, diff.toJSONString(),

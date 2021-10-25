@@ -8,12 +8,8 @@ including file create event, file delete event, file rename event, file change e
  */
 public class DiffFactory {
 
-    public static String getFileRenameDiff(
-            String oldAbsolutePath, String newAbsolutePath, String oldRelativePath, String relativeFilePath
-    ) {
+    public static String getFileRenameDiff(String oldRelativePath, String relativeFilePath) {
         JSONObject diffObject = new JSONObject();
-        diffObject.put("old_abs_path", oldAbsolutePath);
-        diffObject.put("new_abs_path", newAbsolutePath);
         diffObject.put("old_rel_path", oldRelativePath);
         diffObject.put("new_rel_path", relativeFilePath);
 
