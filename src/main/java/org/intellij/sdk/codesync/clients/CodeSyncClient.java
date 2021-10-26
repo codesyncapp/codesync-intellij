@@ -151,6 +151,9 @@ public class CodeSyncClient {
         } catch (org.json.simple.parser.ParseException | ClassCastException error) {
             throw new RequestError(String.format("Error processing response of the file upload  request. Error: %s", error.getMessage()));
         }
+        if(jsonResponse.containsKey("error")) {
+            throw new RequestError((String) ((JSONObject)jsonResponse.get("error")).get("message"));
+        }
 
         Map<String, Object> preSignedURLData;
         try {
