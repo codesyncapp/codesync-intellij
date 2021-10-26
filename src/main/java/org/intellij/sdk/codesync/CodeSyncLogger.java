@@ -6,10 +6,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.model.CloudWatchException;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
-import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogStreamsRequest;
-import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogStreamsResponse;
-import software.amazon.awssdk.services.cloudwatchlogs.model.InputLogEvent;
-import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsRequest;
+import software.amazon.awssdk.services.cloudwatchlogs.model.*;
 
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.files.UserFile;
@@ -25,7 +22,7 @@ public class CodeSyncLogger {
     private static Integer retryCount = 0;
 
     private static void logMessageToCloudWatch(
-            String logGroupName, String streamName, String accessKey, String secretKey, String message
+            String logGroupName, String userEmail, String accessKey, String secretKey, String message
     ) {
         try
         {
@@ -33,14 +30,18 @@ public class CodeSyncLogger {
                     .region(Region.US_EAST_1)
                     .credentialsProvider(() -> AwsBasicCredentials.create(accessKey, secretKey))
                     .build();
-            DescribeLogStreamsRequest logStreamRequest = DescribeLogStreamsRequest.builder()
-                    .logGroupName(logGroupName)
-                    .logStreamNamePrefix(streamName)
-                    .build();
-            DescribeLogStreamsResponse describeLogStreamsResponse = logsClient.describeLogStreams(logStreamRequest);
 
-            // Assume that a single stream is returned since a specific stream name was specified in the previous request.
-            String sequenceToken = describeLogStreamsResponse.logStreams().get(0).uploadSequenceToken();
+            String sequenceToken = null;
+
+            try {
+                SequenceTokenFile sequenceTokenFile = new SequenceTokenFile(SEQUENCE_TOKEN_FILE_PATH);
+                SequenceTokenFile.SequenceToken sequenceTokenInstance = sequenceTokenFile.getSequenceToken(userEmail);
+                if (sequenceTokenInstance != null) {
+                    sequenceToken = sequenceTokenInstance.getTokenString();
+                }
+            } catch (FileNotFoundException | InvalidYmlFileError e) {
+                // Ignore
+            }
 
             // Build an input log message to put to CloudWatch.
             JSONObject msg = new JSONObject();
@@ -54,14 +55,22 @@ public class CodeSyncLogger {
             // Specify the request parameters.
             // Sequence token is required so that the log can be written to the
             // latest location in the stream.
-            PutLogEventsRequest putLogEventsRequest = PutLogEventsRequest.builder()
+            PutLogEventsRequest.Builder putLogEventsRequestBuilder = PutLogEventsRequest.builder()
                     .logEvents(Collections.singletonList(inputLogEvent))
                     .logGroupName(logGroupName)
-                    .logStreamName(streamName)
-                    .sequenceToken(sequenceToken)
-                    .build();
+                    .logStreamName(userEmail);
+            if (sequenceToken != null) {
+                putLogEventsRequestBuilder = putLogEventsRequestBuilder.sequenceToken(sequenceToken);
+            }
+            PutLogEventsRequest putLogEventsRequest = putLogEventsRequestBuilder.build();
 
-            logsClient.putLogEvents(putLogEventsRequest);
+            String nextSequenceToken;
+            try {
+                PutLogEventsResponse putLogEventsResponse = logsClient.putLogEvents(putLogEventsRequest);
+                nextSequenceToken = putLogEventsResponse.nextSequenceToken();
+            } catch (DataAlreadyAcceptedException error) {
+                nextSequenceToken = error.expectedSequenceToken();
+            }
 
             System.out.println("Successfully put CloudWatch log event");
             // Update sequence token file for other plugins and daemon
@@ -69,7 +78,7 @@ public class CodeSyncLogger {
                 SequenceTokenFile sequenceTokenFile = new SequenceTokenFile(SEQUENCE_TOKEN_FILE_PATH);
 
                 // user email is the streamName.
-                sequenceTokenFile.publishNewSequenceToken(streamName, sequenceToken);
+                sequenceTokenFile.publishNewSequenceToken(userEmail, nextSequenceToken);
             } catch (FileNotFoundException | InvalidYmlFileError e) {
                 // skip update to sequence file if not found;
                 return;
