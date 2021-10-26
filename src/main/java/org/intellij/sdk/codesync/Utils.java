@@ -36,7 +36,7 @@ public class Utils {
         }
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
-            return configFile.hasRepo(repoPath);
+            return !configFile.hasRepo(repoPath);
         } catch (InvalidConfigFileError e) {
             return true;
         }

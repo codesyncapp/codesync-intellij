@@ -201,6 +201,11 @@ public class HandleBuffer {
             diffsToSend.add(new Pair<>(fileId, diffFile));
         }
 
+        if (configFile.isRepoDisconnected(currentRepo)) {
+            CodeSyncLogger.logEvent("Repo is disconnected so, skipping the diffs.");
+            return;
+        }
+
         // Send Diffs in a single request.
         ConfigRepo configRepo = configFile.getRepo(currentRepo);
         CodeSyncWebSocketClient codeSyncWebSocketClient = client.getWebSocketClient(configRepo.token);

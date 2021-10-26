@@ -142,8 +142,8 @@ public class FileUtils
     public static boolean shouldIgnoreFile(String relPath, String repoPath) {
         if (relPath.startsWith("/") || IsGitFile(relPath)) {  return true; }
         try {
-            IgnoreFile ignoreFile = new IgnoreFile(Paths.get(repoPath).toString());
-            return ignoreFile.shouldIgnore(Paths.get(relPath).toFile());
+            IgnoreFile ignoreFile = new IgnoreFile(repoPath);
+            return ignoreFile.shouldIgnore(Paths.get(repoPath, relPath).toFile());
         } catch (FileNotFoundError fileNotFoundError) {
             fileNotFoundError.printStackTrace();
             return false;
