@@ -7,7 +7,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.util.PathUtil;
 import name.fraser.neil.plaintext.diff_match_patch;
-import org.intellij.sdk.codesync.Utils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,6 +24,24 @@ import java.util.TimeZone;
 import static org.intellij.sdk.codesync.Constants.DATE_TIME_FORMAT;
 
 public class CommonUtils {
+    private static String OS = System.getProperty("os.name").toLowerCase();
+
+    public static boolean isWindows() {
+        return OS.contains("win");
+    }
+
+    public static boolean isMac() {
+        return OS.contains("mac");
+    }
+
+    public static boolean isUnix() {
+        return (OS.contains("nix") || OS.contains("nux") || OS.contains("aix"));
+    }
+
+    public static boolean isSolaris() {
+        return OS.contains("sunos");
+    }
+
     @Nullable
     public static Date parseDate(String dateString) {
         SimpleDateFormat pattern = new SimpleDateFormat(DATE_TIME_FORMAT);
@@ -111,7 +128,7 @@ public class CommonUtils {
     public static VirtualFile findSingleFile(@NotNull String fileName, @NotNull Project project) {
         if (PathUtil.isValidFileName(fileName)) {
             String repoPath = project.getBasePath();
-            if (Utils.isWindows()){
+            if (isWindows()){
                 // For some reason people at intelli-j thought it would be a good idea to confuse users by using
                 // forward slashes in paths instead of windows path separator.
                 repoPath = repoPath.replaceAll("/", "\\\\");

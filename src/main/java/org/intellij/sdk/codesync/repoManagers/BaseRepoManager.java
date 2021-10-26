@@ -1,7 +1,7 @@
 package org.intellij.sdk.codesync.repoManagers;
 
 import org.apache.commons.io.FileUtils;
-import org.intellij.sdk.codesync.Utils;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,7 +82,7 @@ public abstract class BaseRepoManager {
      */
     public String getRelativeFilePath(String filePath) {
 
-        if (Utils.isWindows()) {
+        if (CommonUtils.isWindows()) {
             filePath = filePath.replace(":", "");
         }
 

@@ -85,7 +85,7 @@ public class CodeSyncSetup {
         createSystemDirectories();
 
         String repoPath = project.getBasePath();
-        if (Utils.isWindows()){
+        if (CommonUtils.isWindows()){
             // For some reason people at intelli-j thought it would be a good idea to confuse users by using
             // forward slashes in paths instead of windows path separator.
             repoPath = repoPath.replaceAll("/", "\\\\");
@@ -247,7 +247,7 @@ public class CodeSyncSetup {
         String repoPath = project.getBasePath();
         String repoName = project.getName();
 
-        if (Utils.isWindows()){
+        if (CommonUtils.isWindows()){
             // For some reason people at intelli-j thought it would be a good idea to confuse users by using
             // forward slashes in paths instead of windows path separator.
             repoPath = repoPath.replaceAll("/", "\\\\");
@@ -274,7 +274,7 @@ public class CodeSyncSetup {
         String repoPath = project.getBasePath();
         String repoName = project.getName();
 
-        if (Utils.isWindows()){
+        if (CommonUtils.isWindows()){
             // For some reason people at intelli-j thought it would be a good idea to confuse users by using
             // forward slashes in paths instead of windows path separator.
             repoPath = repoPath.replaceAll("/", "\\\\");

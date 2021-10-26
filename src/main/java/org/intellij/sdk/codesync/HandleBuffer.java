@@ -123,7 +123,7 @@ public class HandleBuffer {
                 continue;
             }
 
-            if (Utils.shouldIgnoreFile(diffFile.fileRelativePath, diffFile.repoPath)) {
+            if (FileUtils.shouldIgnoreFile(diffFile.fileRelativePath, diffFile.repoPath)) {
                 diffFile.delete();
                 continue;
             }
@@ -199,6 +199,11 @@ public class HandleBuffer {
                 );
             }
             diffsToSend.add(new Pair<>(fileId, diffFile));
+        }
+
+        if (configFile.isRepoDisconnected(currentRepo)) {
+            CodeSyncLogger.logEvent("Repo is disconnected so, skipping the diffs.");
+            return;
         }
 
         // Send Diffs in a single request.

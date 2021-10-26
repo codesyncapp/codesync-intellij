@@ -1,6 +1,6 @@
 package org.intellij.sdk.codesync.repoManagers;
 
-import org.intellij.sdk.codesync.Utils;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -22,7 +22,7 @@ public class OriginalsRepoManager extends BaseRepoManager {
         this.projectRepoPath = projectRepoPath;
         this.branchName = branchName;
 
-        if (Utils.isWindows()) {
+        if (CommonUtils.isWindows()) {
             this.projectRepoPath = this.projectRepoPath.replace(":", "");
         }
 
@@ -40,7 +40,7 @@ public class OriginalsRepoManager extends BaseRepoManager {
         this.projectRepoPath = projectRepoPath;
         this.branchName = branchName;
 
-        if (Utils.isWindows()) {
+        if (CommonUtils.isWindows()) {
             this.projectRepoPath = this.projectRepoPath.replace(":", "");
         }
 
@@ -71,7 +71,7 @@ public class OriginalsRepoManager extends BaseRepoManager {
         for (String filePath: filePaths) {
             String originalFilePath = filePath;
 
-            if (Utils.isWindows()) {
+            if (CommonUtils.isWindows()) {
                 filePath = filePath.replace(":", "");
             }
 

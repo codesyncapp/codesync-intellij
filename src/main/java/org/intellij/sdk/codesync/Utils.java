@@ -13,6 +13,7 @@ import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.DiffUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.json.simple.JSONObject;
@@ -20,30 +21,12 @@ import org.json.simple.JSONObject;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
-import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
 public class Utils {
-    private static String OS = System.getProperty("os.name").toLowerCase();
-
-    public static boolean isWindows() {
-        return OS.contains("win");
-    }
-
-    public static boolean isMac() {
-        return OS.contains("mac");
-    }
-
-    public static boolean isUnix() {
-        return (OS.contains("nix") || OS.contains("nux") || OS.contains("aix"));
-    }
-
-    public static boolean isSolaris() {
-        return OS.contains("sunos");
-    }
 
     public static Boolean shouldSkipEvent(String repoPath) {
         // Skip if config does not exist
@@ -53,75 +36,10 @@ public class Utils {
         }
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
-            return configFile.hasRepo(repoPath);
+            return !configFile.hasRepo(repoPath);
         } catch (InvalidConfigFileError e) {
             return true;
         }
-    }
-
-    public static Boolean IsGitFile(String path) {
-        return path.startsWith(GIT_REPO);
-    }
-
-    public static boolean match(String path, String pattern) {
-        PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(String.format("glob:%s", pattern));
-        return pathMatcher.matches(Paths.get(path));
-    }
-
-    public static boolean shouldIgnoreFile(String relPath, String repoPath) {
-        if (relPath.startsWith("/") || Utils.IsGitFile(relPath)) {  return true; }
-
-        Path syncIgnorePath = Paths.get(repoPath, ".syncignore");
-        if (!syncIgnorePath.toFile().exists()) {
-            return false;
-        }
-        Boolean shouldIgnoreByMatch = false;
-        String[] basePathArr = relPath.split("/");
-        String baseDir = basePathArr[0];
-
-        String relBaseDir = String.join("/", Arrays.copyOfRange(basePathArr, 0, basePathArr.length-1));
-        // Read file
-        String syncIgnore = FileUtils.readLineByLineJava8(syncIgnorePath);
-        String[] patterns = syncIgnore.split("\n");
-        List<String> syncIgnoreDirectories = new ArrayList<String>();
-        List<String> excludePaths = new ArrayList<String>();
-        for (String pattern : patterns)
-        {
-            if (pattern.startsWith("!") || pattern.startsWith(REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION)) {
-                pattern = pattern
-                        .replace(REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION, "")
-                        .replace("!", "");
-                if (pattern.endsWith(String.valueOf(File.separatorChar))) {
-                    pattern = pattern.substring(0, pattern.length() - 1);
-                }
-                excludePaths.add(pattern);
-                continue;
-            }
-            shouldIgnoreByMatch = match(relPath, pattern) || shouldIgnoreByMatch;
-            String dirPattern = pattern.replace(String.valueOf(File.separatorChar), "");
-            if (dirPattern.endsWith("*")) {
-                dirPattern = dirPattern.substring(0, dirPattern.length() - 1);
-            }
-            File file = Paths.get(repoPath, dirPattern).toFile();
-            if (file.exists() && file.isDirectory()) {
-                syncIgnoreDirectories.add(dirPattern);
-            }
-        }
-
-        // Also ignore top level directories present in .syncignore e.g. node_modules/, .git/, .idea/
-        Boolean shouldIgnoreBaseDir = basePathArr.length > 1 && syncIgnoreDirectories.contains(baseDir);
-        // Handle case of tests/ with !tests/b.py
-        // Skip if base path is in ignorePaths OR relPath is in ignorePaths
-        if (excludePaths.contains(relPath) || excludePaths.contains(relBaseDir)) {
-            shouldIgnoreBaseDir = false;
-            shouldIgnoreByMatch = false;
-        }
-
-        if (shouldIgnoreByMatch || shouldIgnoreBaseDir) {
-            System.out.println(String.format("Skipping : %s/%s", repoPath, relPath));
-        }
-
-        return shouldIgnoreByMatch || shouldIgnoreBaseDir;
     }
 
     public static String GetGitBranch(String repoPath) {
@@ -129,7 +47,7 @@ public class Utils {
 
         // Get current git branch name
         ProcessBuilder processBuilder = new ProcessBuilder().directory(new File(repoPath));
-        if (isWindows()) {
+        if (CommonUtils.isWindows()) {
             processBuilder.command("cmd", "/C", CURRENT_GIT_BRANCH_COMMAND);
         } else {
             // Run a shell command
@@ -167,7 +85,7 @@ public class Utils {
                 .replace(repoPath, "")
                 .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
-        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relativeFilePath, repoPath)) { return; }
+        if (shouldSkipEvent(repoPath) || FileUtils.shouldIgnoreFile(relativeFilePath, repoPath)) { return; }
         String branchName = Utils.GetGitBranch(repoPath);
 
         OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath, branchName);
@@ -185,7 +103,7 @@ public class Utils {
     public static void FileDeleteHandler(VFileEvent event, String repoPath) {
         String filePath = Objects.requireNonNull(event.getFile()).getPath();
 
-        if (Utils.isWindows()){
+        if (CommonUtils.isWindows()){
             filePath = filePath.replaceAll("/", "\\\\");
         }
 
@@ -193,7 +111,7 @@ public class Utils {
                 .replace(repoPath, "")
                 .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
-        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relativeFilePath, repoPath)) { return; }
+        if (shouldSkipEvent(repoPath) || FileUtils.shouldIgnoreFile(relativeFilePath, repoPath)) { return; }
         String branchName = Utils.GetGitBranch(repoPath);
 
         if (event.getFile().isDirectory()) {
@@ -259,7 +177,7 @@ public class Utils {
         String oldAbsPath = ((VFilePropertyChangeEvent) event).getOldPath();
         String newAbsPath = ((VFilePropertyChangeEvent) event).getNewPath();
 
-        if (Utils.isWindows()){
+        if (CommonUtils.isWindows()){
             oldAbsPath = oldAbsPath.replaceAll("/", "\\\\");
             newAbsPath = newAbsPath.replaceAll("/", "\\\\");
         }
@@ -268,7 +186,7 @@ public class Utils {
                 .replace(repoPath, "")
                 .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
-        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(newRelativeFilePath, repoPath)) { return; }
+        if (shouldSkipEvent(repoPath) || FileUtils.shouldIgnoreFile(newRelativeFilePath, repoPath)) { return; }
 
         String branch = Utils.GetGitBranch(repoPath);
         // See if it is for directory or a file
@@ -347,7 +265,7 @@ public class Utils {
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
 
         String repoPath = project.getBasePath();
-        if (Utils.isWindows()){
+        if (CommonUtils.isWindows()){
             // For some reason people at intellij thought it would be a good idea to confuse users by using
             // forward slashes in paths instead of windows path separator.
             repoPath = repoPath.replaceAll("/", "\\\\");
@@ -371,7 +289,7 @@ public class Utils {
                 .replace(repoPath, "")
                 .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
-        if (shouldSkipEvent(repoPath) || shouldIgnoreFile(relativeFilePath, repoPath)) { return; }
+        if (shouldSkipEvent(repoPath) || FileUtils.shouldIgnoreFile(relativeFilePath, repoPath)) { return; }
 
         // Skipping duplicate events for key press
         if (!filePath.contains(repoPath)) {
