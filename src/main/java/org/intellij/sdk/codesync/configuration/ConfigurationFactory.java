@@ -8,6 +8,9 @@ public class ConfigurationFactory {
 
     public static Configuration getConfiguration() {
         String value = System.getenv(env);
+        if (value == null) {
+            value = prod;
+        }
         return getConfiguration(value);
     }
 
