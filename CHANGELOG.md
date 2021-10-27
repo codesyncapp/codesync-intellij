@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2021-10-27
+- Fixes for cloud watch logging.
+- Fixes for diff handling to make sure files are not processed multiple times.
+- Fixes for configuration related issues that were causing plugin issue on startup.
+
 ## [3.1.0] - 2021-10-26
 - Added support for windows, bug fixes and improvements.
 
