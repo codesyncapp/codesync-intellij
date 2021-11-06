@@ -81,7 +81,7 @@ public final class Constants {
         public static String UPGRADE_PLAN = String.format("Upgrade your plan: %s", PLANS_URL);
         public static String PUBLIC_OR_PRIVATE = "Do you want to make the repo public? (You can change this later.)";
 
-        public static String INIT_SUCCESS_MESSAGE = "Repo initialized successfully, your code will not be synced with CodeSync.";
+        public static String INIT_SUCCESS_MESSAGE = "Repo initialized successfully, your code will now be synced with CodeSync.";
         public static String INIT_ERROR_MESSAGE = "Repo initialization errored out, please try again later. If problem persists then contact support.";
         public static String INIT_FAILURE_MESSAGE = "Repo could not be initialized successfully, please try again later. If problem persists then contact support.";
     }
