@@ -342,7 +342,7 @@ public class CodeSyncSetup {
     }
 
     public static void askUserToUpdateSyncIgnore(Project project, String branchName){
-        CodeSyncMessages.invokeAndWait(
+        CommonUtils.invokeAndWait(
                 () -> {
                     // Ask user to modify the syncignore file
                     VirtualFile syncIgnoreFile = CommonUtils.findSingleFile(".syncignore", project);
