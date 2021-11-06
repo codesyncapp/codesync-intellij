@@ -280,7 +280,7 @@ public class Utils {
         }
         float time = System.currentTimeMillis();
         System.out.println(String.format("Event: %s", time));
-        String filePath = file.getPath();
+        String filePath = Paths.get(file.getPath()).toString();
 
         String branch = Utils.GetGitBranch(repoPath);
         if (repoPath == null) { return; }
