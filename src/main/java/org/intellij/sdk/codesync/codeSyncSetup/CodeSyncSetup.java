@@ -111,8 +111,8 @@ public class CodeSyncSetup {
                 if (!reposBeingSynced.contains(repoPath)) {
                     reposBeingSynced.add(repoPath);
                     boolean shouldSyncRepo = CodeSyncMessages.showYesNoMessage(
-                            "Do you want to enable syncing of this Repo?",
-                            String.format("'%s' Is not Being Synced!", repoName),
+                            "Do you want to enable syncing of this repo?",
+                            String.format("'%s' Is not being synced!", repoName),
                             project
                     );
 
