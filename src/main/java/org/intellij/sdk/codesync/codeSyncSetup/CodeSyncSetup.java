@@ -332,6 +332,12 @@ public class CodeSyncSetup {
         if (wasUploadSuccessful) {
             // Remove originals repo if it was uploaded successfully.
             originalsRepoManager.delete();
+
+            // Show success message.
+            NotificationManager.notifyInformation(Notification.INIT_SUCCESS_MESSAGE);
+        } else {
+            // Show failure message.
+            NotificationManager.notifyError(Notification.INIT_FAILURE_MESSAGE);
         }
     }
 
@@ -402,6 +408,9 @@ public class CodeSyncSetup {
         } catch (InvalidConfigFileError e) {
             e.printStackTrace();
 
+            // Show error message.
+            NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE);
+
             // Can not proceed. This should never happen as the same check is applied at the start.
             return false;
         }
@@ -442,6 +451,9 @@ public class CodeSyncSetup {
             } catch (InvalidConfigFileError e) {
                 e.printStackTrace();
 
+                // Show error message.
+                NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE);
+
                 // Can not proceed. This should never happen as the same check is applied at the start.
                 return false;
             }
@@ -452,12 +464,18 @@ public class CodeSyncSetup {
             } catch (InvalidConfigFileError e) {
                 e.printStackTrace();
 
+                // Show error message.
+                NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE);
+
                 // Can not proceed. This should never happen as the same check is applied at the start.
                 return false;
             }
         }
         String accessToken = UserFile.getAccessToken();
         if (accessToken == null) {
+            // Show error message.
+            NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE);
+
             // Can not proceed. This should never happen as the same check is applied at the start.
             return false;
         }
@@ -479,7 +497,7 @@ public class CodeSyncSetup {
         JSONObject response = codeSyncClient.uploadRepo(accessToken, payload);
 
         if (response.containsKey("error")) {
-            NotificationManager.notifyError(Notification.ERROR_SYNCING_REPO);
+            NotificationManager.notifyError(Notification.INIT_ERROR_MESSAGE);
             return false;
         }
         String email;
