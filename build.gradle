@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'com.codesync'
-version '3.3.0'
+version '3.4.0'
 
 compileJava.options.encoding = "UTF-8"
 compileTestJava.options.encoding = "UTF-8"
@@ -29,7 +29,7 @@ buildSearchableOptions {
 patchPluginXml {
   version = project.version
   sinceBuild = '201'
-  untilBuild = '212.*'
+  untilBuild = '213.*'
 }
 
 dependencies {
