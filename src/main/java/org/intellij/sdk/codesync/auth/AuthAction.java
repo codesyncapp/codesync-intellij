@@ -18,7 +18,7 @@ public class AuthAction extends AnAction {
         System.out.println("Auth Action:update called.");
         PluginState pluginState = StateUtils.getState();
         if (pluginState != null && pluginState.isAuthenticated) {
-            Presentation presentation = getTemplatePresentation();
+            Presentation presentation = e.getPresentation();
             presentation.setText("Logout");
             presentation.setDescription("Use a different account.");
         }

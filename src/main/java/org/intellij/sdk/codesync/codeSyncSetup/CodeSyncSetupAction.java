@@ -11,6 +11,8 @@ import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.jetbrains.annotations.NotNull;
 
+import static org.intellij.sdk.codesync.Constants.*;
+
 public class CodeSyncSetupAction extends AnAction {
     @Override
     public void update(AnActionEvent e) {
@@ -18,7 +20,7 @@ public class CodeSyncSetupAction extends AnAction {
         System.out.println("CodeSyncSetup Action:update called.");
         PluginState pluginState = StateUtils.getState();
         if (pluginState != null && pluginState.isRepoInSync) {
-            Presentation presentation = getTemplatePresentation();
+            Presentation presentation = e.getPresentation();
             presentation.setText("Repo in Sync");
             presentation.setDescription("Repo is being synced.");
         }
@@ -32,7 +34,9 @@ public class CodeSyncSetupAction extends AnAction {
 
         if (project != null) {
             if (pluginState != null && pluginState.isRepoInSync) {
-                NotificationManager.notifyInformation(Constants.Notification.REPO_ALREADY_IN_SYNC_MESSAGE);
+                NotificationManager.notifyInformation(
+                        String.format(Notification.REPO_ALREADY_IN_SYNC_MESSAGE, project.getName())
+                );
             } else {
                 CodeSyncSetup.setupCodeSyncRepoAsync(project, true);
             }
