@@ -123,10 +123,11 @@ public class CodeSyncSetup {
                         }
                     }
                 } else {
-                    NotificationManager.notifyInformation(Notification.REPO_IN_SYNC_MESSAGE);
+                    NotificationManager.notifyInformation(Notification.REPO_SYNC_IN_PROGRESS_MESSAGE);
                 }
+            } else {
+                NotificationManager.notifyInformation(Notification.REPO_ALREADY_IN_SYNC_MESSAGE);
             }
-
         } catch (InvalidConfigFileError error) {
             CodeSyncLogger.logEvent(String.format("Config file error, %s.\n", error.getMessage()));
         }
