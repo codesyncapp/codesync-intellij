@@ -3,24 +3,39 @@ package org.intellij.sdk.codesync.auth;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.actionSystem.Presentation;
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.state.PluginState;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.jetbrains.annotations.NotNull;
+
+import static org.intellij.sdk.codesync.Constants.CODESYNC_LOGOUT_URL;
 
 
 public class AuthAction extends AnAction {
     @Override
     public void update(AnActionEvent e) {
-        // Using the event, evaluate the context, and enable or disable the action.
         System.out.println("Auth Action:update called.");
+        PluginState pluginState = StateUtils.getState();
+        if (pluginState != null && pluginState.isAuthenticated) {
+            Presentation presentation = getTemplatePresentation();
+            presentation.setText("Logout");
+            presentation.setDescription("Use a different account.");
+        }
     }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-        // Using the event, implement an action. For example, create and show a dialog.
+        PluginState pluginState = StateUtils.getState();
+
         CodeSyncAuthServer server;
         try {
             server =  CodeSyncAuthServer.getInstance();
-            BrowserUtil.browse(server.getAuthorizationUrl());
+            String targetURL = server.getAuthorizationUrl();
+            if (pluginState != null && pluginState.isAuthenticated) {
+                targetURL = CODESYNC_LOGOUT_URL;
+            }
+            BrowserUtil.browse(targetURL);
         } catch (Exception exc) {
             exc.printStackTrace();
             CodeSyncLogger.logEvent(

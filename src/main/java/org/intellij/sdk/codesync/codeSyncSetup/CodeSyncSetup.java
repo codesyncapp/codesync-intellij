@@ -122,6 +122,8 @@ public class CodeSyncSetup {
                             syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator);
                         }
                     }
+                } else {
+                    NotificationManager.notifyInformation(Notification.REPO_IN_SYNC_MESSAGE);
                 }
             }
 
