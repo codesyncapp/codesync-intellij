@@ -62,6 +62,19 @@
               text="Connect Repo" description="Connect repo with codeSync" icon="SdkIcons.codeSyncIcon">
       </action>
     </group>
+
+    <group id="org.intellij.sdk.codesync.actions.PlaybackActions" text="CodeSync" popup="true">
+      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+      <action id="org.intellij.sdk.codesync.actions.RepoPlaybackAction"
+              class="org.intellij.sdk.codesync.actions.RepoPlaybackAction" text="View Repo Playback"
+              description="View repo playback">
+      </action>
+      <action id="org.intellij.sdk.codesync.actions.FilePlaybackAction"
+              class="org.intellij.sdk.codesync.actions.FilePlaybackAction" text="View File Playback"
+              description="View file playback">
+      </action>
+    </group>
+
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
