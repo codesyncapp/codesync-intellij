@@ -125,6 +125,15 @@ public class ConfigFile extends CodeSyncYmlFile {
         }
     }
 
+    public boolean isRepoActive(String repoPath) {
+        ConfigRepo repo = this.getRepo(repoPath);
+        if (repo == null) {
+            return false;
+        }
+
+        return !repo.isDisconnected && !repo.branches.isEmpty() && repo.hasValidEmail();
+    }
+
     public boolean isRepoDisconnected(String repoPath) {
         ConfigRepo repo = this.getRepo(repoPath);
         if (repo == null) {

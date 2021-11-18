@@ -1,7 +1,9 @@
 package org.intellij.sdk.codesync.exceptions;
 
 
-public class FileInfoError extends Exception {
+import org.intellij.sdk.codesync.exceptions.base.BaseException;
+
+public class FileInfoError extends BaseException {
     public FileInfoError(String message) {
         super(message);
     }

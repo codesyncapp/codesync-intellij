@@ -214,4 +214,18 @@ public class CodeSyncClient {
         }
 
     }
+
+    public JSONObject updateRepo(String accessToken, int repoId, JSONObject payload) {
+        String url = String.format("%s/%s", CODESYNC_UPDATE_REPO_URL, repoId);
+
+        try {
+            return ClientUtils.sendPatch(url, payload, accessToken);
+        } catch (RequestError | InvalidJsonError error) {
+            error.printStackTrace();
+
+            CodeSyncLogger.logEvent(String.format("Error while repo init, %s", error.getMessage()));
+            return null;
+        }
+
+    }
 }

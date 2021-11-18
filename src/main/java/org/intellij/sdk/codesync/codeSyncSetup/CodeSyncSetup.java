@@ -23,6 +23,10 @@ import org.intellij.sdk.codesync.commands.Command;
 import org.intellij.sdk.codesync.commands.ResumeCodeSyncCommand;
 import org.intellij.sdk.codesync.commands.ResumeRepoUploadCommand;
 import org.intellij.sdk.codesync.exceptions.*;
+import org.intellij.sdk.codesync.exceptions.file.UserFileError;
+import org.intellij.sdk.codesync.exceptions.network.RepoUpdateError;
+import org.intellij.sdk.codesync.exceptions.network.ServerConnectionError;
+import org.intellij.sdk.codesync.exceptions.repo.RepoNotActive;
 import org.intellij.sdk.codesync.files.*;
 import org.intellij.sdk.codesync.ui.messages.CodeSyncMessages;
 import org.intellij.sdk.codesync.models.User;
@@ -62,6 +66,79 @@ public class CodeSyncSetup {
 
             // This is done to avoid multiple invocations.
             resumeUploadCommand = null;
+        }
+    }
+
+    /*
+    This can be called to disconnect an already connected repo.
+     */
+    public static void disconnectRepo(Project project) throws InvalidConfigFileError, RepoNotActive, UserFileError, ServerConnectionError, RepoUpdateError {
+        // Show confirmation message.
+        boolean shouldDisconnect = CodeSyncMessages.showYesNoMessage(
+                "Are you sure?",
+                Notification.REPO_UNSYNC_CONFIRMATION,
+                project
+        );
+
+        // User confirmed to disconnect the repo.
+        if (shouldDisconnect) {
+            String repoPath = project.getBasePath();
+            String repoName = project.getName();
+            ConfigFile configFile = new ConfigFile(CONFIG_PATH);
+
+            if (!configFile.isRepoActive(repoPath)) {
+               throw new RepoNotActive(String.format("Repo '%s' is not active and can not be disconnected.", repoName));
+            };
+            UserFile userFile;
+
+            try {
+                userFile = new UserFile(USER_FILE_PATH);
+            } catch (FileNotFoundException | InvalidYmlFileError e) {
+                throw new UserFileError(
+                        String.format(
+                                "Repo '%s' could not be disconnected because there was an error trying to read user file.",
+                                repoName
+                        )
+                );
+            }
+            ConfigRepo configRepo = configFile.getRepo(repoPath);
+            UserFile.User user = userFile.getUser(configRepo.email);
+            if (user == null) {
+                throw new UserFileError(
+                        String.format(
+                                "Repo '%s' could not be disconnected because user data is missing from user file.",
+                                repoName
+                        )
+                );
+            }
+            String accessToken = user.getAccessToken();
+            CodeSyncClient codeSyncClient = new CodeSyncClient();
+
+            if (!codeSyncClient.isServerUp()) {
+                throw new ServerConnectionError(
+                        String.format(
+                                "Repo '%s' could not be disconnected because we could not connect to the codesync servers.",
+                                repoName
+                        )
+                );
+            }
+            JSONObject payload = new JSONObject();
+            payload.put("is_in_sync", false);
+            JSONObject response = codeSyncClient.updateRepo(accessToken, configRepo.id, payload);
+            if (response.containsKey("error")) {
+                throw new RepoUpdateError(
+                        String.format(
+                                "Repo '%s' could not be disconnected server returned an error response. Error: %s",
+                                repoName,
+                                response.get("error")
+                        )
+                );
+            }
+
+            configRepo.isDisconnected = true;
+            configFile.publishRepoUpdate(configRepo);
+
+            NotificationManager.notifyInformation(Notification.REPO_UNSYNCED, project);
         }
     }
 
@@ -124,12 +201,14 @@ public class CodeSyncSetup {
                     }
                 } else {
                     NotificationManager.notifyInformation(
-                            String.format(Notification.REPO_SYNC_IN_PROGRESS_MESSAGE, repoName)
+                            String.format(Notification.REPO_SYNC_IN_PROGRESS_MESSAGE, repoName),
+                            project
                     );
                 }
             } else {
                 NotificationManager.notifyInformation(
-                        String.format(Notification.REPO_IN_SYNC_MESSAGE, repoName)
+                        String.format(Notification.REPO_IN_SYNC_MESSAGE, repoName),
+                        project
                 );
             }
         } catch (InvalidConfigFileError error) {
@@ -241,7 +320,7 @@ public class CodeSyncSetup {
             CodeSyncLogger.logEvent(
                     "[INTELLIJ_AUTH_ERROR]: IntelliJ Login Error, an error occurred during user authentication."
             );
-            NotificationManager.notifyError("There was a problem with login, please try again later.");
+            NotificationManager.notifyError("There was a problem with login, please try again later.", project);
         }
 
         return false;
@@ -341,10 +420,10 @@ public class CodeSyncSetup {
             originalsRepoManager.delete();
 
             // Show success message.
-            NotificationManager.notifyInformation(Notification.INIT_SUCCESS_MESSAGE);
+            NotificationManager.notifyInformation(Notification.INIT_SUCCESS_MESSAGE, project);
         } else {
             // Show failure message.
-            NotificationManager.notifyError(Notification.INIT_FAILURE_MESSAGE);
+            NotificationManager.notifyError(Notification.INIT_FAILURE_MESSAGE, project);
         }
     }
 
@@ -416,7 +495,7 @@ public class CodeSyncSetup {
             e.printStackTrace();
 
             // Show error message.
-            NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE);
+            NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
 
             // Can not proceed. This should never happen as the same check is applied at the start.
             return false;
@@ -459,7 +538,7 @@ public class CodeSyncSetup {
                 e.printStackTrace();
 
                 // Show error message.
-                NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE);
+                NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
 
                 // Can not proceed. This should never happen as the same check is applied at the start.
                 return false;
@@ -472,7 +551,7 @@ public class CodeSyncSetup {
                 e.printStackTrace();
 
                 // Show error message.
-                NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE);
+                NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
 
                 // Can not proceed. This should never happen as the same check is applied at the start.
                 return false;
@@ -481,7 +560,7 @@ public class CodeSyncSetup {
         String accessToken = UserFile.getAccessToken();
         if (accessToken == null) {
             // Show error message.
-            NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE);
+            NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
 
             // Can not proceed. This should never happen as the same check is applied at the start.
             return false;
@@ -504,7 +583,7 @@ public class CodeSyncSetup {
         JSONObject response = codeSyncClient.uploadRepo(accessToken, payload);
 
         if (response.containsKey("error")) {
-            NotificationManager.notifyError(Notification.INIT_ERROR_MESSAGE);
+            NotificationManager.notifyError(Notification.INIT_ERROR_MESSAGE, project);
             return false;
         }
         String email;

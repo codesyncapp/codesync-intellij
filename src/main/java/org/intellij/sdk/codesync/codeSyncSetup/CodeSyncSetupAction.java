@@ -7,6 +7,13 @@ import com.intellij.openapi.project.Project;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.Constants;
 import org.intellij.sdk.codesync.NotificationManager;
+import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
+import org.intellij.sdk.codesync.exceptions.base.BaseException;
+import org.intellij.sdk.codesync.exceptions.base.BaseNetworkException;
+import org.intellij.sdk.codesync.exceptions.file.UserFileError;
+import org.intellij.sdk.codesync.exceptions.network.RepoUpdateError;
+import org.intellij.sdk.codesync.exceptions.network.ServerConnectionError;
+import org.intellij.sdk.codesync.exceptions.repo.RepoNotActive;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.jetbrains.annotations.NotNull;
@@ -21,8 +28,8 @@ public class CodeSyncSetupAction extends AnAction {
         PluginState pluginState = StateUtils.getState();
         if (pluginState != null && pluginState.isRepoInSync) {
             Presentation presentation = e.getPresentation();
-            presentation.setText("Repo in Sync");
-            presentation.setDescription("Repo is being synced.");
+            presentation.setText("Disconnect Repo");
+            presentation.setDescription("Disconnect repo.");
         }
     }
 
@@ -34,9 +41,12 @@ public class CodeSyncSetupAction extends AnAction {
 
         if (project != null) {
             if (pluginState != null && pluginState.isRepoInSync) {
-                NotificationManager.notifyInformation(
-                        String.format(Notification.REPO_ALREADY_IN_SYNC_MESSAGE, project.getName())
-                );
+                try {
+                    CodeSyncSetup.disconnectRepo(project);
+                } catch (BaseException | BaseNetworkException error) {
+                    NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
+                    NotificationManager.notifyError(error.getMessage(), project);
+                }
             } else {
                 CodeSyncSetup.setupCodeSyncRepoAsync(project, true);
             }

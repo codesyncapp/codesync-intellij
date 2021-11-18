@@ -9,7 +9,10 @@ import org.intellij.sdk.codesync.utils.CommonUtils;
 public class NotificationManager {
     public static void notify(String content, NotificationType notificationType) {
         Project project = CommonUtils.getCurrentProject();
+        notify(content, notificationType, project);
+    }
 
+    public static void notify(String content, NotificationType notificationType, Project project) {
         ReportMessages.GROUP.createNotification(
                 "CodeSync notification",
                 content,
@@ -22,11 +25,24 @@ public class NotificationManager {
         notify(content, NotificationType.ERROR);
     }
 
+    public static void notifyError(String content, Project project) {
+        notify(content, NotificationType.ERROR, project);
+    }
+
     public static void notifyWarning(String content) {
         notify(content, NotificationType.WARNING);
     }
 
+
+    public static void notifyWarning(String content, Project project) {
+        notify(content, NotificationType.WARNING, project);
+    }
+
     public static void notifyInformation(String content) {
         notify(content, NotificationType.INFORMATION);
+    }
+
+    public static void notifyInformation(String content, Project project) {
+        notify(content, NotificationType.INFORMATION, project);
     }
 }

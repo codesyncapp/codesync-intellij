@@ -55,6 +55,7 @@ public final class Constants {
     public static String API_HEALTHCHECK = String.format("%s/healthcheck", CODESYNC_HOST);
     public static String CODESYNC_AUTHORIZE_URL = String.format("%s/authorize", CODESYNC_HOST);
     public static String CODESYNC_LOGOUT_URL = String.format("%s/auth-logout", CODESYNC_HOST);
+    public static String CODESYNC_UPDATE_REPO_URL = String.format("%s/repos", CODESYNC_HOST);
 
     public static String PLANS_URL = String.format("%s/plans", WEB_APP_URL);
 
@@ -88,5 +89,9 @@ public final class Constants {
         public static String REPO_SYNC_IN_PROGRESS_MESSAGE = "Repo '%s' is being synced with CodeSync.";
         public static String REPO_IN_SYNC_MESSAGE = "Repo '%s' is synced with CodeSync.";
         public static String REPO_ALREADY_IN_SYNC_MESSAGE = "Repo '%s' is already being synced with CodeSync.";
+
+        public static String REPO_UNSYNC_CONFIRMATION = "Are you sure to continue? You won't be able to revert this!";
+        public static String REPO_UNSYNCED = "Repo disconnected successfully";
+        public static String REPO_UNSYNC_FAILED = "Could not unsync the repo";
     }
 }

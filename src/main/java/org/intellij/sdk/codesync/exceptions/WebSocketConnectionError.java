@@ -1,6 +1,8 @@
 package org.intellij.sdk.codesync.exceptions;
 
-public class WebSocketConnectionError extends Exception {
+import org.intellij.sdk.codesync.exceptions.base.BaseException;
+
+public class WebSocketConnectionError extends BaseException {
     public WebSocketConnectionError(String message) {
         super(message);
     }
