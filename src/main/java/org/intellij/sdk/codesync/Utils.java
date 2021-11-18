@@ -276,6 +276,7 @@ public class Utils {
 
     public static void handleDocumentUpdates(VirtualFile file, String repoPath, String currentText) {
         if (file == null) {
+            CodeSyncLogger.logEvent("Skipping the update event, file is null.");
             return;
         }
         float time = System.currentTimeMillis();
@@ -283,16 +284,28 @@ public class Utils {
         String filePath = Paths.get(file.getPath()).toString();
 
         String branch = Utils.GetGitBranch(repoPath);
-        if (repoPath == null) { return; }
+        if (repoPath == null) {
+            CodeSyncLogger.logEvent("Skipping the update event, repoPath is null.");
+            return;
+        }
 
         String relativeFilePath = filePath
                 .replace(repoPath, "")
                 .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
-        if (shouldSkipEvent(repoPath) || FileUtils.shouldIgnoreFile(relativeFilePath, repoPath)) { return; }
+        if (shouldSkipEvent(repoPath) || FileUtils.shouldIgnoreFile(relativeFilePath, repoPath)) {
+
+            // TODO: Remove after debugging.
+            CodeSyncLogger.logEvent(
+                    String.format("Skipping the event, file '%s' in repo '%s' is ignored.", relativeFilePath, repoPath)
+            );
+            return;
+        }
 
         // Skipping duplicate events for key press
         if (!filePath.contains(repoPath)) {
+            // TODO: Remove after debugging.
+            CodeSyncLogger.logEvent("Skipping the duplicate event.");
             return;
         }
 
@@ -301,14 +314,15 @@ public class Utils {
         ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branch);
         Path shadowPath = shadowRepoManager.getFilePath(relativeFilePath);
         if (!shadowPath.toFile().exists()) {
-            // TODO: Create shadow file?
-            return;
+            shadowRepoManager.copyFiles(new String[] {filePath});
         }
 
         // Read shadow file
         String shadowText = FileUtils.readLineByLineJava8(shadowPath);
         // If shadow text is same as current content, no need to compute diffs
         if (shadowText.equals(currentText)) {
+            // TODO: Remove after debugging.
+            CodeSyncLogger.logEvent("Skipping the event, shadow text is same as current text.");
             return;
         }
         // Update shadow file
@@ -317,6 +331,7 @@ public class Utils {
             myWriter.write(currentText);
             myWriter.close();
         } catch (IOException e) {
+            CodeSyncLogger.logEvent(String.format("Error updating the shadow file. Error: %s", e.getMessage()));
             e.printStackTrace();
         }
         diff_match_patch dmp = new diff_match_patch();

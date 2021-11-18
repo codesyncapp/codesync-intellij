@@ -4,6 +4,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
@@ -98,4 +99,46 @@ public class ClientUtils {
     public static JSONObject sendGet(String url) throws RequestError, InvalidJsonError {
         return sendGet(url, null);
     }
+
+    public static JSONObject sendPatch(String url, JSONObject payload, String accessToken) throws RequestError, InvalidJsonError {
+        HttpClient httpClient = HttpClientBuilder.create().build();
+        HttpPatch patch = new HttpPatch(url);
+
+        StringEntity dataStr;
+        try {
+            dataStr = new StringEntity(payload.toJSONString());
+        } catch (UnsupportedEncodingException error) {
+            System.out.println("Invalid JSON encoding error while authenticating the user.");
+            throw new InvalidJsonError("Invalid JSON encoding error while authenticating the user.");
+        }
+
+        patch.setEntity(dataStr);
+        patch.addHeader("content-type", "application/json");
+        if (accessToken != null) {
+            patch.addHeader("Authorization", String.format("Basic %s", accessToken));
+        }
+        HttpResponse response;
+
+        try {
+            response = httpClient.execute(patch);
+        } catch (IOException e) {
+            throw new RequestError("Could not make a successful request to CodeSync server.");
+        }
+
+        String responseContent;
+        try {
+            responseContent = EntityUtils.toString(response.getEntity());
+        } catch (IOException | org.apache.http.ParseException error) {
+            System.out.printf("Error processing response of the request. Error: %s%n", error.getMessage());
+            throw new InvalidJsonError("Error processing response of the request.");
+        }
+
+        try {
+            return (JSONObject) JSONValue.parseWithException(responseContent);
+        } catch (org.json.simple.parser.ParseException | ClassCastException error) {
+            System.out.printf("Error processing response of the request. Error: %s%n", error.getMessage());
+            throw new InvalidJsonError("Error processing response of the request.");
+        }
+    }
+
 }

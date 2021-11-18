@@ -13,6 +13,7 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,6 +46,9 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
 
     // Schedule buffer handler.
     HandleBuffer.scheduleBufferHandler();
+
+    // Populate state
+    StateUtils.populateState(project.getBasePath());
 
     project.getMessageBus().connect().subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override

@@ -89,7 +89,7 @@ public class ConfigRepo {
 
         ConfigRepoBranch configRepoBranch = this.getRepoBranch(branchName);
 
-        // If there is any invalid file then it mean repo was not synced successfully.
-        return !configRepoBranch.hasInvalidFiles();
+        // If all or some files Are valid then it means repo was synced successfully.
+        return configRepoBranch.hasValidFiles();
     }
 }
