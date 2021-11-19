@@ -2,6 +2,7 @@
 
 package org.intellij.sdk.codesync;
 
+import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.DocumentEvent;
@@ -41,7 +42,12 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       return;
     }
 
-    CodeSyncSetup.setupCodeSyncRepoAsync(project, false);
+    StartupManagerEx.getInstance(project).runWhenProjectIsInitialized(() -> {
+      if (project.isDisposed()) return;
+
+      CodeSyncSetup.setupCodeSyncRepoAsync(project, false);
+    });
+
     PopulateBuffer.startPopulateBufferDaemon();
 
     // Schedule buffer handler.

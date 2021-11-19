@@ -40,8 +40,13 @@ public class StateUtils {
 
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
-            ConfigRepo configRepo = configFile.getRepo(repoPath);
-            state.isRepoInSync = configRepo.isSuccessfullySynced();
+
+            if (configFile.hasRepo(repoPath)) {
+                ConfigRepo configRepo = configFile.getRepo(repoPath);
+                state.isRepoInSync = configRepo.isSuccessfullySynced();
+            } else {
+                state.isRepoInSync = false;
+            }
         } catch (InvalidConfigFileError error) {
             state.isRepoInSync = false;
         }
