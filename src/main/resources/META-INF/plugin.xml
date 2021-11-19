@@ -48,19 +48,29 @@
               topic="com.intellij.openapi.project.ProjectManagerListener"/>
   </projectListeners>
   <actions>
-    <group id="org.intellij.sdk.action.GroupedActions" text="CodeSync" popup="true">
+    <group id="org.intellij.sdk.action.GroupedActions" text="CodeSync" popup="true" icon="SdkIcons.codeSyncIcon">
       <add-to-group group-id="MainMenu" anchor="after" relative-to-action="ToolsMenu"/>
+      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+
       <action id="org.intellij.sdk.codesync.auth.AuthAction" class="org.intellij.sdk.codesync.auth.AuthAction"
-              text="Login" description="Authentication setup" icon="SdkIcons.codeSyncIcon">
+              text="Login" description="Authentication setup">
       </action>
       <action id="org.intellij.sdk.codesync.auth.LogoutAction" class="org.intellij.sdk.codesync.auth.LogoutAction"
               text="Use Different Account" description="Use a different account for codesync authentication."
-              icon="SdkIcons.codeSyncIcon"
       >
       </action>
       <action id="org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetupAction" class="org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetupAction"
-              text="Connect Repo" description="Connect repo with codeSync" icon="SdkIcons.codeSyncIcon">
+              text="Connect Repo" description="Connect repo with codeSync">
       </action>
+      <action id="org.intellij.sdk.codesync.actions.RepoPlaybackAction"
+              class="org.intellij.sdk.codesync.actions.RepoPlaybackAction" text="View Repo Playback"
+              description="View repo playback">
+      </action>
+      <action id="org.intellij.sdk.codesync.actions.FilePlaybackAction"
+              class="org.intellij.sdk.codesync.actions.FilePlaybackAction" text="View File Playback"
+              description="View file playback">
+      </action>
+
     </group>
   </actions>
 

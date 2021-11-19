@@ -58,6 +58,8 @@ public final class Constants {
     public static String CODESYNC_UPDATE_REPO_URL = String.format("%s/repos", CODESYNC_HOST);
 
     public static String PLANS_URL = String.format("%s/plans", WEB_APP_URL);
+    public static String REPO_PLAYBACK_LINK = String.format("%s/repos", WEB_APP_URL) + "/%s/playback";
+    public static String FILE_PLAYBACK_LINK = String.format("%s/files", WEB_APP_URL) + "/%s/history";
 
     public static Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
     public static String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";

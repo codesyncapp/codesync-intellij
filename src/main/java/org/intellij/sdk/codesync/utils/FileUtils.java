@@ -158,4 +158,19 @@ public class FileUtils
         PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(String.format("glob:%s", pattern));
         return pathMatcher.matches(Paths.get(path));
     }
+
+    /*
+    Normalize file path depending on the operating system.
+
+    This method will make sure proper slashes are used for each OS.
+    */
+    public static String normalizeFilePath(String filePath) {
+        if (CommonUtils.isWindows()){
+            // For some reason people at intelli-j thought it would be a good idea to confuse users by using
+            // forward slashes in paths instead of windows path separator.
+            filePath = filePath.replaceAll("/", "\\\\");
+        }
+
+        return filePath;
+    }
 }
