@@ -12,6 +12,8 @@ import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
+import org.intellij.sdk.codesync.state.PluginState;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +26,14 @@ import static org.intellij.sdk.codesync.Constants.FILE_PLAYBACK_LINK;
 public class FilePlaybackAction extends AnAction {
     @Override
     public void update(AnActionEvent e) {
+        PluginState pluginState = StateUtils.getState();
+        // Disable the button if repo is not in sync.
+        if (pluginState != null && !pluginState.isRepoInSync) {
+            e.getPresentation().setEnabled(false);
+
+            return;
+        }
+
         // Only enable file playback button when some file is opened in the editor.
         try {
             // This file may seem to have no effect but this is the most important line here.
@@ -80,7 +90,7 @@ public class FilePlaybackAction extends AnAction {
             NotificationManager.notifyError("An error occurred trying to perform file playback action.");
             CodeSyncLogger.logEvent(String.format(
                     "An error occurred trying to perform file playback action. " +
-                            "Branch '%s' not found in the repo '%s' of the config file.",
+                            "Branch '%s' not found in the config file repo '%s'.",
                     branchName,
                     repoPath
             ));
@@ -94,7 +104,7 @@ public class FilePlaybackAction extends AnAction {
             NotificationManager.notifyError("An error occurred trying to perform file playback action.");
             CodeSyncLogger.logEvent(String.format(
                     "An error occurred trying to perform file playback action. " +
-                            "File '%s' not found in the repo '%s' of the config file.",
+                            "File '%s' not found in the config file repo '%s'.",
                     relativeFilePath,
                     repoPath
             ));

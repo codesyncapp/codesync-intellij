@@ -3,24 +3,29 @@ package org.intellij.sdk.codesync.actions;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
+import org.intellij.sdk.codesync.state.PluginState;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.util.regex.Pattern;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
 public class RepoPlaybackAction extends AnAction {
     @Override
-    public void update(AnActionEvent e) { }
+    public void update(AnActionEvent e) {
+        PluginState pluginState = StateUtils.getState();
+        // Disable the button if repo is not in sync.
+        if (pluginState != null && !pluginState.isRepoInSync) {
+            e.getPresentation().setEnabled(false);
+        }
+    }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
