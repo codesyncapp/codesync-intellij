@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.0] - 2021-11-20
+- Added more notifications that will give user more information on the status of repo, and give insights if some error happens.
+- Added more logging that will make debugging errors easier.
+- Added options for repo and file playback. 
+- Minor UX improvements related to CodeSync menus.
+- Other bug fixes and feature enhancements.
+
+
 ## [3.3.0] - 2021-11-06
 - Fixed capitilization issue of a message.
 - Added more success and error message to give user more feedback on repo initialization process.
