@@ -55,10 +55,11 @@
       <action id="org.intellij.sdk.codesync.auth.AuthAction" class="org.intellij.sdk.codesync.auth.AuthAction"
               text="Login" description="Authentication setup">
       </action>
-      <action id="org.intellij.sdk.codesync.auth.LogoutAction" class="org.intellij.sdk.codesync.auth.LogoutAction"
-              text="Use Different Account" description="Use a different account for codesync authentication."
-      >
-      </action>
+<!--      TODO: remove this if we decide to never use this action. -->
+<!--      <action id="org.intellij.sdk.codesync.auth.LogoutAction" class="org.intellij.sdk.codesync.auth.LogoutAction"-->
+<!--              text="Use Different Account" description="Use a different account for codesync authentication."-->
+<!--      >-->
+<!--      </action>-->
       <action id="org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetupAction" class="org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetupAction"
               text="Connect Repo" description="Connect repo with codeSync">
       </action>
