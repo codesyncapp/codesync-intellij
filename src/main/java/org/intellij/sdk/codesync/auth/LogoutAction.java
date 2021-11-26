@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static org.intellij.sdk.codesync.Constants.CODESYNC_LOGOUT_URL;
 
+// TODO: remove this if we decide to never use this action.
 public class LogoutAction extends AnAction {
     @Override
     public void update(AnActionEvent e) {
