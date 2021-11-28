@@ -62,7 +62,7 @@ public final class Constants {
     public static String FILE_PLAYBACK_LINK = String.format("%s/files", WEB_APP_URL) + "/%s/history";
 
     public static Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
-    public static String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
+    public static String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS z";
     public static String DIFF_SOURCE = "intellij";
     public static String CLIENT_LOGS_GROUP_NAME = "client-logs";
 
