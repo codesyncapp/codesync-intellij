@@ -346,12 +346,38 @@ public class PopulateBuffer {
             // If file reference is present in the configFile, then we simply need to check if it was updated.
             // We only track changes to non-binary files, hence the check in here.
             if (this.configRepoBranch.hasFile(relativeFilePath) && !isBinary) {
+                Map<String, Object> fileInfo = this.fileInfoMap.get(relativeFilePath);
+
                 if (shadowFile.exists()) {
                     // If shadow file exists then it means existing file was updated and we simple need to
                     // add a diff file.
+                    // We need to check if shadow file was updated after file was written to disk.
+                    // Because daemon should only pick changes once thi condition satisfies
+
+                    try {
+                        Map<String, Object> shadowFileInfo = FileUtils.getFileInfo(shadowFile.getPath());
+                        Date fileModifiedTime = CommonUtils.parseDate((String) fileInfo.get("modifiedTime"));
+                        Date shadowFileModifiedTime = CommonUtils.parseDate((String) shadowFileInfo.get("modifiedTime"));
+
+                        // If shadow file was modified after the the file was written to disk, then, skip the change.
+                        if (
+                                shadowFileModifiedTime != null &&
+                                fileModifiedTime != null &&
+                                shadowFileModifiedTime.after(fileModifiedTime)
+                        ) {
+                            continue;
+                        }
+                    } catch (FileInfoError error) {
+                        // Log the message and continue.
+                        CodeSyncLogger.logEvent(String.format(
+                                "Error while getting the file info for shadow file %s, Error: %s",
+                                shadowFile.getPath(),
+                                error.getMessage()
+                        ));
+                        continue;
+                    }
                     previousFileContent = FileUtils.readFileToString(shadowFile);
                 } else {
-                    Map<String, Object> fileInfo = this.fileInfoMap.get(relativeFilePath);
                     if (fileInfo != null && (Long) fileInfo.get("size") > FILE_SIZE_AS_COPY) {
                         previousFileContent = FileUtils.readFileToString(filePath.toFile());
                     }

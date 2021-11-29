@@ -271,7 +271,13 @@ public class Utils {
             repoPath = repoPath.replaceAll("/", "\\\\");
         }
 
-        handleDocumentUpdates(file, repoPath, document.getText());
+        String fileContents = document.getText();
+        if (fileContents.contains(MAGIC_STRING)) {
+            // Skip the events that contain the MAGIC_STRING as those are duplicate events.
+            return;
+        }
+
+        handleDocumentUpdates(file, repoPath, fileContents);
     }
 
     public static void handleDocumentUpdates(VirtualFile file, String repoPath, String currentText) {
