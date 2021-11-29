@@ -300,7 +300,6 @@ public class Utils {
                 .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
         if (shouldSkipEvent(repoPath) || FileUtils.shouldIgnoreFile(relativeFilePath, repoPath)) {
-
             // TODO: Remove after debugging.
             CodeSyncLogger.logEvent(
                     String.format("Skipping the event, file '%s' in repo '%s' is ignored.", relativeFilePath, repoPath)

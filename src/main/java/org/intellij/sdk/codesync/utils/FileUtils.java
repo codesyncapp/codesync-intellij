@@ -13,9 +13,11 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.intellij.sdk.codesync.Constants.GIT_REPO;
+import static org.intellij.sdk.codesync.Constants.IGNORABLE_DIRECTORIES;
 
 public class FileUtils
 {
@@ -64,7 +66,8 @@ public class FileUtils
 
         try {
             Stream<Path> filePathStream = Files.walk(Paths.get(directory))
-                    .filter(Files::isRegularFile);
+                    .filter(Files::isRegularFile)
+                    .filter(path -> !FileUtils.isIgnorableFile(path.toString(), directory));
 
             try {
                 ignoreFile = new IgnoreFile(Paths.get(directory).toString());
@@ -140,7 +143,7 @@ public class FileUtils
     }
 
     public static boolean shouldIgnoreFile(String relPath, String repoPath) {
-        if (relPath.startsWith("/") || IsGitFile(relPath)) {  return true; }
+        if (relPath.startsWith("/") || isIgnorableFile(relPath)) {  return true; }
         try {
             IgnoreFile ignoreFile = new IgnoreFile(repoPath);
             return ignoreFile.shouldIgnore(Paths.get(repoPath, relPath).toFile());
@@ -150,8 +153,20 @@ public class FileUtils
         }
     }
 
-    public static Boolean IsGitFile(String path) {
-        return path.startsWith(GIT_REPO);
+    public static Boolean isIgnorableFile(String relativePath) {
+        for (String pathFragment: IGNORABLE_DIRECTORIES) {
+            if(relativePath.startsWith(pathFragment)) {
+                return true;
+            }
+        }
+        return relativePath.startsWith(GIT_REPO);
+    }
+
+    public static Boolean isIgnorableFile(String absolutePath, String repoPath) {
+        String relativePath = absolutePath.replace(repoPath, "").
+                replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
+
+        return isIgnorableFile(relativePath);
     }
 
     public static boolean match(String path, String pattern) {
