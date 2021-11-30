@@ -14,7 +14,6 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
-import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.jetbrains.annotations.NotNull;
@@ -102,14 +101,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new DocumentListener() {
       @Override
       public void documentChanged(@NotNull DocumentEvent event) {
-        PluginState pluginState = StateUtils.getState(project);
-        Project project2 = pluginState.project;
-        System.out.println("PluginState: ");
-        System.out.println(pluginState.repoPath);
-        System.out.println(pluginState.isRepoInSync);
-        System.out.println(pluginState.isAuthenticated);
-        System.out.println("project");
-        System.out.println(project2.getBasePath());
         ChangesHandler(event, project);
       }
     }, Disposer.newDisposable());
