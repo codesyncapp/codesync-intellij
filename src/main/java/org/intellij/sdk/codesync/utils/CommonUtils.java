@@ -12,6 +12,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.util.PathUtil;
 import name.fraser.neil.plaintext.diff_match_patch;
+import org.intellij.sdk.codesync.state.PluginState;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -110,6 +112,15 @@ public class CommonUtils {
         SimpleDateFormat sdf = new SimpleDateFormat(DATE_TIME_FORMAT);
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         return sdf.format(currentTime);
+    }
+
+    public static Project getCurrentProject(String repoPath) {
+        PluginState pluginState = StateUtils.getState(repoPath);
+        if (pluginState != null) {
+            return pluginState.project;
+        }
+
+        return getCurrentProject();
     }
 
     public static Project getCurrentProject() {

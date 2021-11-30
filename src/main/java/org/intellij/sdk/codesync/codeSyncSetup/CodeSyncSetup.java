@@ -28,6 +28,8 @@ import org.intellij.sdk.codesync.exceptions.network.RepoUpdateError;
 import org.intellij.sdk.codesync.exceptions.network.ServerConnectionError;
 import org.intellij.sdk.codesync.exceptions.repo.RepoNotActive;
 import org.intellij.sdk.codesync.files.*;
+import org.intellij.sdk.codesync.state.PluginState;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.ui.messages.CodeSyncMessages;
 import org.intellij.sdk.codesync.models.User;
 import org.intellij.sdk.codesync.ui.progress.CodeSyncProgressIndicator;
@@ -737,6 +739,11 @@ public class CodeSyncSetup {
     public static void createSyncIgnore(String repoPath) {
         File syncIgnoreFile = Paths.get(repoPath, ".syncignore").toFile();
         File gitIgnoreFile = Paths.get(repoPath, ".gitignore").toFile();;
+        PluginState pluginState = StateUtils.getState(repoPath);
+        Project project = null;
+        if (pluginState != null) {
+            project = pluginState.project;
+        }
 
         // no need to create .syncignore if it already exists.
         if (syncIgnoreFile.exists()) {
@@ -748,12 +755,14 @@ public class CodeSyncSetup {
             try {
                 if (syncIgnoreFile.createNewFile()){
                     NotificationManager.notifyInformation(
-                            ".syncignore file is created, you can now update that file according to your preferences."
+                            ".syncignore file is created, you can now update that file according to your preferences.",
+                            project
                     );
                 }
             } catch (IOException e) {
                 NotificationManager.notifyError(
-                        ".syncignore could not be created, you will have to create that file yourself."
+                        ".syncignore could not be created, you will have to create that file yourself.",
+                        project
                 );
                 e.printStackTrace();
             }
@@ -769,7 +778,8 @@ public class CodeSyncSetup {
         } catch (IOException e) {
             // Ignore this error, user can create the file himself as well/
             NotificationManager.notifyError(
-                    ".syncignore could not be created, you will have to create that file yourself."
+                    ".syncignore could not be created, you will have to create that file yourself.",
+                    project
             );
             e.printStackTrace();
         }

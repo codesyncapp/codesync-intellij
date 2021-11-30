@@ -65,7 +65,9 @@ public class FilePlaybackAction extends AnAction {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
             configRepo = configFile.getRepo(repoPath);
         } catch (InvalidConfigFileError error) {
-            NotificationManager.notifyError("An error occurred trying to perform file playback action.");
+            NotificationManager.notifyError(
+                    "An error occurred trying to perform file playback action.", project
+            );
             CodeSyncLogger.logEvent(String.format(
                     "An error occurred trying to perform file playback action. Invalid Config File. Error: %s",
                     error.getMessage()
@@ -75,7 +77,9 @@ public class FilePlaybackAction extends AnAction {
         }
 
         if (configRepo == null) {
-            NotificationManager.notifyError("An error occurred trying to perform file playback action.");
+            NotificationManager.notifyError(
+                    "An error occurred trying to perform file playback action.", project
+            );
             CodeSyncLogger.logEvent(String.format(
                     "An error occurred trying to perform file playback action. Repo '%s' not found in the config file.",
                     repoPath
@@ -87,7 +91,9 @@ public class FilePlaybackAction extends AnAction {
         ConfigRepoBranch configRepoBranch = configRepo.getRepoBranch(branchName);
 
         if (configRepoBranch == null) {
-            NotificationManager.notifyError("An error occurred trying to perform file playback action.");
+            NotificationManager.notifyError(
+                    "An error occurred trying to perform file playback action.", project
+            );
             CodeSyncLogger.logEvent(String.format(
                     "An error occurred trying to perform file playback action. " +
                             "Branch '%s' not found in the config file repo '%s'.",
@@ -101,7 +107,9 @@ public class FilePlaybackAction extends AnAction {
         Integer fileId = configRepoBranch.getFileId(relativeFilePath);
 
         if (fileId == null) {
-            NotificationManager.notifyError("An error occurred trying to perform file playback action.");
+            NotificationManager.notifyError(
+                    "An error occurred trying to perform file playback action.", project
+            );
             CodeSyncLogger.logEvent(String.format(
                     "An error occurred trying to perform file playback action. " +
                             "File '%s' not found in the config file repo '%s'.",

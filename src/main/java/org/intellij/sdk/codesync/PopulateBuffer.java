@@ -204,7 +204,7 @@ public class PopulateBuffer {
             }
             OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath, branchName);
             if (!configRepo.containsBranch(branchName)) {
-                Project project = CommonUtils.getCurrentProject();
+                Project project = CommonUtils.getCurrentProject(repoPath);
                 if (Paths.get(originalsRepoManager.getBaseRepoBranchDir()).toFile().exists()) {
                     String[] filePaths = FileUtils.listFiles(repoPath);
 
@@ -219,7 +219,7 @@ public class PopulateBuffer {
             ConfigRepoBranch configRepoBranch = configRepo.getRepoBranch(branchName);
 
             if (!configRepoBranch.hasValidFiles()) {
-                Project project = CommonUtils.getCurrentProject();
+                Project project = CommonUtils.getCurrentProject(repoPath);
 
                 String[] filePaths = FileUtils.listFiles(repoPath);
                 CodeSyncSetup.uploadRepoAsync(repoPath, project.getName(), filePaths, project);

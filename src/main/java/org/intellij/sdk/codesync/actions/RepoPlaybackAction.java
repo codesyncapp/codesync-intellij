@@ -43,7 +43,9 @@ public class RepoPlaybackAction extends AnAction {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
              configRepo = configFile.getRepo(repoPath);
         } catch (InvalidConfigFileError error) {
-            NotificationManager.notifyError("An error occurred trying to perform repo playback action.");
+            NotificationManager.notifyError(
+                    "An error occurred trying to perform repo playback action.", project
+            );
             CodeSyncLogger.logEvent(String.format(
                     "An error occurred trying to perform repo playback action. Invalid Config File. Error: %s",
                     error.getMessage()
@@ -53,7 +55,9 @@ public class RepoPlaybackAction extends AnAction {
         }
 
         if (configRepo == null) {
-            NotificationManager.notifyError("An error occurred trying to perform repo playback action.");
+            NotificationManager.notifyError(
+                    "An error occurred trying to perform repo playback action.", project
+            );
             CodeSyncLogger.logEvent(String.format(
                     "An error occurred trying to perform repo playback action. Repo '%s' not found in the config file.",
                     repoPath
