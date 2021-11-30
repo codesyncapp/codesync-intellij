@@ -19,7 +19,7 @@ public class CodeSyncSetupAction extends AnAction {
     public void update(AnActionEvent e) {
         // Using the event, evaluate the context, and enable or disable the action.
         System.out.println("CodeSyncSetup Action:update called.");
-        PluginState pluginState = StateUtils.getState();
+        PluginState pluginState = StateUtils.getState(e.getProject());
         if (pluginState != null && pluginState.isRepoInSync) {
             Presentation presentation = e.getPresentation();
             presentation.setText("Disconnect Repo");
@@ -31,7 +31,7 @@ public class CodeSyncSetupAction extends AnAction {
     public void actionPerformed(@NotNull AnActionEvent e) {
         // Using the event, implement an action. For example, create and show a dialog.
         Project project = e.getProject();
-        PluginState pluginState = StateUtils.getState();
+        PluginState pluginState = StateUtils.getState(project);
 
         if (project != null) {
             if (pluginState != null && pluginState.isRepoInSync) {

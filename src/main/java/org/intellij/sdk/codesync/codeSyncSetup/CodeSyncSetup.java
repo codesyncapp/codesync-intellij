@@ -184,10 +184,15 @@ public class CodeSyncSetup {
                     return;
                 }
 
+                // This is kind of a hack, but for some reason this method is called more than once during user is
+                // shown a popup to confirm repo syncing. and during the popup is open we do not want to show
+                // the message "Notification.REPO_SYNC_IN_PROGRESS_MESSAGE" (from the else statement.)
+                // That is why why this boolean is placed here.
+                boolean shouldSyncRepo = false;
                 // Do not ask user to sync repo, if it is already in progress.
                 if (!reposBeingSynced.contains(repoPath)) {
                     reposBeingSynced.add(repoPath);
-                    boolean shouldSyncRepo = CodeSyncMessages.showYesNoMessage(
+                    shouldSyncRepo = CodeSyncMessages.showYesNoMessage(
                             "Do you want to enable syncing of this repo?",
                             String.format("'%s' Is not being synced!", repoName),
                             project
@@ -199,13 +204,13 @@ public class CodeSyncSetup {
                             syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator);
                         }
                     }
-                } else {
+                } else if (shouldSyncRepo) {
                     NotificationManager.notifyInformation(
                             String.format(Notification.REPO_SYNC_IN_PROGRESS_MESSAGE, repoName),
                             project
                     );
                 }
-            } else {
+            } else if (!configFile.isRepoDisconnected(repoPath)) {
                 NotificationManager.notifyInformation(
                         String.format(Notification.REPO_IN_SYNC_MESSAGE, repoName),
                         project

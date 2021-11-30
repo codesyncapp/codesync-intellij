@@ -20,7 +20,7 @@ import static org.intellij.sdk.codesync.Constants.*;
 public class RepoPlaybackAction extends AnAction {
     @Override
     public void update(AnActionEvent e) {
-        PluginState pluginState = StateUtils.getState();
+        PluginState pluginState = StateUtils.getState(e.getProject());
         // Disable the button if repo is not in sync.
         if (pluginState != null && !pluginState.isRepoInSync) {
             e.getPresentation().setEnabled(false);

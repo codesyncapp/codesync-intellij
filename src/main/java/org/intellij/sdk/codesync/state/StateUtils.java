@@ -1,7 +1,6 @@
 package org.intellij.sdk.codesync.state;
 
-import com.intellij.openapi.components.ServiceManager;
-import org.intellij.sdk.codesync.CodeSyncLogger;
+import com.intellij.openapi.project.Project;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.files.ConfigFile;
@@ -9,32 +8,40 @@ import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.UserFile;
 
 import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.intellij.sdk.codesync.Constants.CONFIG_PATH;
 import static org.intellij.sdk.codesync.Constants.USER_FILE_PATH;
 
 public class StateUtils {
-    static public PluginState getState(){
-        PluginStateService pluginStateService = ServiceManager.getService(PluginStateService.class);
-        return pluginStateService.getState();
+    private static final Map<String, PluginState> projectStateMap = new HashMap<>();
+
+    static public PluginState getState(String projectPath){
+        return projectStateMap.get(projectPath);
     }
 
-    static public void populateState(String repoPath){
-        PluginStateService pluginStateService = ServiceManager.getService(PluginStateService.class);
-        PluginState state = pluginStateService.getState();
-
-        if (state == null) {
-            CodeSyncLogger.logEvent("Error while populating plugin state.");
-            return;
+    static public PluginState getState(Project project){
+        if (project != null) {
+            return getState(project.getBasePath());
         }
-        state.repoPath = repoPath;
+
+        return null;
+    }
+
+    static public void populateState(Project project){
+        String repoPath = project.getBasePath();
+        PluginState pluginState = new PluginState();
+
+        pluginState.project = project;
+        pluginState.repoPath = repoPath;
 
         try {
             UserFile userFile = new UserFile(USER_FILE_PATH);
             UserFile.User user = userFile.getUser();
-            state.isAuthenticated = user != null;
+            pluginState.isAuthenticated = user != null;
         } catch (FileNotFoundException | InvalidYmlFileError error) {
-            state.isAuthenticated = false;
+            pluginState.isAuthenticated = false;
         }
 
 
@@ -43,14 +50,14 @@ public class StateUtils {
 
             if (configFile.hasRepo(repoPath)) {
                 ConfigRepo configRepo = configFile.getRepo(repoPath);
-                state.isRepoInSync = configRepo.isSuccessfullySynced();
+                pluginState.isRepoInSync = configRepo.isSuccessfullySynced();
             } else {
-                state.isRepoInSync = false;
+                pluginState.isRepoInSync = false;
             }
         } catch (InvalidConfigFileError error) {
-            state.isRepoInSync = false;
+            pluginState.isRepoInSync = false;
         }
 
-        pluginStateService.loadState(state);
+        projectStateMap.put(repoPath, pluginState);
     }
 }
