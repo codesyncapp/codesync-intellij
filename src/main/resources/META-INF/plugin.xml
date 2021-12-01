@@ -82,6 +82,5 @@
 <!--    <toolWindow id="CodeSyncToolWindow" secondary="true" icon="SdkIcons.codeSyncIcon" anchor="left"-->
 <!--                factoryClass="org.intellij.sdk.codesync.ui.toolWindows.CodeSyncToolWindowFactory"-->
 <!--    />-->
-    <applicationService serviceImplementation="org.intellij.sdk.codesync.state.PluginStateService"/>
   </extensions>
 </idea-plugin>

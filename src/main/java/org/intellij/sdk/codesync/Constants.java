@@ -32,6 +32,7 @@ public final class Constants {
     public static String GIT_REPO = ".git";
     public static String SYNC_IGNORE = ".syncignore";
     public static String GIT_IGNORE = ".gitignore";
+    public static String[] IGNORABLE_DIRECTORIES = new String[]{".git", "node_modules", ".DS_Store", ".idea"};
     public static String CURRENT_GIT_BRANCH_COMMAND = "git rev-parse --abbrev-ref HEAD";
 
     public static String MAGIC_STRING = "IntellijIdeaRulezzz";

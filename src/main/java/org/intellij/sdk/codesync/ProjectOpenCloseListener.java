@@ -54,7 +54,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     HandleBuffer.scheduleBufferHandler();
 
     // Populate state
-    StateUtils.populateState(project.getBasePath());
+    StateUtils.populateState(project);
 
     project.getMessageBus().connect().subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override

@@ -16,7 +16,7 @@ public class AuthAction extends AnAction {
     @Override
     public void update(AnActionEvent e) {
         System.out.println("Auth Action:update called.");
-        PluginState pluginState = StateUtils.getState();
+        PluginState pluginState = StateUtils.getState(e.getProject());
         if (pluginState != null && pluginState.isAuthenticated) {
             Presentation presentation = e.getPresentation();
             presentation.setText("Logout");
@@ -26,7 +26,7 @@ public class AuthAction extends AnAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-        PluginState pluginState = StateUtils.getState();
+        PluginState pluginState = StateUtils.getState(e.getProject());
 
         CodeSyncAuthServer server;
         try {
