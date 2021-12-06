@@ -37,6 +37,7 @@ public class RepoPlaybackAction extends AnAction {
             return;
         }
         String repoPath = FileUtils.normalizeFilePath(project.getBasePath());
+        String repoName = project.getName();
 
         ConfigRepo configRepo;
         try {
@@ -44,11 +45,11 @@ public class RepoPlaybackAction extends AnAction {
              configRepo = configFile.getRepo(repoPath);
         } catch (InvalidConfigFileError error) {
             NotificationManager.notifyError(
-                    "An error occurred trying to perform repo playback action.", project
+                "An error occurred trying to perform repo playback action. CodeSync configuration file is malformed.", project
             );
             CodeSyncLogger.logEvent(String.format(
-                    "An error occurred trying to perform repo playback action. Invalid Config File. Error: %s",
-                    error.getMessage()
+                "An error occurred trying to perform repo playback action. Invalid Config File. Error: %s",
+                error.getMessage()
             ));
 
             return;
@@ -56,7 +57,11 @@ public class RepoPlaybackAction extends AnAction {
 
         if (configRepo == null) {
             NotificationManager.notifyError(
-                    "An error occurred trying to perform repo playback action.", project
+                String.format(
+                    "An error occurred trying to perform repo playback action. Because Repo '%s' is not being synced.",
+                        repoName
+                ),
+                project
             );
             CodeSyncLogger.logEvent(String.format(
                     "An error occurred trying to perform repo playback action. Repo '%s' not found in the config file.",
