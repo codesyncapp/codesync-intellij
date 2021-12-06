@@ -55,6 +55,8 @@ public class FilePlaybackAction extends AnAction {
             return;
         }
         String repoPath = FileUtils.normalizeFilePath(project.getBasePath());
+        String repoName = project.getName();
+
         String openedFilePath = e.getRequiredData(CommonDataKeys.PSI_FILE).getVirtualFile().getPath();
         openedFilePath = FileUtils.normalizeFilePath(openedFilePath);
         String relativeFilePath = openedFilePath.replace(repoPath, "")
@@ -66,7 +68,8 @@ public class FilePlaybackAction extends AnAction {
             configRepo = configFile.getRepo(repoPath);
         } catch (InvalidConfigFileError error) {
             NotificationManager.notifyError(
-                    "An error occurred trying to perform file playback action.", project
+                "An error occurred trying to perform file playback action. CodeSync configuration file is malformed.",
+                project
             );
             CodeSyncLogger.logEvent(String.format(
                     "An error occurred trying to perform file playback action. Invalid Config File. Error: %s",
@@ -78,11 +81,15 @@ public class FilePlaybackAction extends AnAction {
 
         if (configRepo == null) {
             NotificationManager.notifyError(
-                    "An error occurred trying to perform file playback action.", project
+                String.format(
+                    "An error occurred trying to perform file playback action. Because Repo '%s' is not being synced.",
+                        repoName
+                ),
+                project
             );
             CodeSyncLogger.logEvent(String.format(
-                    "An error occurred trying to perform file playback action. Repo '%s' not found in the config file.",
-                    repoPath
+                "An error occurred trying to perform file playback action. Repo '%s' not found in the config file.",
+                repoPath
             ));
 
             return;
@@ -92,13 +99,17 @@ public class FilePlaybackAction extends AnAction {
 
         if (configRepoBranch == null) {
             NotificationManager.notifyError(
-                    "An error occurred trying to perform file playback action.", project
+                String.format(
+                    "An error occurred trying to perform file playback action. Branch '%s' is not yet synced.",
+                    branchName
+                ),
+                project
             );
             CodeSyncLogger.logEvent(String.format(
-                    "An error occurred trying to perform file playback action. " +
-                            "Branch '%s' not found in the config file repo '%s'.",
-                    branchName,
-                    repoPath
+                "An error occurred trying to perform file playback action. " +
+                "Branch '%s' not found in the config file repo '%s'.",
+                branchName,
+                repoPath
             ));
 
             return;
@@ -108,13 +119,14 @@ public class FilePlaybackAction extends AnAction {
 
         if (fileId == null) {
             NotificationManager.notifyError(
-                    "An error occurred trying to perform file playback action.", project
+                "An error occurred trying to perform file playback action. This file is not yet synced with CodeSync servers.",
+                project
             );
             CodeSyncLogger.logEvent(String.format(
-                    "An error occurred trying to perform file playback action. " +
-                            "File '%s' not found in the config file repo '%s'.",
-                    relativeFilePath,
-                    repoPath
+                "An error occurred trying to perform file playback action. " +
+                        "File '%s' not found in the config file repo '%s'.",
+                relativeFilePath,
+                repoPath
             ));
 
             return;
