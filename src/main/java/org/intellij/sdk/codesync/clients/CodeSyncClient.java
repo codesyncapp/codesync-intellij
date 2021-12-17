@@ -100,7 +100,7 @@ public class CodeSyncClient {
         }
     }
 
-    public Integer uploadFile(ConfigRepo configRepo, DiffFile diffFile, File originalsFile) throws FileInfoError, InvalidJsonError, RequestError {
+    public Integer uploadFile(String accessToken, ConfigRepo configRepo, DiffFile diffFile, File originalsFile) throws FileInfoError, InvalidJsonError, RequestError {
         HttpClient httpClient = HttpClientBuilder.create().build();
         HttpPost post = new HttpPost(this.filesURL);
         JSONObject data = new JSONObject();
@@ -127,7 +127,7 @@ public class CodeSyncClient {
 
         post.setEntity(dataStr);
         post.setHeader("Content-type", "application/json");
-        post.setHeader("Authorization", String.format("Basic %s", configRepo.token));
+        post.setHeader("Authorization", String.format("Basic %s", accessToken));
 
         HttpResponse response;
         try {

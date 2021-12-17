@@ -284,13 +284,10 @@ public class CodeSyncSetup {
     This will also trigger the authentication flow if user does not have access token setup.
      */
     public static boolean checkUserAccess(Project project, String branchName) {
-        String accessToken = null;
+        String accessToken;
         try {
             UserFile userFile = new UserFile(USER_FILE_PATH);
-            UserFile.User user = userFile.getUser();
-            if (user != null) {
-                accessToken = user.getAccessToken();
-            }
+            accessToken = userFile.getActiveAccessToken();
         } catch (FileNotFoundException | InvalidYmlFileError error) {
             // Set access token to null to trigger user signup.
             accessToken = null;
@@ -625,7 +622,7 @@ public class CodeSyncSetup {
             codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CONFIG_UPDATE);
             filePathAndIds = new ObjectMapper().readValue(filePathAndIdsObject.toJSONString(), new TypeReference<Map<String, Integer>>(){});
             // Save File IDs
-            saveFileIds(branchName, accessToken, email, repoId, filePathAndIds, configRepo, configFile);
+            saveFileIds(branchName, email, repoId, filePathAndIds, configRepo, configFile);
         } catch (ClassCastException | JsonProcessingException err) {
             CodeSyncLogger.logEvent(String.format(
                     "Error parsing the response of /init endpoint. Error: %s", err.getMessage()
@@ -681,7 +678,7 @@ public class CodeSyncSetup {
             return;
         }
 
-        userFile.setUser(email, iamAccessKey, iamSecretKey);
+        userFile.setActiveUser(email, iamAccessKey, iamSecretKey);
         try {
             userFile.writeYml();
         } catch (FileNotFoundException | InvalidYmlFileError error) {
@@ -692,12 +689,11 @@ public class CodeSyncSetup {
     }
 
     public static void saveFileIds(
-            String branchName, String accessToken, String userEmail, Integer repoId, Map<String, Integer> filePathAndIds,
+            String branchName, String userEmail, Integer repoId, Map<String, Integer> filePathAndIds,
             ConfigRepo configRepo, ConfigFile configFile
     ) {
         ConfigRepoBranch configRepoBranch = new ConfigRepoBranch(branchName, filePathAndIds);
         configRepo.id = repoId;
-        configRepo.token = accessToken;
         configRepo.email = userEmail;
 
         try {

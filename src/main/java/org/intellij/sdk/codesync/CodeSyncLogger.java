@@ -107,7 +107,7 @@ public class CodeSyncLogger {
         if (userEmail != null && userFile != null) {
             user = userFile.getUser(userEmail);
         } else if (userFile != null) {
-            user = userFile.getUser();
+            user = userFile.getActiveUser();
         }
 
         if (user == null) {

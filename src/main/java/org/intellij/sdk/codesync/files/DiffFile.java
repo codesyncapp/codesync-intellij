@@ -13,6 +13,8 @@ import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 import org.yaml.snakeyaml.Yaml;
 
+import static org.intellij.sdk.codesync.Constants.DIFF_SIZE_LIMIT;
+
 
 public class DiffFile {
     public String diff, branch, fileRelativePath, repoPath, newRelativePath, oldRelativePath, newPath, oldPath, newAbsolutePath, oldAbsolutePath;
@@ -20,12 +22,14 @@ public class DiffFile {
     public Boolean isBinary, isDeleted, isNewFile, isRename, isDirRename;
     public File originalDiffFile;
 
+    public String contents;
+
     public DiffFile(@NotNull File originalDiffFile) {
         this.originalDiffFile = originalDiffFile;
-        String contents = FileUtils.readFileToString(originalDiffFile);
+        this.contents = FileUtils.readFileToString(originalDiffFile);
 
         Yaml yaml = new Yaml();
-        Map<String, Object> obj = yaml.load(contents);
+        Map<String, Object> obj = yaml.load(this.contents);
 
         this.diff = (String) obj.get("diff");
         this.branch = (String) obj.get("branch");
@@ -71,13 +75,46 @@ public class DiffFile {
     }
 
     public Boolean isValid () {
-        // TODO: Add validation for `file-rename`, `directory-rename` and `diff-size`/
-        return (
-                this.repoPath != null &&
-                this.branch != null &&
-                this.fileRelativePath != null &&
-                this.createdAt != null
-        );
+        // Validate diff file has non-null values for all the required fields.
+        if (
+                this.repoPath == null ||
+                this.branch == null ||
+                this.fileRelativePath == null ||
+                this.createdAt == null
+        ) {
+            // mark diff file as invalid if any of the required fields above has a null value.
+            return false;
+        }
+
+        // Make sure diff is of acceptable size.
+        if (this.diff != null && this.diff.length() > DIFF_SIZE_LIMIT) {
+            return false;
+        }
+
+        // Validation logic for only rename or directory renmae diff files.
+        if (this.isRename || this.isDirRename) {
+            if (this.isRename && this.isDirRename) {
+                return false;
+            }
+
+            // Make sure all fields required for file rename have non-null values.
+            if (this.isRename) {
+                if (this.newRelativePath == null || this.oldRelativePath == null) {
+                    // Mark diff as invalid if either of the required values in rename file operation have null values.
+                    return false;
+                }
+            }
+            // Make sure all fields required for directory rename have non-null values.
+            if (this.isDirRename) {
+                if (this.newPath == null || this.oldPath == null) {
+                    // Mark diff as invalid if either of the required values in rename directory operation have null values.
+                    return false;
+                }
+            }
+        }
+
+        return true;
+
     }
 
     public Boolean delete() {

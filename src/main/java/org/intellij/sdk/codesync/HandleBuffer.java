@@ -4,10 +4,7 @@ import kotlin.Pair;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.clients.CodeSyncWebSocketClient;
 import org.intellij.sdk.codesync.exceptions.*;
-import org.intellij.sdk.codesync.files.ConfigFile;
-import org.intellij.sdk.codesync.files.ConfigRepo;
-import org.intellij.sdk.codesync.files.ConfigRepoBranch;
-import org.intellij.sdk.codesync.files.DiffFile;
+import org.intellij.sdk.codesync.files.*;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
@@ -16,7 +13,6 @@ import org.intellij.sdk.codesync.utils.FileUtils;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static org.intellij.sdk.codesync.Constants.*;
@@ -31,15 +27,70 @@ public class HandleBuffer {
      * @return the list of diff files available in the buffer.
      */
     private static final Set<String> diffFilesBeingProcessed = new HashSet<>();
+    private static final Set<String> diffReposToIgnore = new HashSet<>();
 
-    public static  DiffFile[] getDiffFiles(String path, String diffFileExtension)  {
+    public static void clearReposToIgnore() {
+        diffReposToIgnore.clear();
+    }
+
+    public static boolean shouldSkipDiffFile(DiffFile diffFile, ConfigFile configFile) {
+        if (diffReposToIgnore.contains(diffFile.repoPath)) {
+            System.out.printf("Ignoring diff file '%s'.%n", diffFile.originalDiffFile.getPath());
+            return true;
+        }
+
+        if (!diffFile.isValid()) {
+            CodeSyncLogger.logEvent(
+                    String.format("Skipping invalid diff file: %s, Diff: %s",
+                    diffFile.originalDiffFile.getPath()),
+                    diffFile.contents
+            );
+            diffFile.delete();
+            return true;
+        }
+
+        if (!configFile.hasRepo(diffFile.repoPath)) {
+            CodeSyncLogger.logEvent(String.format(
+                    "Repo %s is not in config.yml.", diffFile.repoPath
+            ));
+            diffFile.delete();
+            return true;
+        }
+
+        if (configFile.isRepoDisconnected(diffFile.repoPath)) {
+            CodeSyncLogger.logEvent(String.format(
+                    "Repo %s is disconnected.", diffFile.repoPath
+            ));
+            diffFile.delete();
+            return true;
+        }
+
+        ConfigRepo configRepo = configFile.getRepo(diffFile.repoPath);
+
+        if (!configRepo.containsBranch(diffFile.branch)) {
+            CodeSyncLogger.logEvent(
+                String.format(
+                    "Branch: %s is not synced for Repo %s.", diffFile.branch, diffFile.repoPath
+                ),
+                configRepo.email
+            );
+            return true;
+        }
+
+        return false;
+    }
+
+    public static  DiffFile[] getDiffFiles(String path, String diffFileExtension, ConfigFile configFile)  {
         File diffFilesDirectory = new File(path);
 
         File[] files = diffFilesDirectory.listFiles(
             (dir, name) -> name.toLowerCase().endsWith(diffFileExtension.toLowerCase())
         );
         if (files != null)  {
-            return Arrays.stream(files).map(DiffFile::new).toArray(DiffFile[]::new);
+            return Arrays.stream(files)
+                .map(DiffFile::new)
+                .filter(diffFile -> !shouldSkipDiffFile(diffFile, configFile))
+                .toArray(DiffFile[]::new);
         }
         return new DiffFile[0];
     }
@@ -71,20 +122,21 @@ public class HandleBuffer {
         ConfigFile configFile;
         HashSet<String> newFiles = new HashSet<>();
         System.out.println("handleBuffer called:");
-        DiffFile[] diffFiles = getDiffFiles(DIFFS_REPO, ".yml");
+
+        try {
+            configFile = new ConfigFile(CONFIG_PATH);
+        } catch (InvalidConfigFileError error) {
+            CodeSyncLogger.logEvent(String.format("Config file error, %s.\n", error.getMessage()));
+            return;
+        }
+
+        DiffFile[] diffFiles = getDiffFiles(DIFFS_REPO, ".yml", configFile);
         ArrayList<Pair<Integer, DiffFile>> diffsToSend = new ArrayList<>();
 
         // We only process one repo per handleBuffer call.
         String currentRepo = null;
 
         if (diffFiles.length == 0) {
-            return;
-        }
-
-        try {
-            configFile = new ConfigFile(CONFIG_PATH);
-        } catch (InvalidConfigFileError error) {
-            CodeSyncLogger.logEvent(String.format("Config file error, %s.\n", error.getMessage()));
             return;
         }
 
@@ -118,15 +170,6 @@ public class HandleBuffer {
 
             System.out.printf("Processing diff file: %s.\n", diffFile.originalDiffFile.getPath());
 
-            if (!diffFile.isValid()) {
-                String filePath = Paths.get(diffFile.repoPath, diffFile.fileRelativePath).toString();
-                CodeSyncLogger.logEvent(String.format("Skipping invalid diff file: %s. data: %s.\n", filePath, diffFile.diff));
-
-                diffFile.delete();
-                diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
-                continue;
-            }
-
             if (!configFile.repos.containsKey(diffFile.repoPath)) {
                 CodeSyncLogger.logEvent(String.format("Repo `%s` is in buffer.yml but not in configFile.yml.\n", diffFile.repoPath));
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
@@ -134,6 +177,20 @@ public class HandleBuffer {
             }
 
             ConfigRepo configRepo = configFile.getRepo(diffFile.repoPath);
+            String accessToken = UserFile.getAccessToken(configRepo.email);
+
+            if (accessToken == null) {
+                CodeSyncLogger.logEvent(String.format(
+                        "Access token for user '%s' not present so skipping diff file '%s'.",
+                        configRepo.email, diffFile.originalDiffFile.getPath())
+                );
+                diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
+                diffReposToIgnore.add(diffFile.repoPath);
+                continue;
+            } else {
+                diffReposToIgnore.remove(diffFile.repoPath);
+            }
+
             if (!configRepo.branches.containsKey(diffFile.branch)) {
                 CodeSyncLogger.logEvent(String.format("Branch: `%s` is not synced for Repo `%s`.\n", diffFile.branch, diffFile.repoPath));
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
@@ -149,14 +206,14 @@ public class HandleBuffer {
             ConfigRepoBranch configRepoBranch = configRepo.getRepoBranch(diffFile.branch);
             if (diffFile.isNewFile) {
                 newFiles.add(diffFile.fileRelativePath);
-                boolean isSuccess = handleNewFile(client, diffFile, configFile, configRepo, configRepoBranch);
+                boolean isSuccess = handleNewFile(client, accessToken, diffFile, configFile, configRepo, configRepoBranch);
                 if (isSuccess) {
                     System.out.printf("Diff file '%s' successfully processed.\n", diffFile.originalDiffFile.getPath());
                     diffFile.delete();
 
                     // We also need to disconnect existing connections here,
                     // otherwise the server cache causes an error and file updates end in error until the IDE restarts.
-                    client.getWebSocketClient(configRepo.token).disconnect();
+                    client.getWebSocketClient(accessToken).disconnect();
                     diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                     continue;
                 }
@@ -233,8 +290,20 @@ public class HandleBuffer {
         }
 
         // Send Diffs in a single request.
+
         ConfigRepo configRepo = configFile.getRepo(currentRepo);
-        CodeSyncWebSocketClient codeSyncWebSocketClient = client.getWebSocketClient(configRepo.token);
+        String accessToken = UserFile.getAccessToken(configRepo.email);
+        if (accessToken ==  null) {
+            CodeSyncLogger.logEvent(String.format(
+                    "Access token for user '%s' not present so skipping diffs for repo '%s'.",
+                    configRepo.email, currentRepo)
+            );
+            return;
+        } else {
+            diffReposToIgnore.remove(currentRepo);
+        }
+
+        CodeSyncWebSocketClient codeSyncWebSocketClient = client.getWebSocketClient(accessToken);
         codeSyncWebSocketClient.connect(isConnected -> {
             if (isConnected) {
                 try {
@@ -258,7 +327,7 @@ public class HandleBuffer {
         });
     }
 
-    public static boolean handleNewFile(CodeSyncClient client, DiffFile diffFile, ConfigFile configFile, ConfigRepo repo, ConfigRepoBranch configRepoBranch) {
+    public static boolean handleNewFile(CodeSyncClient client, String accessToken, DiffFile diffFile, ConfigFile configFile, ConfigRepo repo, ConfigRepoBranch configRepoBranch) {
         String branchName = Utils.GetGitBranch(repo.repoPath);
         OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repo.repoPath, branchName);
 
@@ -271,7 +340,7 @@ public class HandleBuffer {
 
         System.out.printf("Uploading new file: %s .\n", diffFile.fileRelativePath);
         try {
-            Integer fileId = client.uploadFile(repo, diffFile, originalsFile);
+            Integer fileId = client.uploadFile(accessToken, repo, diffFile, originalsFile);
             configRepoBranch.updateFileId(diffFile.fileRelativePath, fileId);
             try {
                 configFile.publishBranchUpdate(repo, configRepoBranch);

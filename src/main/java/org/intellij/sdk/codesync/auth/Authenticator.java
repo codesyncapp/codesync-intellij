@@ -3,6 +3,7 @@ package org.intellij.sdk.codesync.auth;
 import com.auth0.jwt.interfaces.Claim;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.commands.ClearReposToIgnoreCache;
 import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.exceptions.RequestError;
@@ -100,7 +101,10 @@ public class Authenticator extends HttpServlet {
             return;
         }
         String userEmail = claims.get("email").asString();
-        userFile.setUser(userEmail, accessToken);
+        userFile.setActiveUser(userEmail, accessToken);
+
+        // Clear any cache that depends on user authentication status.
+        new ClearReposToIgnoreCache().execute();
         try {
             userFile.writeYml();
         } catch (FileNotFoundException | InvalidYmlFileError e) {

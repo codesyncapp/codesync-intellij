@@ -2,11 +2,11 @@ package org.intellij.sdk.codesync.files;
 
 import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.intellij.sdk.codesync.Constants.USER_FILE_PATH;
 
@@ -18,12 +18,14 @@ public class UserFile extends CodeSyncYmlFile {
 
     public static class User {
         String userEmail, accessKey = null, secretKey = null, accessToken = null;
+        Boolean isActive = false;
 
-        public User(String userEmail, Map<String, String> userCredentials) {
+        public User(String userEmail, Map<String, Object> userCredentials) {
             this.userEmail = userEmail;
-            this.accessKey = userCredentials.getOrDefault("access_key", null);
-            this.secretKey = userCredentials.getOrDefault("secret_key", null);
-            this.accessToken = userCredentials.getOrDefault("access_token", null);
+            this.accessKey = (String) userCredentials.getOrDefault("access_key", null);
+            this.secretKey = (String) userCredentials.getOrDefault("secret_key", null);
+            this.accessToken = (String) userCredentials.getOrDefault("access_token", null);
+            this.isActive = CommonUtils.getBoolValue(userCredentials, "is_active", false);
         }
 
         /*
@@ -32,6 +34,7 @@ public class UserFile extends CodeSyncYmlFile {
         public User(String userEmail, String accessToken) {
             this.userEmail = userEmail;
             this.accessToken = accessToken;
+            this.isActive = true;
         }
 
         /*
@@ -55,13 +58,16 @@ public class UserFile extends CodeSyncYmlFile {
         public void setAccessKey (String accessKey) { this.accessKey = accessKey; }
         public void setAccessToken (String accessToken) { this.accessToken = accessToken; }
         public void setSecretKey (String secretKey) { this.secretKey = secretKey; }
+        public void makeActive () { this.isActive = true; }
+        public void makeInActive () { this.isActive = false; }
 
 
-        public Map<String, String> getYMLAsHashMap() {
-            Map<String, String> user = new HashMap<>();
+        public Map<String, Object> getYMLAsHashMap() {
+            Map<String, Object> user = new HashMap<>();
             user.put("access_key", this.accessKey);
             user.put("secret_key", this.secretKey);
             user.put("access_token", this.accessToken);
+            user.put("is_active", this.isActive);
             return user;
         }
     }
@@ -104,13 +110,13 @@ public class UserFile extends CodeSyncYmlFile {
     access token will be present.
      */
     public static String getAccessToken(String email) {
-        UserFile userFile = null;
+        UserFile userFile;
         try {
             userFile = new UserFile(USER_FILE_PATH);
         } catch (FileNotFoundException | InvalidYmlFileError e) {
             return null;
         }
-        UserFile.User user = email == null ? userFile.getUser(): userFile.getUser(email);
+        UserFile.User user = email == null ? userFile.getActiveUser(): userFile.getActiveUser(email);
         if (user != null) {
             return user.getAccessToken();
         }
@@ -144,7 +150,7 @@ public class UserFile extends CodeSyncYmlFile {
         try {
             for (Map.Entry<String, Object> userEntry : this.contentsMap.entrySet()) {
                 if (userEntry.getValue() != null) {
-                    Map<String, String> userCredentials = (Map<String, String>) userEntry.getValue();
+                    Map<String, Object> userCredentials = (Map<String, Object>) userEntry.getValue();
                     this.users.put(userEntry.getKey(), new User(userEntry.getKey(), userCredentials));
                 }
 
@@ -162,30 +168,70 @@ public class UserFile extends CodeSyncYmlFile {
     }
 
     /*
-    Get the first user from the map.
+     Get the access token of the active user from the map.
      */
-    public User getUser() {
-        Optional<String> firstKey = this.users.keySet().stream().findFirst();
-        return firstKey.map(this::getUser).orElse(null);
+    public String getActiveAccessToken() {
+        User user = this.getActiveUser();
+        if (user != null) {
+            return user.accessToken;
+        }
+        return null;
     }
 
     /*
-    Set user using Auth0 access token
+    Get the active user from the map.
      */
-    public void setUser (String userEmail, String accessToken) {
+    public User getActiveUser(String email) {
+        User user = getUser(email);
+        return user.isActive ? user: null;
+    }
+
+    /*
+    Get the active user from the map.
+     */
+    public User getActiveUser() {
+        for (User user: this.users.values()) {
+            if (user.isActive) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    /*
+    Set user using Auth0 access token.
+
+    This will also make sure that this user is set to active and all other users are
+    set to in-active via is_active flag.
+     */
+    public void setActiveUser(String userEmail, String accessToken) {
         User user = getUser(userEmail);
         if (user == null) {
             user = new User(userEmail, accessToken);
         } else {
             user.setAccessToken(accessToken);
         }
+        // First mark all users in-active.
+        this.makeAllUsersInActive();
+
+        // Now mark the new user active.
+        user.makeActive();
         this.users.put(userEmail, user);
+    }
+
+    /*
+    Make all user's in-active by setting `is_active` to false.
+     */
+    public void makeAllUsersInActive() {
+        for (User user: this.users.values()) {
+            user.makeInActive();
+        }
     }
 
     /*
     Set user using IAM access and secret.
      */
-    public void setUser (String userEmail, String iamAccessKey, String iamSecretKey) {
+    public void setActiveUser(String userEmail, String iamAccessKey, String iamSecretKey) {
         User user = getUser(userEmail);
         if (user == null) {
             user = new User(userEmail, iamAccessKey, iamSecretKey);
