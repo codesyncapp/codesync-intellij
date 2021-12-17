@@ -72,7 +72,7 @@ public final class Constants {
     public static Integer FILE_SIZE_AS_COPY = 100;  // 100 bytes;
     public static double SEQUENCE_MATCHER_RATIO = 0.8; // 80% match ratio.
 
-    public static Integer DIFF_SIZE_LIMIT = 16 * 1000 * 1000;;  // 100 bytes;
+    public static Integer DIFF_SIZE_LIMIT = 16 * 1000 * 1000;
 
     public static String SYNC_IGNORE_COMMENT = "# CodeSync won't sync the files in the .syncignore. It follows same format as .gitignore.";
 

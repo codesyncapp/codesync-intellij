@@ -1,7 +1,6 @@
 package org.intellij.sdk.codesync;
 
 import kotlin.Pair;
-import org.apache.xmlbeans.impl.tool.Diff;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.clients.CodeSyncWebSocketClient;
 import org.intellij.sdk.codesync.exceptions.*;
@@ -14,7 +13,6 @@ import org.intellij.sdk.codesync.utils.FileUtils;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static org.intellij.sdk.codesync.Constants.*;
@@ -29,8 +27,14 @@ public class HandleBuffer {
      * @return the list of diff files available in the buffer.
      */
     private static final Set<String> diffFilesBeingProcessed = new HashSet<>();
+    private static final Set<String> diffReposToIgnore = new HashSet<>();
 
     public static boolean shouldSkipDiffFile(DiffFile diffFile, ConfigFile configFile) {
+        if (diffReposToIgnore.contains(diffFile.repoPath)) {
+            System.out.printf("Ignoring diff file '%s'.%n", diffFile.originalDiffFile.getPath());
+            return true;
+        }
+
         if (!diffFile.isValid()) {
             CodeSyncLogger.logEvent(
                     String.format("Skipping invalid diff file: %s, Diff: %s",
@@ -81,7 +85,7 @@ public class HandleBuffer {
         if (files != null)  {
             return Arrays.stream(files)
                 .map(DiffFile::new)
-                .filter(diffFile -> shouldSkipDiffFile(diffFile, configFile))
+                .filter(diffFile -> !shouldSkipDiffFile(diffFile, configFile))
                 .toArray(DiffFile[]::new);
         }
         return new DiffFile[0];
@@ -177,7 +181,10 @@ public class HandleBuffer {
                         configRepo.email, diffFile.originalDiffFile.getPath())
                 );
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
+                diffReposToIgnore.add(diffFile.repoPath);
                 continue;
+            } else {
+                diffReposToIgnore.remove(diffFile.repoPath);
             }
 
             if (!configRepo.branches.containsKey(diffFile.branch)) {
@@ -282,6 +289,16 @@ public class HandleBuffer {
 
         ConfigRepo configRepo = configFile.getRepo(currentRepo);
         String accessToken = UserFile.getAccessToken(configRepo.email);
+        if (accessToken ==  null) {
+            CodeSyncLogger.logEvent(String.format(
+                    "Access token for user '%s' not present so skipping diffs for repo '%s'.",
+                    configRepo.email, currentRepo)
+            );
+            return;
+        } else {
+            diffReposToIgnore.remove(currentRepo);
+        }
+
         CodeSyncWebSocketClient codeSyncWebSocketClient = client.getWebSocketClient(accessToken);
         codeSyncWebSocketClient.connect(isConnected -> {
             if (isConnected) {
