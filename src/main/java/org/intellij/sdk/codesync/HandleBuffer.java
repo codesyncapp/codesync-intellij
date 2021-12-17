@@ -29,6 +29,10 @@ public class HandleBuffer {
     private static final Set<String> diffFilesBeingProcessed = new HashSet<>();
     private static final Set<String> diffReposToIgnore = new HashSet<>();
 
+    public static void clearReposToIgnore() {
+        diffReposToIgnore.clear();
+    }
+
     public static boolean shouldSkipDiffFile(DiffFile diffFile, ConfigFile configFile) {
         if (diffReposToIgnore.contains(diffFile.repoPath)) {
             System.out.printf("Ignoring diff file '%s'.%n", diffFile.originalDiffFile.getPath());
