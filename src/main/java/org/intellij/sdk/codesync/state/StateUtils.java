@@ -38,7 +38,7 @@ public class StateUtils {
 
         try {
             UserFile userFile = new UserFile(USER_FILE_PATH);
-            UserFile.User user = userFile.getUser();
+            UserFile.User user = userFile.getActiveUser();
             pluginState.isAuthenticated = user != null;
         } catch (FileNotFoundException | InvalidYmlFileError error) {
             pluginState.isAuthenticated = false;

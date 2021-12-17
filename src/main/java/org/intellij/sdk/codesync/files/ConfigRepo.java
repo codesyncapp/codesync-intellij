@@ -11,7 +11,6 @@ public class ConfigRepo {
     public String repoPath;
     public String email;
     public Integer id;
-    public String token;
     public Boolean isInSync;
     public Boolean isDeleted;
     public Boolean pauseNotification;
@@ -40,8 +39,6 @@ public class ConfigRepo {
             throw new InvalidConfigFileError("Config file is not valid.");
         }
 
-        this.token = (String) configRepoMap.get("token");
-
         this.isInSync = CommonUtils.getBoolValue(configRepoMap, "is_in_sync", true);
         this.isDeleted = CommonUtils.getBoolValue(configRepoMap, "is_deleted", false);
         this.isDisconnected = CommonUtils.getBoolValue(configRepoMap, "is_disconnected", false);
@@ -57,7 +54,6 @@ public class ConfigRepo {
         repo.put("branches", branches);
         repo.put("email", this.email);
         repo.put("id", this.id);
-        repo.put("token", this.token);
         repo.put("is_deleted", this.isDeleted);
         repo.put("is_disconnected", this.isDisconnected);
         repo.put("pause_notification", this.pauseNotification);

@@ -100,7 +100,7 @@ public class Authenticator extends HttpServlet {
             return;
         }
         String userEmail = claims.get("email").asString();
-        userFile.setUser(userEmail, accessToken);
+        userFile.setActiveUser(userEmail, accessToken);
         try {
             userFile.writeYml();
         } catch (FileNotFoundException | InvalidYmlFileError e) {
