@@ -582,6 +582,8 @@ public class CodeSyncSetup {
         payload.put("is_public", isPublic);
         payload.put("branch", branchName);
         payload.put("files_data", filesData.toJSONString());
+        payload.put("source", DIFF_SOURCE);
+        payload.put("platform", CommonUtils.getOS());
 
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.PROCESS_RESPONSE);
         JSONObject response = codeSyncClient.uploadRepo(accessToken, payload);

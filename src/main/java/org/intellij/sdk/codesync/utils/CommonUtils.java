@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.intellij.sdk.codesync.Constants.DATE_TIME_FORMAT;
 
 public class CommonUtils {
-    private static String OS = System.getProperty("os.name").toLowerCase();
+    private static final String OS = System.getProperty("os.name").toLowerCase();
 
     public static boolean isWindows() {
         return OS.contains("win");
@@ -48,6 +48,10 @@ public class CommonUtils {
 
     public static boolean isSolaris() {
         return OS.contains("sunos");
+    }
+
+    public static String getOS() {
+        return OS;
     }
 
     @Nullable
