@@ -76,6 +76,17 @@ public final class Constants {
 
     public static String SYNC_IGNORE_COMMENT = "# CodeSync won't sync the files in the .syncignore. It follows same format as .gitignore.";
 
+    public static final class PlatformIdentifier {
+        private PlatformIdentifier() {
+            // restrict instantiation
+        }
+
+        public static String WINDOWS = "windows";
+        public static String MAC_OS = "mac";
+        public static String UNIX = "aix";
+        public static String SOLARIS = "sunos";
+    }
+
     public static final class Notification {
         private Notification() {
             // restrict instantiation

@@ -12,6 +12,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.util.PathUtil;
 import name.fraser.neil.plaintext.diff_match_patch;
+import org.intellij.sdk.codesync.Constants;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +52,18 @@ public class CommonUtils {
     }
 
     public static String getOS() {
-        return OS;
+        if (isWindows()) {
+            return Constants.PlatformIdentifier.WINDOWS;
+        }
+        if (isMac()) {
+            return Constants.PlatformIdentifier.MAC_OS;
+        }
+        if (isSolaris()) {
+            return Constants.PlatformIdentifier.SOLARIS;
+        }
+
+        // Default is Unix.
+        return Constants.PlatformIdentifier.UNIX;
     }
 
     @Nullable

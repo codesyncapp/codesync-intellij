@@ -21,7 +21,7 @@ public class DiffUtils {
         writeDiffToYml(
                 repoPath, branchName, relPath, diff, isNewFile, isDeleted, isRename, isDirRename,
 
-                // Pass the current time as createdAt of it is not passed in the argument.
+                // Pass the current time as createdAt if it is not passed in the argument.
                 CommonUtils.getCurrentDatetime()
         );
 
