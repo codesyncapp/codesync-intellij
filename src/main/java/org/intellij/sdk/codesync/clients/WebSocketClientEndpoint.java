@@ -1,14 +1,9 @@
 package org.intellij.sdk.codesync.clients;
 
+import java.io.IOException;
 import java.net.URI;
-import jakarta.websocket.ClientEndpoint;
-import jakarta.websocket.ContainerProvider;
-import jakarta.websocket.OnMessage;
-import jakarta.websocket.OnOpen;
-import jakarta.websocket.OnClose;
-import jakarta.websocket.CloseReason;
-import jakarta.websocket.Session;
-import jakarta.websocket.WebSocketContainer;
+
+import jakarta.websocket.*;
 
 
 @ClientEndpoint
@@ -16,19 +11,28 @@ public class WebSocketClientEndpoint {
 
     Session userSession = null;
     private MessageHandler messageHandler;
+    private URI endpointURI;
+    private WebSocketContainer container;
 
     public WebSocketClientEndpoint(URI endpointURI) {
         ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
+        this.endpointURI = endpointURI;
 
         try {
             Thread.currentThread().setContextClassLoader(WebSocketClientEndpoint.class.getClassLoader());
-
-            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-            container.connectToServer(this, endpointURI);
+            this.container = ContainerProvider.getWebSocketContainer();
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
             Thread.currentThread().setContextClassLoader(originalClassLoader);
+        }
+    }
+
+    public Session connectToServer() throws RuntimeException {
+        try {
+            return this.container.connectToServer(this, this.endpointURI);
+        } catch (DeploymentException | IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

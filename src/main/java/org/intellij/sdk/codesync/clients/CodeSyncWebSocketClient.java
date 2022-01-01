@@ -9,6 +9,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 
+import org.apache.http.client.utils.URIBuilder;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -24,7 +25,7 @@ public class CodeSyncWebSocketClient {
     public CodeSyncWebSocketClient(String token, String uri) {
         try {
             this.token = token;
-            this.uri = new URI(uri);
+            this.uri = new URIBuilder(uri).addParameter("token", token).build();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -33,7 +34,7 @@ public class CodeSyncWebSocketClient {
     public void connect (ConnectionHandler connectionHandler) {
         if (!this.isConnected) {
             this.webSocketClientEndpoint = new WebSocketClientEndpoint(this.uri);
-            this.authenticate(token, isAuthenticated -> {
+            this.authenticate(isAuthenticated -> {
                 this.isConnected = isAuthenticated;
                 connectionHandler.handleConnected(isAuthenticated);
             });
@@ -51,7 +52,7 @@ public class CodeSyncWebSocketClient {
         this.isConnected = false;
     }
 
-    public void authenticate(String token, AuthenticationHandler authenticationHandler) {
+    public void authenticate(AuthenticationHandler authenticationHandler) {
         this.webSocketClientEndpoint.setMessageHandler(message -> {
             if (message.isEmpty()) {
                 CodeSyncLogger.logEvent("Got empty response while authenticating.");
@@ -75,7 +76,7 @@ public class CodeSyncWebSocketClient {
             }
         });
 
-        this.webSocketClientEndpoint.sendMessage(token);
+        this.webSocketClientEndpoint.connectToServer();
     }
 
     public void sendDiff(DiffFile diffFile, Integer fileId, DataTransmissionHandler dataTransmissionHandler) throws WebSocketConnectionError {
