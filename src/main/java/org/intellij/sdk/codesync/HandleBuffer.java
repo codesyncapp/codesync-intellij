@@ -42,8 +42,8 @@ public class HandleBuffer {
         if (!diffFile.isValid()) {
             CodeSyncLogger.logEvent(
                     String.format("Skipping invalid diff file: %s, Diff: %s",
-                    diffFile.originalDiffFile.getPath()),
-                    diffFile.contents
+                        diffFile.originalDiffFile.getPath(), diffFile.contents
+                    )
             );
             diffFile.delete();
             return true;
