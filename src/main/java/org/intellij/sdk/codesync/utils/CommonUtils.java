@@ -5,7 +5,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -64,26 +63,6 @@ public class CommonUtils {
 
         // Default is Unix.
         return Constants.PlatformIdentifier.UNIX;
-    }
-
-    /*
-    Format path according to the system OS.
-
-    For some reason people at intellij thought it would be a good idea to confuse users by using
-    forward slashes in paths instead of windows path separator. That is why we need to call this method on each path
-    to make sure correct escape characters are used in each system.
-     */
-    public static String formatPath(String path) {
-        if (isWindows()){
-            // For some reason people at intellij thought it would be a good idea to confuse users by using
-            // forward slashes in paths instead of windows path separator.
-            path = path.replaceAll("/", "\\\\");
-        }
-        return path;
-    }
-
-    public static String formatPath(VirtualFile virtualFile) {
-        return formatPath(virtualFile.getPath());
     }
 
     @Nullable

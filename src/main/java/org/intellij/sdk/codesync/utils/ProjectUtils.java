@@ -17,6 +17,19 @@ public class ProjectUtils {
             ));
         }
 
-        return CommonUtils.formatPath(moduleContentRoot);
+        return FileUtils.normalizeFilePath(moduleContentRoot);
+    }
+
+    public static String getRepoName(VirtualFile virtualFile, Project project) throws FileNotInModuleError {
+        ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
+        VirtualFile moduleContentRoot = projectFileIndex.getContentRootForFile(virtualFile);
+
+        if (moduleContentRoot == null) {
+            throw new FileNotInModuleError(String.format(
+                    "File '%s' does not belong to the project '%s' index.", virtualFile.getPath(), project.getName()
+            ));
+        }
+
+        return moduleContentRoot.getName();
     }
 }

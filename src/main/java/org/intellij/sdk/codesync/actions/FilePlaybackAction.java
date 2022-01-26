@@ -5,16 +5,19 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
+import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
+import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -48,16 +51,31 @@ public class FilePlaybackAction extends AnAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getProject();
-        if(project == null) {
+
+        if( project == null ) {
             NotificationManager.notifyError("An error occurred trying to perform file playback action.");
             CodeSyncLogger.logEvent("An error occurred trying to perform file playback action. e.getProject() is null.");
 
             return;
         }
-        String repoPath = FileUtils.normalizeFilePath(project.getBasePath());
-        String repoName = project.getName();
 
-        String openedFilePath = e.getRequiredData(CommonDataKeys.PSI_FILE).getVirtualFile().getPath();
+        String repoPath, repoName;
+        VirtualFile virtualFile = e.getRequiredData(CommonDataKeys.PSI_FILE).getVirtualFile();
+        String openedFilePath = virtualFile.getPath();
+
+        try {
+            repoPath = ProjectUtils.getRepoPath(virtualFile, project);
+            repoName = ProjectUtils.getRepoName(virtualFile, project);
+        } catch (FileNotInModuleError error) {
+            NotificationManager.notifyError("An error occurred trying to perform file playback action.");
+            CodeSyncLogger.logEvent(String.format(
+                    "An error occurred trying to perform file playback action. file '%s' is not present in the project.",
+                    virtualFile.getPath()
+            ));
+
+            return;
+        }
+
         openedFilePath = FileUtils.normalizeFilePath(openedFilePath);
         String relativeFilePath = openedFilePath.replace(repoPath, "")
                 .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
