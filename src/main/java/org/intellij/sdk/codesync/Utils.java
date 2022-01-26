@@ -9,6 +9,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import name.fraser.neil.plaintext.diff_match_patch;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
+import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
@@ -16,6 +17,7 @@ import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.DiffUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
+import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.json.simple.JSONObject;
 
 import java.io.*;
@@ -263,12 +265,14 @@ public class Utils {
     public static void ChangesHandler(DocumentEvent event, Project project) {
         Document document = event.getDocument();
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
+        String repoPath;
 
-        String repoPath = project.getBasePath();
-        if (CommonUtils.isWindows()){
-            // For some reason people at intellij thought it would be a good idea to confuse users by using
-            // forward slashes in paths instead of windows path separator.
-            repoPath = repoPath.replaceAll("/", "\\\\");
+        try {
+            repoPath = ProjectUtils.getRepoPath(file, project);
+        } catch (FileNotInModuleError error) {
+            // Ignore events not belonging to current project.
+            System.out.println("Ignoring event because event does not belong to any of the module files.");
+            return;
         }
 
         String fileContents = document.getText();

@@ -9,13 +9,18 @@ import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
+import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -53,24 +58,47 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     // Schedule buffer handler.
     HandleBuffer.scheduleBufferHandler();
 
-    // Populate state
-    StateUtils.populateState(project);
+    VirtualFile[] contentRoots = ProjectRootManager.getInstance(project).getContentRootsFromAllModules();
+
+    // Populate state for all the opened modules. Module is the term used for projects opened using "Attach" option
+    // in the IDE open dialog box.
+    for (VirtualFile contentRoot: contentRoots) {
+      StateUtils.populateState(contentRoot.getPath(), project);
+    }
 
     project.getMessageBus().connect().subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
       public void after(@NotNull List<? extends VFileEvent> events) {
-        String repoPath = project.getBasePath();
+        String repoPath;
 
-        if (CommonUtils.isWindows()){
-          // For some reason people at intellij thought it would be a good idea to confuse users by using
-          // forward slashes in paths instead of windows path separator.
-          repoPath = repoPath.replaceAll("/", "\\\\");
-        }
-
-        // handle the events
         for (VFileEvent event : events) {
-          String eventString = event.toString();
+          VirtualFile virtualFile = event.getFile();
 
+          if (virtualFile == null) {
+            // Ignore events not belonging to current project.
+            System.out.println("Ignoring event because event does not know which file was affected.");
+            return;
+          }
+
+          try {
+            repoPath = ProjectUtils.getRepoPath(virtualFile, project);
+          } catch (FileNotInModuleError error) {
+            // Ignore events not belonging to current project.
+            System.out.println("Ignoring event because event does not belong to any of the module files.");
+            return;
+          }
+
+          String eventString = event.toString();
+          ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
+
+          if (!projectFileIndex.isInContent(virtualFile)) {
+            // Ignore events not belonging to current project.
+            System.out.println("Ignoring event from other project. ");
+            System.out.println(eventString);
+            return;
+          }
+
+          // handle the events
           if (eventString.startsWith(FILE_CREATE_EVENT) | eventString.startsWith(FILE_COPY_EVENT)) {
             String filePath = event.getPath();
 

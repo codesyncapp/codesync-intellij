@@ -21,6 +21,7 @@ public class StateUtils {
         return projectStateMap.get(projectPath);
     }
 
+    // TODO: Remove this getter, we can not uniquely identify repo root from project.
     static public PluginState getState(Project project){
         if (project != null) {
             return getState(project.getBasePath());
@@ -29,8 +30,7 @@ public class StateUtils {
         return null;
     }
 
-    static public void populateState(Project project){
-        String repoPath = project.getBasePath();
+    static public void populateState(String repoPath, Project project){
         PluginState pluginState = new PluginState();
 
         pluginState.project = project;
