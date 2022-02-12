@@ -5,6 +5,8 @@ import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
+import org.intellij.sdk.codesync.state.PluginState;
+import org.intellij.sdk.codesync.state.StateUtils;
 
 public class ProjectUtils {
     public static String getRepoPath(VirtualFile virtualFile, Project project) throws FileNotInModuleError {
@@ -31,5 +33,14 @@ public class ProjectUtils {
         }
 
         return moduleContentRoot.getName();
+    }
+
+    public static VirtualFile[] getAllContentRoots(Project project) {
+        return ProjectRootManager.getInstance(project).getContentRootsFromAllModules();
+    }
+
+    public static PluginState getModuleState(VirtualFile virtualFile, Project project) throws FileNotInModuleError {
+        String repoPath = getRepoPath(virtualFile, project);
+        return StateUtils.getState(repoPath);
     }
 }

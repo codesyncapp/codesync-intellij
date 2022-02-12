@@ -1,7 +1,6 @@
 package org.intellij.sdk.codesync.actions;
 
 import com.intellij.ide.BrowserUtil;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
@@ -14,8 +13,6 @@ import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
-import org.intellij.sdk.codesync.state.PluginState;
-import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -26,24 +23,16 @@ import java.util.regex.Pattern;
 import static org.intellij.sdk.codesync.Constants.CONFIG_PATH;
 import static org.intellij.sdk.codesync.Constants.FILE_PLAYBACK_LINK;
 
-public class FilePlaybackAction extends AnAction {
+public class FilePlaybackAction extends BaseModuleAction {
     @Override
     public void update(AnActionEvent e) {
-        PluginState pluginState = StateUtils.getState(e.getProject());
-        // Disable the button if repo is not in sync.
-        if (pluginState != null && !pluginState.isRepoInSync) {
-            e.getPresentation().setEnabled(false);
-
-            return;
-        }
-
         // Only enable file playback button when some file is opened in the editor.
         try {
-            // This file may seem to have no effect but this is the most important line here.
-            // This will raise AssertionError if no file is opened.
-            e.getRequiredData(CommonDataKeys.PSI_FILE);
-            e.getPresentation().setEnabled(true);
-        } catch (AssertionError error) {
+            VirtualFile virtualFile = e.getRequiredData(CommonDataKeys.PSI_FILE).getVirtualFile();
+            e.getPresentation().setEnabled(
+                this.isRepoInSync(virtualFile, e.getProject())
+            );
+        } catch (AssertionError | FileNotInModuleError error) {
             e.getPresentation().setEnabled(false);
         }
     }

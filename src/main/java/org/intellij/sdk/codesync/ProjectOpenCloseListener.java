@@ -58,13 +58,8 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     // Schedule buffer handler.
     HandleBuffer.scheduleBufferHandler();
 
-    VirtualFile[] contentRoots = ProjectRootManager.getInstance(project).getContentRootsFromAllModules();
-
-    // Populate state for all the opened modules. Module is the term used for projects opened using "Attach" option
-    // in the IDE open dialog box.
-    for (VirtualFile contentRoot: contentRoots) {
-      StateUtils.populateState(contentRoot.getPath(), project);
-    }
+    // Populate state
+    StateUtils.populateState(project);
 
     project.getMessageBus().connect().subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
