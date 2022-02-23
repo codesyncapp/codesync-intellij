@@ -11,6 +11,7 @@ import org.intellij.sdk.codesync.actions.BaseModuleAction;
 import org.intellij.sdk.codesync.exceptions.base.BaseException;
 import org.intellij.sdk.codesync.exceptions.base.BaseNetworkException;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
+import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -60,10 +61,12 @@ public class CodeSyncSetupAction extends BaseModuleAction {
             // this is needed because without the file we can not determine the correct repo sync.
             try {
                 VirtualFile virtualFile = e.getRequiredData(CommonDataKeys.PSI_FILE).getVirtualFile();
+                String repoPath = ProjectUtils.getRepoPath(virtualFile, project);
+                String repoName = ProjectUtils.getRepoName(virtualFile, project);
 
                 if (this.isRepoInSync(virtualFile, e.getProject())) {
                     try {
-                        CodeSyncSetup.disconnectRepo(project);
+                        CodeSyncSetup.disconnectRepo(project, repoPath, repoName);
                     } catch (BaseException | BaseNetworkException error) {
                         NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
                         NotificationManager.notifyError(error.getMessage(), project);
@@ -72,7 +75,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                         );
                     }
                 } else {
-                    CodeSyncSetup.setupCodeSyncRepoAsync(project, true);
+                    CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, true);
                 }
             } catch (AssertionError | FileNotInModuleError error) {
                 NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
@@ -84,9 +87,13 @@ public class CodeSyncSetupAction extends BaseModuleAction {
         } else if (contentRoots.length == 1) {
             // If there is only one module then we can simply show the repo playback for the only repo present.
             // Disable the button if repo is not in sync.
-            if (this.isRepoInSync(contentRoots[0])) {
+            VirtualFile contentRoot = contentRoots[0];
+            String repoPath = FileUtils.normalizeFilePath(contentRoot.getPath());
+            String repoName = contentRoot.getName();
+
+            if (this.isRepoInSync(contentRoot)) {
                 try {
-                    CodeSyncSetup.disconnectRepo(project);
+                    CodeSyncSetup.disconnectRepo(project, repoPath, repoName);
                 } catch (BaseException | BaseNetworkException error) {
                     NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
                     NotificationManager.notifyError(error.getMessage(), project);
@@ -95,7 +102,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                     );
                 }
             } else {
-                CodeSyncSetup.setupCodeSyncRepoAsync(project, true);
+                CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, true);
             }
         } else {
             NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);

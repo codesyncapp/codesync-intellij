@@ -168,6 +168,7 @@ public class PopulateBuffer {
 
         for (Map.Entry<String, ConfigRepo> configRepoEntry: configRepoMap.entrySet()) {
             String repoPath = configRepoEntry.getKey();
+            String repoName = Paths.get(repoPath).getFileName().toString();
             ConfigRepo configRepo = configRepoEntry.getValue();
 
             if (configRepo.isDisconnected) {
@@ -208,9 +209,9 @@ public class PopulateBuffer {
                 if (Paths.get(originalsRepoManager.getBaseRepoBranchDir()).toFile().exists()) {
                     String[] filePaths = FileUtils.listFiles(repoPath);
 
-                    CodeSyncSetup.uploadRepoAsync(repoPath, project.getName(), filePaths, project);
+                    CodeSyncSetup.uploadRepoAsync(repoPath, repoName, filePaths, project);
                 } else {
-                    CodeSyncSetup.setupCodeSyncRepoAsync(project, false);
+                    CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, false);
                 }
 
                 continue;
@@ -222,7 +223,7 @@ public class PopulateBuffer {
                 Project project = CommonUtils.getCurrentProject(repoPath);
 
                 String[] filePaths = FileUtils.listFiles(repoPath);
-                CodeSyncSetup.uploadRepoAsync(repoPath, project.getName(), filePaths, project);
+                CodeSyncSetup.uploadRepoAsync(repoPath, repoName, filePaths, project);
 
                 // this repo can be checked in the next iteration.
                 continue;

@@ -15,18 +15,22 @@ resumes the execution of code sync setup flow.
 This command is useful in cases where code sync setup needs to be resumed after successful authentication.
 */
 public class ResumeCodeSyncCommand implements Command {
-    private final String branchName;
+    private final String branchName, repoPath, repoName;
     private boolean skipIfAuthError = false;
     private final Project project;
 
-    public ResumeCodeSyncCommand(Project project, String branchName) {
+    public ResumeCodeSyncCommand(Project project, String repoPath, String repoName, String branchName) {
         this.project = project;
         this.branchName = branchName;
+        this.repoPath = repoPath;
+        this.repoName = repoName;
     }
 
-    public ResumeCodeSyncCommand(Project project, String branchName, boolean skipIfAuthError) {
+    public ResumeCodeSyncCommand(Project project, String repoPath, String repoName, String branchName, boolean skipIfAuthError) {
         this.project = project;
         this.branchName = branchName;
+        this.repoPath = repoPath;
+        this.repoName = repoName;
         this.skipIfAuthError = skipIfAuthError;
     }
 
@@ -35,7 +39,7 @@ public class ResumeCodeSyncCommand implements Command {
 
         try {
             if (accessToken != null && CodeSyncSetup.validateAccessToken(accessToken)) {
-                CodeSyncSetup.syncRepoAsync(project, branchName);
+                CodeSyncSetup.syncRepoAsync(project, this.repoPath, this.repoName, branchName);
             }
         } catch (InvalidAccessTokenError error) {
             if (this.skipIfAuthError) {
@@ -50,7 +54,7 @@ public class ResumeCodeSyncCommand implements Command {
                 CodeSyncAuthServer codeSyncAuthServer = CodeSyncAuthServer.getInstance();
                 BrowserUtil.browse(codeSyncAuthServer.getAuthorizationUrl());
                 CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(
-                        project, this.branchName, true
+                        project, this.repoPath, this.repoName, this.branchName, true
                 ));
             } catch (Exception e) {
                 CodeSyncLogger.logEvent(String.format(

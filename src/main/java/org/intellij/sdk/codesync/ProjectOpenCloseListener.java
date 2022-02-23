@@ -20,6 +20,7 @@ import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,8 +50,15 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
 
     StartupManagerEx.getInstance(project).runWhenProjectIsInitialized(() -> {
       if (project.isDisposed()) return;
+      VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
 
-      CodeSyncSetup.setupCodeSyncRepoAsync(project, false);
+      // Populate state for all the opened modules. Module is the term used for projects opened using "Attach" option
+      // in the IDE open dialog box.
+      for (VirtualFile contentRoot: contentRoots) {
+        String repoPath = FileUtils.normalizeFilePath(contentRoot.getPath());
+        String repoName = contentRoot.getName();
+        CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, false);
+      }
     });
 
     PopulateBuffer.startPopulateBufferDaemon();
