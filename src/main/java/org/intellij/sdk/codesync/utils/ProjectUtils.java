@@ -1,5 +1,8 @@
 package org.intellij.sdk.codesync.utils;
 
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -42,5 +45,14 @@ public class ProjectUtils {
     public static PluginState getModuleState(VirtualFile virtualFile, Project project) throws FileNotInModuleError {
         String repoPath = getRepoPath(virtualFile, project);
         return StateUtils.getState(repoPath);
+    }
+
+    public static String getPluginVersion() {
+        String version = "unknown";
+        IdeaPluginDescriptor ideaPluginDescriptor = PluginManagerCore.getPlugin(PluginId.getId("com.codesync"));
+        if (ideaPluginDescriptor != null) {
+            version = ideaPluginDescriptor.getVersion();
+        }
+        return version;
     }
 }
