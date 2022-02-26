@@ -103,11 +103,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
 
           // handle the events
           if (eventString.startsWith(FILE_CREATE_EVENT) | eventString.startsWith(FILE_COPY_EVENT)) {
-            String filePath = event.getPath();
-
-            if (CommonUtils.isWindows()) {
-              filePath = filePath.replaceAll("/", "\\\\");
-            }
+            String filePath = FileUtils.normalizeFilePath(event.getPath());
 
             FileCreateHandler(filePath, repoPath);
             return;

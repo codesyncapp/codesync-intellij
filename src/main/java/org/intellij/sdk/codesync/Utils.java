@@ -267,6 +267,11 @@ public class Utils {
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
         String repoPath;
 
+        if (file == null) {
+            System.out.println("Ignoring event because event file is null.");
+            return;
+        }
+
         try {
             repoPath = ProjectUtils.getRepoPath(file, project);
         } catch (FileNotInModuleError error) {
