@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync.utils;
 
+import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.exceptions.FileInfoError;
 import org.intellij.sdk.codesync.exceptions.FileNotFoundError;
@@ -187,5 +188,9 @@ public class FileUtils
         }
 
         return filePath;
+    }
+
+    public static String normalizeFilePath(VirtualFile virtualFile) {
+        return normalizeFilePath(virtualFile.getPath());
     }
 }

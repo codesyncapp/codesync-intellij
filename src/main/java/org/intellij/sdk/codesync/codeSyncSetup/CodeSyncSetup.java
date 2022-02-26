@@ -58,8 +58,8 @@ public class CodeSyncSetup {
     // TODO: need to figure out a way to improve this.
     private static Command resumeUploadCommand = null;
 
-    public static void registerResumeUploadCommand(Project project, String branchName) {
-        resumeUploadCommand = new ResumeRepoUploadCommand(project, branchName);
+    public static void registerResumeUploadCommand(Project project, String repoPath, String repoName, String branchName) {
+        resumeUploadCommand = new ResumeRepoUploadCommand(project, repoPath, repoName, branchName);
     }
 
     public static void executeResumeUploadCommand() {
@@ -74,7 +74,7 @@ public class CodeSyncSetup {
     /*
     This can be called to disconnect an already connected repo.
      */
-    public static void disconnectRepo(Project project) throws InvalidConfigFileError, RepoNotActive, UserFileError, ServerConnectionError, RepoUpdateError {
+    public static void disconnectRepo(Project project, String repoPath, String repoName) throws InvalidConfigFileError, RepoNotActive, UserFileError, ServerConnectionError, RepoUpdateError {
         // Show confirmation message.
         boolean shouldDisconnect = CodeSyncMessages.showYesNoMessage(
                 "Are you sure?",
@@ -84,8 +84,6 @@ public class CodeSyncSetup {
 
         // User confirmed to disconnect the repo.
         if (shouldDisconnect) {
-            String repoPath = project.getBasePath();
-            String repoName = project.getName();
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
 
             if (!configFile.isRepoActive(repoPath)) {
@@ -144,14 +142,14 @@ public class CodeSyncSetup {
         }
     }
 
-    public static void setupCodeSyncRepoAsync(Project project, boolean skipSyncPrompt) {
+    public static void setupCodeSyncRepoAsync(Project project, String repoPath, String repoName, boolean skipSyncPrompt) {
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
 
                 // Set the progress bar percentage and text
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                setupCodeSyncRepo(project, codeSyncProgressIndicator, skipSyncPrompt);
+                setupCodeSyncRepo(project, repoPath, repoName, codeSyncProgressIndicator, skipSyncPrompt);
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
@@ -159,17 +157,9 @@ public class CodeSyncSetup {
             }});
     }
 
-    public static void setupCodeSyncRepo(Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipSyncPrompt) {
+    public static void setupCodeSyncRepo(Project project, String repoPath, String repoName, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipSyncPrompt) {
         // Create system directories required by the plugin.
         createSystemDirectories();
-
-        String repoPath = project.getBasePath();
-        if (CommonUtils.isWindows()){
-            // For some reason people at intelli-j thought it would be a good idea to confuse users by using
-            // forward slashes in paths instead of windows path separator.
-            repoPath = repoPath.replaceAll("/", "\\\\");
-        }
-        String repoName = project.getName();
 
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
@@ -180,7 +170,7 @@ public class CodeSyncSetup {
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CHECK_USER_ACCESS);
 
                 if (skipSyncPrompt) {
-                    if (checkUserAccess(project, branchName)) {
+                    if (checkUserAccess(project, repoPath, repoName, branchName)) {
                         syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator);
                     }
                     return;
@@ -201,7 +191,7 @@ public class CodeSyncSetup {
                     );
 
                     if (shouldSyncRepo) {
-                        boolean hasAccessToken = checkUserAccess(project, branchName);
+                        boolean hasAccessToken = checkUserAccess(project, repoPath, repoName, branchName);
                         if (hasAccessToken) {
                             syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator);
                         }
@@ -283,7 +273,7 @@ public class CodeSyncSetup {
 
     This will also trigger the authentication flow if user does not have access token setup.
      */
-    public static boolean checkUserAccess(Project project, String branchName) {
+    public static boolean checkUserAccess(Project project, String repoPath, String repoName, String branchName) {
         String accessToken;
         try {
             UserFile userFile = new UserFile(USER_FILE_PATH);
@@ -317,7 +307,7 @@ public class CodeSyncSetup {
         CodeSyncAuthServer server;
         try {
             server =  CodeSyncAuthServer.getInstance();
-            CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(project, branchName));
+            CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(project, repoPath, repoName, branchName));
             BrowserUtil.browse(server.getAuthorizationUrl());
         } catch (Exception exc) {
             exc.printStackTrace();
@@ -333,10 +323,7 @@ public class CodeSyncSetup {
     /*
     Start an async task to sync repo.
      */
-    public static void syncRepoAsync(Project project, String branchName) {
-        String repoPath = project.getBasePath();
-        String repoName = project.getName();
-
+    public static void syncRepoAsync(Project project, String repoPath, String repoName, String branchName) {
         if (CommonUtils.isWindows()){
             // For some reason people at intelli-j thought it would be a good idea to confuse users by using
             // forward slashes in paths instead of windows path separator.
@@ -360,24 +347,14 @@ public class CodeSyncSetup {
     /*
     This method is useful when repo upload needs to be resumed after user has updated syncignore file.
      */
-    public static void resumeRepoUploadAsync(Project project, String branchName, boolean ignoreSyncIgnoreUpdate) {
-        String repoPath = project.getBasePath();
-        String repoName = project.getName();
-
-        if (CommonUtils.isWindows()){
-            // For some reason people at intelli-j thought it would be a good idea to confuse users by using
-            // forward slashes in paths instead of windows path separator.
-            repoPath = repoPath.replaceAll("/", "\\\\");
-        }
-
-        String finalRepoPath = repoPath;
+    public static void resumeRepoUploadAsync(Project project, String repoPath, String repoName, String branchName, boolean ignoreSyncIgnoreUpdate) {
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo") {
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
 
                 // Set the progress bar percentage and text
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                syncRepo(finalRepoPath, repoName, branchName, project, codeSyncProgressIndicator, ignoreSyncIgnoreUpdate);
+                syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, ignoreSyncIgnoreUpdate);
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
@@ -431,44 +408,45 @@ public class CodeSyncSetup {
         }
     }
 
-    public static void askUserToUpdateSyncIgnore(Project project, String branchName){
-        CommonUtils.invokeAndWait(
-                () -> {
-                    // Ask user to modify the syncignore file
-                    VirtualFile syncIgnoreFile = CommonUtils.findSingleFile(".syncignore", project);
-                    if (syncIgnoreFile != null) {
-                        new OpenFileDescriptor(project, syncIgnoreFile, 0).navigate(true);
-
-                        ToolWindow codeSyncToolWindow = ToolWindowManager.getInstance(project).getToolWindow("CodeSyncToolWindow");
-                        if (codeSyncToolWindow != null) {
-                            codeSyncToolWindow.show();
-                        }
-
-                        registerResumeUploadCommand(project, branchName);
-
-                        new UserInputDialog(
-                                "Please update .syncignore file.",
-                                "Once you have updated the file, you can resume repo initialization " +
-                                        "process, by click 'Continue with Initialization' button on the left CodeSync " +
-                                        "menu."
-                        ).show();
-
-                    } else {
-                        boolean shouldRetry = CodeSyncMessages.showYesNoMessage(
-                                "Something went wrong!",
-                                "Do you want to try again? If problem persists please contact support.",
-                                project
-                        );
-                        if (shouldRetry) {
-                            new ResumeRepoUploadCommand(project, branchName, false).execute();
-                        }
-                    }
-
-                    return null;
-                },
-                ModalityState.defaultModalityState()
-        );
-    }
+//    public static void askUserToUpdateSyncIgnore(Project project. String repoPath, String repoName, String branchName){
+//        CommonUtils.invokeAndWait(
+//                () -> {
+//                    // Ask user to modify the syncignore file
+//                    TODO: Cannot use project.getBasePath() we would probably need to use something else.
+//                    VirtualFile syncIgnoreFile = CommonUtils.findSingleFile(".syncignore", project.getBasePath());
+//                    if (syncIgnoreFile != null) {
+//                        new OpenFileDescriptor(project, syncIgnoreFile, 0).navigate(true);
+//
+//                        ToolWindow codeSyncToolWindow = ToolWindowManager.getInstance(project).getToolWindow("CodeSyncToolWindow");
+//                        if (codeSyncToolWindow != null) {
+//                            codeSyncToolWindow.show();
+//                        }
+//
+//                        registerResumeUploadCommand(project, repoPath, repoName, branchName);
+//
+//                        new UserInputDialog(
+//                                "Please update .syncignore file.",
+//                                "Once you have updated the file, you can resume repo initialization " +
+//                                        "process, by click 'Continue with Initialization' button on the left CodeSync " +
+//                                        "menu."
+//                        ).show();
+//
+//                    } else {
+//                        boolean shouldRetry = CodeSyncMessages.showYesNoMessage(
+//                                "Something went wrong!",
+//                                "Do you want to try again? If problem persists please contact support.",
+//                                project
+//                        );
+//                        if (shouldRetry) {
+//                            new ResumeRepoUploadCommand(project, branchName, false).execute();
+//                        }
+//                    }
+//
+//                    return null;
+//                },
+//                ModalityState.defaultModalityState()
+//        );
+//    }
 
     public static void uploadRepoAsync(String repoPath, String repoName, String[] filePaths, Project project){
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
