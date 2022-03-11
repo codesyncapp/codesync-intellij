@@ -1,6 +1,7 @@
 // Copyright 2000-2020 JetBrains s.r.o. and other contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.intellij.sdk.codesync;
+import kotlin.Pair;
 
 import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.openapi.application.ApplicationManager;
@@ -16,6 +17,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import com.intellij.serviceContainer.AlreadyDisposedException;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.state.StateUtils;
@@ -24,7 +26,9 @@ import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.intellij.sdk.codesync.Constants.*;
 import static org.intellij.sdk.codesync.Utils.*;
@@ -33,6 +37,7 @@ import static org.intellij.sdk.codesync.Utils.*;
  * Listener to detect project open and close.
  */
 public class ProjectOpenCloseListener implements ProjectManagerListener {
+  private static final Map<String, Pair<Project, DocumentListener>> changeHandlers = new HashMap<>();
 
   /**
    * Invoked on project open.
@@ -57,6 +62,12 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
         String repoPath = FileUtils.normalizeFilePath(contentRoot.getPath());
         String repoName = contentRoot.getName();
         CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, false);
+      }
+
+      for (Pair<Project, DocumentListener> pair: changeHandlers.values()) {
+        if (pair.getFirst().isDisposed()) {
+          this.disposeProjectListeners(pair.getFirst());
+        }
       }
     });
 
@@ -124,12 +135,14 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       }
     });
 
-    EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new DocumentListener() {
+    DocumentListener changesHandler = new DocumentListener() {
       @Override
       public void documentChanged(@NotNull DocumentEvent event) {
         ChangesHandler(event, project);
       }
-    }, Disposer.newDisposable());
+    };
+    changeHandlers.put(project.getBasePath(), new Pair<>(project, changesHandler));
+    EditorFactory.getInstance().getEventMulticaster().addDocumentListener(changesHandler, Disposer.newDisposable());
   }
 
   /**
@@ -139,6 +152,19 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
    */
   @Override
   public void projectClosed(@NotNull Project project) {
+    disposeProjectListeners(project);
+  }
+
+  public void disposeProjectListeners(Project project) {
+    DocumentListener changesHandler = changeHandlers.get(project.getBasePath()).getSecond();
+    if (changesHandler != null) {
+      EditorFactory.getInstance().getEventMulticaster().removeDocumentListener(changesHandler);
+    }
+
+    try {
+      // remove listeners to file updates.
+      project.getMessageBus().connect().disconnect();
+    } catch (AlreadyDisposedException ignored){}
 
   }
 }
