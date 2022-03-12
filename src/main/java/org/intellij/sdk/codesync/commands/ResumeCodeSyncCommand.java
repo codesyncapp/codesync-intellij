@@ -56,6 +56,7 @@ public class ResumeCodeSyncCommand implements Command {
                 CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(
                         project, this.repoPath, this.repoName, this.branchName, true
                 ));
+                CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
             } catch (Exception e) {
                 CodeSyncLogger.logEvent(String.format(
                         "[RESUME_CODESYNC_COMMAND] could not instantiate codesync auth server. Error: %s",

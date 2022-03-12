@@ -53,6 +53,17 @@ public class StateUtils {
     }
 
     /*
+    Reload global and project state.
+
+    This is useful in cases when auth action or repo sync action is performed and we want to make sure the state
+    has to correct values for these things.
+     */
+    static public void reloadState(Project project) {
+        populateGlobalState(project);
+        populateState(project);
+    }
+
+    /*
     This method is dependent on `globalState` and must execute after that has already executed.
      */
     static private void populateModuleState(String repoPath, Project project){

@@ -20,6 +20,7 @@ import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.commands.Command;
+import org.intellij.sdk.codesync.commands.ReloadStateCommand;
 import org.intellij.sdk.codesync.commands.ResumeCodeSyncCommand;
 import org.intellij.sdk.codesync.commands.ResumeRepoUploadCommand;
 import org.intellij.sdk.codesync.exceptions.*;
@@ -143,6 +144,8 @@ public class CodeSyncSetup {
     }
 
     public static void setupCodeSyncRepoAsync(Project project, String repoPath, String repoName, boolean skipSyncPrompt) {
+        ReloadStateCommand reloadStateCommand = new ReloadStateCommand(project);
+
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
@@ -154,6 +157,8 @@ public class CodeSyncSetup {
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
 
+                // Reload the state now.
+                reloadStateCommand.execute();
             }});
     }
 
@@ -308,6 +313,7 @@ public class CodeSyncSetup {
         try {
             server =  CodeSyncAuthServer.getInstance();
             CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(project, repoPath, repoName, branchName));
+            CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
             BrowserUtil.browse(server.getAuthorizationUrl());
         } catch (Exception exc) {
             exc.printStackTrace();
@@ -331,6 +337,7 @@ public class CodeSyncSetup {
         }
 
         String finalRepoPath = repoPath;
+        ReloadStateCommand reloadStateCommand = new ReloadStateCommand(project);
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
@@ -341,6 +348,9 @@ public class CodeSyncSetup {
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
+
+                //reload state now
+                reloadStateCommand.execute();
             }});
     }
 
@@ -348,6 +358,8 @@ public class CodeSyncSetup {
     This method is useful when repo upload needs to be resumed after user has updated syncignore file.
      */
     public static void resumeRepoUploadAsync(Project project, String repoPath, String repoName, String branchName, boolean ignoreSyncIgnoreUpdate) {
+        ReloadStateCommand reloadStateCommand = new ReloadStateCommand(project);
+
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo") {
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
@@ -358,6 +370,9 @@ public class CodeSyncSetup {
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
+
+                // Reload state now
+                reloadStateCommand.execute();
             }
         });
     }
@@ -449,6 +464,8 @@ public class CodeSyncSetup {
 //    }
 
     public static void uploadRepoAsync(String repoPath, String repoName, String[] filePaths, Project project){
+        ReloadStateCommand reloadStateCommand = new ReloadStateCommand(project);
+
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
@@ -459,6 +476,9 @@ public class CodeSyncSetup {
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
+
+                // Reload state now
+                reloadStateCommand.execute();
             }
         });
     }
