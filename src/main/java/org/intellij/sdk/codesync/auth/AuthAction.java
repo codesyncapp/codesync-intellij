@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.Presentation;
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.commands.ReloadStateCommand;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +36,7 @@ public class AuthAction extends AnAction {
                 targetURL = CODESYNC_LOGOUT_URL;
             }
             BrowserUtil.browse(targetURL);
+            CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(e.getProject()));
         } catch (Exception exc) {
             exc.printStackTrace();
             CodeSyncLogger.logEvent(

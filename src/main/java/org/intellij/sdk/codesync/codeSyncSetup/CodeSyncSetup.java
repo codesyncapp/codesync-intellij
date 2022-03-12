@@ -4,15 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.ide.BrowserUtil;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import kotlin.Pair;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
@@ -20,6 +15,7 @@ import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.commands.Command;
+import org.intellij.sdk.codesync.commands.ReloadStateCommand;
 import org.intellij.sdk.codesync.commands.ResumeCodeSyncCommand;
 import org.intellij.sdk.codesync.commands.ResumeRepoUploadCommand;
 import org.intellij.sdk.codesync.exceptions.*;
@@ -36,7 +32,6 @@ import org.intellij.sdk.codesync.ui.progress.CodeSyncProgressIndicator;
 import org.intellij.sdk.codesync.ui.progress.InitRepoMilestones;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
-import org.intellij.sdk.codesync.ui.userInput.UserInputDialog;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.jetbrains.annotations.NotNull;
@@ -153,7 +148,6 @@ public class CodeSyncSetup {
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
-
             }});
     }
 
@@ -308,6 +302,7 @@ public class CodeSyncSetup {
         try {
             server =  CodeSyncAuthServer.getInstance();
             CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(project, repoPath, repoName, branchName));
+            CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
             BrowserUtil.browse(server.getAuthorizationUrl());
         } catch (Exception exc) {
             exc.printStackTrace();
@@ -624,6 +619,8 @@ public class CodeSyncSetup {
             codeSyncProgressIndicator.setMileStone(InitRepoMilestones.UPLOAD_FILES);
             // Upload file to S3.
             uploadToS3(repoPath, branchName, accessToken, email, repoId, fileUrls);
+            ReloadStateCommand reloadStateCommand = new ReloadStateCommand(project);
+            reloadStateCommand.execute();
         } catch (ClassCastException | JsonProcessingException err) {
             CodeSyncLogger.logEvent(String.format(
                     "Error parsing the response of /init endpoint. Error: %s", err.getMessage()
