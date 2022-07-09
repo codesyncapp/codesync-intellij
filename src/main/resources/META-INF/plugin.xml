@@ -13,30 +13,24 @@
 
   <!-- Text to display as description on Preferences/Settings | Plugin page -->
   <description><![CDATA[
-    <p>CodeSync is a developer platform that streams code changes in real time.</p>
+    <p>Stream your code in real-time to the cloud, allowing you to review the entire history of the codebase on <a href="https://www.codesync.com">codesync.com</a>.</p>
+
     <ul>
-      <li><span><b>Never Lose Code Again: </b></span><span>All code changes are saved. "Rewind" to see all history.</span></li>
       <li><span><b>Coding Performance: </b></span><span>Track your performance every day. What did you actually write today?</span></li>
-      <li><span><b>Social Coding: </b></span><span>Watch other developers as they code, in real time.</span></li>
+      <li><span><b>Team Collaboration: </b></span><span>Don\'t wait for the Pull Request. Align with your team on changes as they happen. </span></li>
+      <li><span><b>Never Lose Code Again: </b></span><span>All code changes are saved. "Rewind" to see all history.</span></li>
+      <li><span><b>Social Coding: </b></span><span>Watch developers around the world as they code, in real time.</span></li>
     </ul>
-
+    <br/>
     <b>Getting Started</b>
-    <ul>
-      <li>Follow the <a href="https://www.codesync.com/install">Setup</a></li>
-      <li>You can see what you did for a particular day in the Review Today section</li>
-      <li>You can Explore Public Repos and see the history of a particular file</li>
-    </ul>
-
-    We have plugins available for the following IDEs:
-    <ul>
-        <li>IntelliJ</li>
-        <li>VS Code</li>
-        <li>Atom</li>
-    </ul>
-    These help to give a "live coding" experience.
-    
+    <ol>
+      <li>Install the CodeSync plugin</li>
+      <li>The plugin will guide you to log in or sign up, and connect your repo</li>
+      <li>Visit to <a href="https://www.codesync.com">codesync.com</a> to view your playback, or your team\'s changes!</li>
+    </ol>
+    <br/>
     <p><b>Content View (Replaying your changes)</b></p>
-    <img src="https://codesync-images.s3.amazonaws.com/codesync-live-coding.gif" alt="Content View (Replaying your changes)"/>
+    <img src="https://codesync-images.s3.amazonaws.com/codesync-intro.mp4" alt="Demo of repo playback"/>
     ]]>
     </description>
 
