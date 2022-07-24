@@ -17,7 +17,7 @@
 
     <ul>
       <li><span><b>Coding Performance: </b></span><span>Track your performance every day. What did you actually write today?</span></li>
-      <li><span><b>Team Collaboration: </b></span><span>Don\'t wait for the Pull Request. Align with your team on changes as they happen. </span></li>
+      <li><span><b>Team Collaboration: </b></span><span>Don't wait for the Pull Request. Align with your team on changes as they happen. </span></li>
       <li><span><b>Never Lose Code Again: </b></span><span>All code changes are saved. "Rewind" to see all history.</span></li>
       <li><span><b>Social Coding: </b></span><span>Watch developers around the world as they code, in real time.</span></li>
     </ul>
@@ -30,7 +30,7 @@
     </ol>
     <br/>
     <p><b>Content View (Replaying your changes)</b></p>
-    <img src="https://codesync-images.s3.amazonaws.com/codesync-intro.mp4" alt="Demo of repo playback"/>
+    <img src="https://codesync-images.s3.amazonaws.com/codesync-intro.gif" alt="Demo of repo playback"/>
     ]]>
     </description>
 
