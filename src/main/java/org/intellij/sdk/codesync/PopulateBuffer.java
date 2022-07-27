@@ -2,10 +2,12 @@ package org.intellij.sdk.codesync;
 
 import com.intellij.openapi.project.Project;
 import org.apache.commons.text.similarity.*;
+import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.exceptions.FileInfoError;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
+import org.intellij.sdk.codesync.exceptions.network.ServerConnectionError;
 import org.intellij.sdk.codesync.factories.DiffFactory;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
@@ -144,6 +146,10 @@ public class PopulateBuffer {
 
     public static Map<String, String> detectBranchChange() {
         Map<String, String> reposToUpdate = new HashMap<>();
+        CodeSyncClient codeSyncClient = new CodeSyncClient();
+        if (!codeSyncClient.isServerUp()) {
+            return reposToUpdate;
+        }
 
         ConfigFile configFile;
         try {
