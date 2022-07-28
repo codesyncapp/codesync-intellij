@@ -57,6 +57,7 @@ public final class Constants {
     public static String CODESYNC_LOGOUT_URL = String.format("%s/auth-logout", CODESYNC_HOST);
     public static String CODESYNC_UPDATE_REPO_URL = String.format("%s/repos", CODESYNC_HOST);
 
+    public static String WEBAPP_DASHBOARD_URL = String.format("%s/", WEB_APP_URL);
     public static String PLANS_URL = String.format("%s/plans", WEB_APP_URL);
     public static String REPO_PLAYBACK_LINK = String.format("%s/repos", WEB_APP_URL) + "/%s/playback";
     public static String FILE_PLAYBACK_LINK = String.format("%s/files", WEB_APP_URL) + "/%s/history";

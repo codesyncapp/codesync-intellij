@@ -23,12 +23,13 @@ public class AuthAction extends AnAction {
     @Override
     public void update(@NotNull AnActionEvent e) {
         PluginState pluginState = StateUtils.getGlobalState();
+        Presentation presentation = e.getPresentation();
         if (pluginState.isAuthenticated) {
-            Presentation presentation = e.getPresentation();
-            presentation.setText("Logout");
+            presentation.setText(
+                pluginState.userEmail == null ? "Logout": String.format("Logout %s", pluginState.userEmail)
+            );
             presentation.setDescription("Use a different account.");
         } else {
-            Presentation presentation = e.getPresentation();
             presentation.setText("Login");
             presentation.setDescription("Login to start syncing.");
         }
