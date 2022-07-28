@@ -58,11 +58,11 @@
               text="Connect Repo" description="Connect repo with codeSync">
       </action>
       <action id="org.intellij.sdk.codesync.actions.RepoPlaybackAction"
-              class="org.intellij.sdk.codesync.actions.RepoPlaybackAction" text="View Repo Playback"
+              class="org.intellij.sdk.codesync.actions.RepoPlaybackAction" text="View Repo Playback..."
               description="View repo playback">
       </action>
       <action id="org.intellij.sdk.codesync.actions.FilePlaybackAction"
-              class="org.intellij.sdk.codesync.actions.FilePlaybackAction" text="View File Playback"
+              class="org.intellij.sdk.codesync.actions.FilePlaybackAction" text="View File Playback..."
               description="View file playback">
       </action>
 
