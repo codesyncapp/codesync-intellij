@@ -7,4 +7,5 @@ public class PluginState {
     public boolean isAuthenticated;
     public boolean isRepoInSync;
     public String repoPath;
+    public String userEmail = null;
 }

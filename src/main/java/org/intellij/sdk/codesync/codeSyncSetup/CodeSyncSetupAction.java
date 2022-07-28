@@ -30,8 +30,8 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                 VirtualFile virtualFile = e.getRequiredData(CommonDataKeys.PSI_FILE).getVirtualFile();
                 if (this.isRepoInSync(virtualFile, e.getProject())) {
                     Presentation presentation = e.getPresentation();
-                    presentation.setText("Disconnect Repo");
-                    presentation.setDescription("Disconnect repo.");
+                    presentation.setText("Disconnect Repo...");
+                    presentation.setDescription("Disconnect repo...");
                 }
             } catch (AssertionError | FileNotInModuleError error) {
                 e.getPresentation().setEnabled(false);
@@ -41,7 +41,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
             // Disable the button if repo is not in sync.
             if (this.isRepoInSync(contentRoots[0])) {
                 Presentation presentation = e.getPresentation();
-                presentation.setText("Disconnect Repo");
+                presentation.setText("Disconnect Repo...");
                 presentation.setDescription("Disconnect repo.");
             }
         } else {

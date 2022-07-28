@@ -34,6 +34,9 @@ public class StateUtils {
             UserFile userFile = new UserFile(USER_FILE_PATH);
             UserFile.User user = userFile.getActiveUser();
             globalState.isAuthenticated = user != null;
+            if (user != null) {
+                globalState.userEmail = user.getUserEmail();
+            }
         } catch (FileNotFoundException | InvalidYmlFileError error) {
             globalState.isAuthenticated = false;
         }
@@ -72,6 +75,7 @@ public class StateUtils {
         pluginState.project = project;
         pluginState.repoPath = repoPath;
         pluginState.isAuthenticated = globalState.isAuthenticated;
+        pluginState.userEmail = globalState.userEmail;
 
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
