@@ -6,6 +6,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
+import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 
 
@@ -16,7 +17,8 @@ public abstract class BaseModuleAction extends AnAction {
     }
 
     public boolean isRepoInSync (VirtualFile moduleRoot) {
-        PluginState pluginState = StateUtils.getState(moduleRoot.getPath());
+        String repoPath = FileUtils.normalizeFilePath(moduleRoot.getPath());
+        PluginState pluginState = StateUtils.getState(repoPath);
         return pluginState != null && pluginState.isRepoInSync;
     }
 }

@@ -51,7 +51,7 @@ public class FileUtils
         try {
             return org.apache.commons.io.FileUtils.readFileToString(file, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            CodeSyncLogger.logEvent(String.format("Could read file '%s'. Error: %s", file.getPath(), e.getMessage()));
+            CodeSyncLogger.logEvent(String.format("Could not read file '%s'. Error: %s", file.getPath(), e.getMessage()));
             return null;
         }
     }

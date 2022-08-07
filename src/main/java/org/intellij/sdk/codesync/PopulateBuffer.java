@@ -251,7 +251,7 @@ public class PopulateBuffer {
 
             PopulateBuffer populateBuffer = new PopulateBuffer(repoPath, branchName);
             if (populateBuffer.configFile == null || populateBuffer.configRepoBranch == null || populateBuffer.configRepo == null) {
-                // Skip it for now, it will be handled in future.
+                // Skip it for now, it will be handled in the future.
                 CodeSyncLogger.logEvent(String.format(
                         "[INTELLIJ][NON_IDE_EVENTS] Could not populate for missed events, because config file for repo '%s' could not be opened.",
                         repoPath
