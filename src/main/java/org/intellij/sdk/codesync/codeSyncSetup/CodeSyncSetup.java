@@ -395,8 +395,9 @@ public class CodeSyncSetup {
             // Remove originals repo if it was uploaded successfully.
             originalsRepoManager.delete();
 
-            // Show success message.
+            // Show success message and update state
             NotificationManager.notifyInformation(Notification.INIT_SUCCESS_MESSAGE, project);
+            StateUtils.reloadState(project);
         } else {
             // Show failure message.
             NotificationManager.notifyError(Notification.INIT_FAILURE_MESSAGE, project);

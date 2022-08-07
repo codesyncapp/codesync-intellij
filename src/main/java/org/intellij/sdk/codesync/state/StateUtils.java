@@ -7,6 +7,7 @@ import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.UserFile;
+import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 
 import java.io.FileNotFoundException;
@@ -51,7 +52,8 @@ public class StateUtils {
         // Populate state for all the opened modules. Module is the term used for projects opened using "Attach" option
         // in the IDE open dialog box.
         for (VirtualFile contentRoot: contentRoots) {
-            StateUtils.populateModuleState(contentRoot.getPath(), project);
+            String repoPath = FileUtils.normalizeFilePath(contentRoot.getPath());
+            StateUtils.populateModuleState(repoPath, project);
         }
     }
 
