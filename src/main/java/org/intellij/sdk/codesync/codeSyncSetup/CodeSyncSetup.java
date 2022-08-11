@@ -287,8 +287,8 @@ public class CodeSyncSetup {
         }
 
         boolean shouldSignup = CodeSyncMessages.showYesNoMessage(
-                "Do you want to proceed with authentication?",
-                "You Need to Authenticate!",
+                "Do you want to login or sign up to use CodeSync?",
+                "To stream your code to the cloud, you'll need to authenticate.",
                 project
         );
 

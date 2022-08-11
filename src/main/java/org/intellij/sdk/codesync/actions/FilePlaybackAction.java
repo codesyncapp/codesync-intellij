@@ -124,7 +124,7 @@ public class FilePlaybackAction extends BaseModuleAction {
 
         Integer fileId = configRepoBranch.getFileId(relativeFilePath);
 
-        if (fileId == null) {
+        if (fileId == null) {   
             NotificationManager.notifyError(
                 "An error occurred trying to perform file playback action. This file is not yet synced with CodeSync servers.",
                 project

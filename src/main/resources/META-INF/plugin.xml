@@ -46,27 +46,28 @@
       <add-to-group group-id="MainMenu" anchor="after" relative-to-action="ToolsMenu"/>
       <add-to-group group-id="EditorPopupMenu" anchor="last"/>
 
-      <action id="org.intellij.sdk.codesync.auth.AuthAction" class="org.intellij.sdk.codesync.auth.AuthAction"
-              text="Login" description="Authentication setup">
-      </action>
+
 <!--      TODO: remove this if we decide to never use this action. -->
 <!--      <action id="org.intellij.sdk.codesync.auth.LogoutAction" class="org.intellij.sdk.codesync.auth.LogoutAction"-->
 <!--              text="Use Different Account" description="Use a different account for codesync authentication."-->
 <!--      >-->
 <!--      </action>-->
-      <action id="org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetupAction" class="org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetupAction"
-              text="Connect Repo" description="Connect repo with codeSync">
-      </action>
-      <action id="org.intellij.sdk.codesync.actions.ViewDashboardAction" class="org.intellij.sdk.codesync.actions.ViewDashboardAction"
-              text="View Dashboard" description="View CodeSync dashboard">
+      <action id="org.intellij.sdk.codesync.actions.FilePlaybackAction"
+              class="org.intellij.sdk.codesync.actions.FilePlaybackAction" text="View File Playback..."
+              description="View file playback">
       </action>
       <action id="org.intellij.sdk.codesync.actions.RepoPlaybackAction"
               class="org.intellij.sdk.codesync.actions.RepoPlaybackAction" text="View Repo Playback..."
               description="View repo playback">
       </action>
-      <action id="org.intellij.sdk.codesync.actions.FilePlaybackAction"
-              class="org.intellij.sdk.codesync.actions.FilePlaybackAction" text="View File Playback..."
-              description="View file playback">
+      <action id="org.intellij.sdk.codesync.actions.ViewDashboardAction" class="org.intellij.sdk.codesync.actions.ViewDashboardAction"
+              text="View Dashboard" description="View CodeSync dashboard">
+      </action>
+      <action id="org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetupAction" class="org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetupAction"
+              text="Connect Repo" description="Connect repo with codeSync">
+      </action>
+      <action id="org.intellij.sdk.codesync.auth.AuthAction" class="org.intellij.sdk.codesync.auth.AuthAction"
+              text="Login" description="Authentication setup">
       </action>
 
     </group>
