@@ -4,10 +4,10 @@ public class ProdConfiguration implements Configuration {
     private static ProdConfiguration configuration = null;
 
     public String CODESYNC_DIR_NAME = ".codesync";
-    public String CODESYNC_DOMAIN = "codesync-server.herokuapp.com";
-    public String CODESYNC_HOST = "https://codesync-server.herokuapp.com";
-    public String CODESYNC_APP = "https://codesync.com";
-    public String WEB_APP_URL = "https://codesync.com";
+    public String CODESYNC_DOMAIN = "api.codesync.com";
+    public String CODESYNC_HOST = "https://api.codesync.com";
+    public String CODESYNC_APP = "https://www.codesync.com";
+    public String WEB_APP_URL = "https://www.codesync.com";
 
     public static ProdConfiguration getInstance () {
         if (configuration == null) {
@@ -15,7 +15,6 @@ public class ProdConfiguration implements Configuration {
         }
         return configuration;
     }
-
 
     @Override
     public String getCodeSyncDirName() {
