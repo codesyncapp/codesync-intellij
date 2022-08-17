@@ -52,6 +52,19 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       return;
     }
 
+    // Populate state
+    StateUtils.populateState(project);
+
+    boolean shouldContinue = ProjectUtils.acquireLock();
+
+    // This code is executed multiple times when a project window is opened,
+    // causing the callbacks to be registered as many times, this lock would prevent the
+    // listeners from being registered multiple times.
+    if (!shouldContinue) {
+      System.out.println("Skipping the callback registration.");
+      return;
+    }
+
     StartupManagerEx.getInstance(project).runWhenProjectIsInitialized(() -> {
       if (project.isDisposed()) return;
       VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
@@ -75,9 +88,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
 
     // Schedule buffer handler.
     HandleBuffer.scheduleBufferHandler();
-
-    // Populate state
-    StateUtils.populateState(project);
 
     project.getMessageBus().connect().subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
@@ -152,6 +162,8 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
    */
   @Override
   public void projectClosed(@NotNull Project project) {
+    System.out.println("Project closed: ");
+    System.out.println(project.getName());
     disposeProjectListeners(project);
   }
 

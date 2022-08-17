@@ -209,12 +209,12 @@ public class CodeSyncSetup {
 
     public static void createSystemDirectories() {
         // Create system folders
-        String[] systemFolders = {CODESYNC_ROOT, DIFFS_REPO, ORIGINALS_REPO, SHADOW_REPO, DELETED_REPO};
+        String[] systemFolders = {CODESYNC_ROOT, DIFFS_REPO, ORIGINALS_REPO, SHADOW_REPO, DELETED_REPO, LOCK_FILE_DIR};
         for (String systemFolder : systemFolders) {
             File folder = new File(systemFolder);
             folder.mkdirs();
         }
-        String[] systemFilePaths = {CONFIG_PATH, USER_FILE_PATH, SEQUENCE_TOKEN_FILE_PATH};
+        String[] systemFilePaths = {CONFIG_PATH, USER_FILE_PATH, SEQUENCE_TOKEN_FILE_PATH, LOCK_FILE};
         for (String systemFilePath: systemFilePaths) {
             File systemFile = new File(systemFilePath);
 

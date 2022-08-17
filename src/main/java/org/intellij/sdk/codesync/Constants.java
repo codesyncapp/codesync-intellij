@@ -21,6 +21,8 @@ public final class Constants {
     public static String USER_HOME = System.getProperty("user.home");
     public static String CODESYNC_ROOT =Paths.get(USER_HOME, CODESYNC_DIR_NAME).toString();
     public static String DIFFS_REPO = Paths.get(CODESYNC_ROOT, ".diffs", ".intellij").toString();
+    public static String LOCK_FILE_DIR = Paths.get(CODESYNC_ROOT, ".locks").toString();
+    public static String LOCK_FILE = Paths.get(LOCK_FILE_DIR, ".intellij.lock").toString();
     public static String ORIGINALS_REPO = Paths.get(CODESYNC_ROOT, ".originals").toString();
     public static String DELETED_REPO = Paths.get(CODESYNC_ROOT, ".deleted").toString();
     public static String SHADOW_REPO = Paths.get(CODESYNC_ROOT, ".shadow").toString();
