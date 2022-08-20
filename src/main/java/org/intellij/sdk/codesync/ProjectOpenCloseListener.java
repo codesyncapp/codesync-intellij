@@ -20,6 +20,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.serviceContainer.AlreadyDisposedException;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
+import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
@@ -32,6 +33,7 @@ import java.util.Map;
 
 import static org.intellij.sdk.codesync.Constants.*;
 import static org.intellij.sdk.codesync.Utils.*;
+import static org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup.createSystemDirectories;
 
 /**
  * Listener to detect project open and close.
@@ -51,14 +53,19 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return;
     }
+    // Create system directories required by the plugin.
+    createSystemDirectories();
 
     // Populate state
     StateUtils.populateState(project);
 
-    boolean shouldContinue = ProjectUtils.acquireLock();
+    // TODO: Use global lock for restricting daemons only.
+    CodeSyncLock codeSyncLock = new CodeSyncLock();
+    boolean shouldContinue = codeSyncLock.acquireLock(project.getName());
 
+    // TODO: Use project specific locks here to avoid multiple registrations.
     // This code is executed multiple times when a project window is opened,
-    // causing the callbacks to be registered as many times, this lock would prevent the
+    // causing the callbacks to be registered many times, this lock would prevent the
     // listeners from being registered multiple times.
     if (!shouldContinue) {
       System.out.println("Skipping the callback registration.");
@@ -168,6 +175,8 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
   }
 
   public void disposeProjectListeners(Project project) {
+    CodeSyncLock codeSyncLock = new CodeSyncLock();
+    codeSyncLock.releaseLock(project.getName());
     DocumentListener changesHandler = changeHandlers.get(project.getBasePath()).getSecond();
     if (changesHandler != null) {
       EditorFactory.getInstance().getEventMulticaster().removeDocumentListener(changesHandler);

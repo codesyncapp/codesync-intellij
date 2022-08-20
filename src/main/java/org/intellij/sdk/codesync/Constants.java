@@ -22,7 +22,7 @@ public final class Constants {
     public static String CODESYNC_ROOT =Paths.get(USER_HOME, CODESYNC_DIR_NAME).toString();
     public static String DIFFS_REPO = Paths.get(CODESYNC_ROOT, ".diffs", ".intellij").toString();
     public static String LOCK_FILE_DIR = Paths.get(CODESYNC_ROOT, ".locks").toString();
-    public static String LOCK_FILE = Paths.get(LOCK_FILE_DIR, ".intellij.lock").toString();
+    public static String LOCK_FILE = Paths.get(LOCK_FILE_DIR, ".intellij.yml").toString();
     public static String ORIGINALS_REPO = Paths.get(CODESYNC_ROOT, ".originals").toString();
     public static String DELETED_REPO = Paths.get(CODESYNC_ROOT, ".deleted").toString();
     public static String SHADOW_REPO = Paths.get(CODESYNC_ROOT, ".shadow").toString();
@@ -77,6 +77,8 @@ public final class Constants {
     public static Integer DIFF_SIZE_LIMIT = 16 * 1000 * 1000;
 
     public static String SYNC_IGNORE_COMMENT = "# CodeSync won't sync the files in the .syncignore. It follows same format as .gitignore.";
+
+    public static String GLOBAL_LOCK_KEY = "global";
 
     public static final class PlatformIdentifier {
         private PlatformIdentifier() {
