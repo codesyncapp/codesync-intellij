@@ -22,16 +22,15 @@ public class CodeSyncLock {
     }
 
     public CodeSyncLock (String category) {
-        LockFile lockFile = this.loadLockFile();
+        lockFile = loadLockFile();
         if (lockFile != null) {
             this.lock = lockFile.getLock(category);
         }
     }
 
-    private LockFile loadLockFile() {
-
+    private static LockFile loadLockFile() {
         try {
-            lockFile = new LockFile(LOCK_FILE, true);
+            return new LockFile(LOCK_FILE, true);
         } catch (InvalidYmlFileError | FileNotFoundException | FileNotCreatedError error) {
             error.printStackTrace();
             CodeSyncLogger.logEvent(String.format(
@@ -39,25 +38,41 @@ public class CodeSyncLock {
             ));
             return null;
         }
-
-        return lockFile;
     }
 
-    public boolean acquireLock(String projectName) {
+    public boolean acquireLock(String identifier) {
         if (this.lock == null || this.lock.isActive()) {
             return false;
         } else {
             Instant expiry = Instant.now().plus(5, ChronoUnit.MINUTES);
-            return this.lockFile.publishNewLock(this.lock.getCategory(), Date.from(expiry), projectName);
+            return this.lockFile.publishNewLock(this.lock.getCategory(), Date.from(expiry), identifier);
         }
     }
 
-    //  TODO: Add releaseLocks instead here, that will release all the locks with matching identifiers.
-    public void releaseLock(String projectName) {
-        if (this.lock.compareIdentifier(projectName)) {
+    /*
+    Release all the locks having the given identifier.
+    */
+    public static void releaseAllLocks(String identifier) {
+       LockFile lockFile = loadLockFile();
+       if (lockFile != null) {
+           for (LockFile.Lock lock: lockFile.getLocks()) {
+               if (lock.compareIdentifier(identifier)) {
+                   Instant past = Instant.now().minus(1, ChronoUnit.MINUTES);
+
+                   lockFile.publishNewLock(lock.getCategory(), Date.from(past), identifier);
+               }
+           }
+       }
+    }
+
+    /*
+    Release a single lock, lock will only be released if it has the same identifier as the one in the argument.
+    */
+    public void releaseLock(String identifier) {
+        if (this.lock.compareIdentifier(identifier)) {
             Instant past = Instant.now().minus(1, ChronoUnit.MINUTES);
 
-            this.lockFile.publishNewLock(this.lock.getCategory(), Date.from(past), projectName);
+            this.lockFile.publishNewLock(this.lock.getCategory(), Date.from(past), identifier);
         }
     }
 }

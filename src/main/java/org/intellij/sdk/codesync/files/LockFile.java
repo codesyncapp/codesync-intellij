@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /*
-A file that will contain information about different kinds of inter-process and inter-thread synchronization.
+A file that will contain information about different kinds of inter-process and inter-thread synchronization data.
 
 The file will contain a dictionary at the root and can have the following structure. The key of the root map
 will be the category of the lock, virtually any kind of lock is possible e.g. project specific (project name as key),
@@ -143,7 +143,14 @@ public class LockFile extends CodeSyncYmlFile {
     */
     public Lock getLock (String category) {
         Instant past = Instant.now().minus(1, ChronoUnit.MINUTES);
-        return this.locks.getOrDefault(category, new Lock(Constants.GLOBAL_LOCK_KEY, Date.from(past), null));
+        return this.locks.getOrDefault(category, new Lock(category, Date.from(past), null));
+    }
+
+    /*
+    Return an array of all the locks that are stored by this file.
+     */
+    public Lock[] getLocks() {
+        return this.locks.values().toArray(new Lock[0]);
     }
 
     public Lock getLock() {

@@ -59,11 +59,14 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     // Populate state
     StateUtils.populateState(project);
 
-    // TODO: Use global lock for restricting daemons only.
-    CodeSyncLock codeSyncLock = new CodeSyncLock();
-    boolean shouldContinue = codeSyncLock.acquireLock(project.getName());
+    PopulateBuffer.startPopulateBufferDaemon(project);
 
-    // TODO: Use project specific locks here to avoid multiple registrations.
+    // Schedule buffer handler.
+    HandleBuffer.scheduleBufferHandler(project);
+
+    CodeSyncLock codeSyncProjectLock = new CodeSyncLock(project.getBasePath());
+    boolean shouldContinue = codeSyncProjectLock.acquireLock(project.getName());
+
     // This code is executed multiple times when a project window is opened,
     // causing the callbacks to be registered many times, this lock would prevent the
     // listeners from being registered multiple times.
@@ -90,11 +93,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
         }
       }
     });
-
-    PopulateBuffer.startPopulateBufferDaemon();
-
-    // Schedule buffer handler.
-    HandleBuffer.scheduleBufferHandler();
 
     project.getMessageBus().connect().subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
@@ -169,14 +167,13 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
    */
   @Override
   public void projectClosed(@NotNull Project project) {
-    System.out.println("Project closed: ");
-    System.out.println(project.getName());
     disposeProjectListeners(project);
   }
 
   public void disposeProjectListeners(Project project) {
-    CodeSyncLock codeSyncLock = new CodeSyncLock();
-    codeSyncLock.releaseLock(project.getName());
+    // Release all the locks acquired by this project.
+    CodeSyncLock.releaseAllLocks(project.getName());
+
     DocumentListener changesHandler = changeHandlers.get(project.getBasePath()).getSecond();
     if (changesHandler != null) {
       EditorFactory.getInstance().getEventMulticaster().removeDocumentListener(changesHandler);
