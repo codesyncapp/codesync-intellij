@@ -55,7 +55,6 @@ public class SequenceTokenFile extends CodeSyncYmlFile {
             if (!isFileReady) {
                 throw new FileNotCreatedError(String.format("User file \"%s\" could not be created.", filePath));
             }
-            throw new FileNotFoundException(String.format("Sequence token file \"%s\" does not exist.", filePath));
         } else if (!sequenceTokenFile.isFile()) {
             throw new FileNotFoundException(String.format("Sequence token file \"%s\" does not exist.", filePath));
         }

@@ -1,10 +1,12 @@
 package org.intellij.sdk.codesync;
 
+import com.intellij.openapi.project.Project;
 import kotlin.Pair;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.clients.CodeSyncWebSocketClient;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.files.*;
+import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
@@ -95,30 +97,32 @@ public class HandleBuffer {
         return new DiffFile[0];
     }
 
-    private static void bufferHandler(final Timer timer) {
+    private static void bufferHandler(final Timer timer, Project project) {
         timer.schedule(new TimerTask() {
             public void run() {
                 try {
-                    System.out.println("Calling HandleBuffer.handleBuffer()");
-                    HandleBuffer.handleBuffer();
-                    System.out.println("handleBuffer exited:");
+                    HandleBuffer.handleBuffer(project);
                 } catch (Exception e) {
                     System.out.println("handleBuffer with error:");
                     e.printStackTrace();
                 }
 
-                System.out.println("Calling bufferHandler(timer)");
-                bufferHandler(timer);
+                bufferHandler(timer, project);
             }
         }, DELAY_BETWEEN_BUFFER_TASKS);
     }
 
-    public static void scheduleBufferHandler() {
+    public static void scheduleBufferHandler(Project project) {
         Timer timer = new Timer(true);
-        bufferHandler(timer);
+        bufferHandler(timer, project);
     }
 
-    public static void handleBuffer() {
+    public static void handleBuffer(Project project) {
+        CodeSyncLock codeSyncLock = new CodeSyncLock(DIFFS_DAEMON_LOCK_KEY);
+        if (!codeSyncLock.acquireLock(project.getName())) {
+            return;
+        }
+
         ConfigFile configFile;
         HashSet<String> newFiles = new HashSet<>();
         System.out.println("handleBuffer called:");

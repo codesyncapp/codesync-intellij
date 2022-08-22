@@ -152,9 +152,6 @@ public class CodeSyncSetup {
     }
 
     public static void setupCodeSyncRepo(Project project, String repoPath, String repoName, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipSyncPrompt) {
-        // Create system directories required by the plugin.
-        createSystemDirectories();
-
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
             ConfigRepo configRepo = configFile.getRepo(repoPath);
@@ -214,7 +211,7 @@ public class CodeSyncSetup {
             File folder = new File(systemFolder);
             folder.mkdirs();
         }
-        String[] systemFilePaths = {CONFIG_PATH, USER_FILE_PATH, SEQUENCE_TOKEN_FILE_PATH};
+        String[] systemFilePaths = {CONFIG_PATH, USER_FILE_PATH, SEQUENCE_TOKEN_FILE_PATH, LOCK_FILE};
         for (String systemFilePath: systemFilePaths) {
             File systemFile = new File(systemFilePath);
 

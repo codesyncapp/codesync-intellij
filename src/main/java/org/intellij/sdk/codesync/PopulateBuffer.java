@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync;
 
+import com.google.rpc.Code;
 import com.intellij.openapi.project.Project;
 import org.apache.commons.text.similarity.*;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
@@ -13,6 +14,7 @@ import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
 import org.intellij.sdk.codesync.files.UserFile;
+import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
@@ -119,30 +121,32 @@ public class PopulateBuffer {
         }
     }
 
-    private static void populateBufferDaemon(final Timer timer) {
+    private static void populateBufferDaemon(final Timer timer, Project project) {
         timer.schedule(new TimerTask() {
             public void run() {
                 try {
-                    populateBuffer();
+                    populateBuffer(project);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
-                populateBufferDaemon(timer);
+                populateBufferDaemon(timer, project);
             }
         }, DELAY_BETWEEN_BUFFER_TASKS);
     }
 
-    public static void startPopulateBufferDaemon() {
+    public static void startPopulateBufferDaemon(Project project) {
         Timer timer = new Timer(true);
-        populateBufferDaemon(timer);
+        populateBufferDaemon(timer, project);
     }
 
-    public static void populateBuffer(){
-        Map<String, String> reposToUpdate = detectBranchChange();
-        populateBufferForMissedEvents(reposToUpdate);
+    public static void populateBuffer(Project project) {
+        CodeSyncLock codeSyncLock = new CodeSyncLock(POPULATE_BUFFER_DAEMON_LOCK_KEY);
+        if (codeSyncLock.acquireLock(project.getName())) {
+            Map<String, String> reposToUpdate = detectBranchChange();
+            populateBufferForMissedEvents(reposToUpdate);
+        }
     }
-
 
     public static Map<String, String> detectBranchChange() {
         Map<String, String> reposToUpdate = new HashMap<>();

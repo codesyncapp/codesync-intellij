@@ -20,6 +20,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.serviceContainer.AlreadyDisposedException;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
+import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
@@ -32,6 +33,7 @@ import java.util.Map;
 
 import static org.intellij.sdk.codesync.Constants.*;
 import static org.intellij.sdk.codesync.Utils.*;
+import static org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup.createSystemDirectories;
 
 /**
  * Listener to detect project open and close.
@@ -49,6 +51,27 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
   public void projectOpened(@NotNull Project project) {
     // TODO: Might not need this => Ensure this isn't part of testing
     if (ApplicationManager.getApplication().isUnitTestMode()) {
+      return;
+    }
+    // Create system directories required by the plugin.
+    createSystemDirectories();
+
+    // Populate state
+    StateUtils.populateState(project);
+
+    PopulateBuffer.startPopulateBufferDaemon(project);
+
+    // Schedule buffer handler.
+    HandleBuffer.scheduleBufferHandler(project);
+
+    CodeSyncLock codeSyncProjectLock = new CodeSyncLock(project.getBasePath());
+    boolean shouldContinue = codeSyncProjectLock.acquireLock(project.getName());
+
+    // This code is executed multiple times when a project window is opened,
+    // causing the callbacks to be registered many times, this lock would prevent the
+    // listeners from being registered multiple times.
+    if (!shouldContinue) {
+      System.out.println("Skipping the callback registration.");
       return;
     }
 
@@ -70,14 +93,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
         }
       }
     });
-
-    PopulateBuffer.startPopulateBufferDaemon();
-
-    // Schedule buffer handler.
-    HandleBuffer.scheduleBufferHandler();
-
-    // Populate state
-    StateUtils.populateState(project);
 
     project.getMessageBus().connect().subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
@@ -156,6 +171,9 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
   }
 
   public void disposeProjectListeners(Project project) {
+    // Release all the locks acquired by this project.
+    CodeSyncLock.releaseAllLocks(project.getName());
+
     DocumentListener changesHandler = changeHandlers.get(project.getBasePath()).getSecond();
     if (changesHandler != null) {
       EditorFactory.getInstance().getEventMulticaster().removeDocumentListener(changesHandler);
