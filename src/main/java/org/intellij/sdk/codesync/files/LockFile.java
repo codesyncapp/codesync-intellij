@@ -7,6 +7,8 @@ import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -28,12 +30,15 @@ Presence of a key with some expiry in the future will indicate that the lock is 
 entry or entry with expiry in the past would mean lock is not active.
 
 ```
-    global: # global lock does not have any category.
+   populate_buffer:
         expiry: <time-stamp-indicating-lock-expiry>
         identifier: <name-of-the-project-holding-the-lock>
-    auth:
+   send_diffs_intellij:
         expiry: <time-stamp-indicating-lock-expiry>
-
+        identifier: <name-of-the-project-holding-the-lock>
+   send_diffs_vscode:
+        expiry: <time-stamp-indicating-lock-expiry>
+        identifier: <name-of-the-project-holding-the-lock>
 ```
  */
 public class LockFile extends CodeSyncYmlFile {
@@ -161,12 +166,28 @@ public class LockFile extends CodeSyncYmlFile {
         this.locks.put(category, new Lock(category, expiry, identifier));
     }
 
+    public void removeFileContents() {
+        try {
+            FileWriter fileWriter = new FileWriter(this.lockFile);
+            // Write empty yml dict.
+            fileWriter.write("{}");
+            fileWriter.close();
+        } catch (IOException e) {
+            // Ignore the errors.
+            e.printStackTrace();
+        }
+    }
+
     public boolean publishNewLock (String category, Date expiry, String identifier) {
         this.updateLock(category, expiry, identifier);
         try {
             this.writeYml();
             return true;
-        } catch (FileNotFoundException | InvalidYmlFileError e) {
+        } catch (FileNotFoundException e) {
+            return false;
+        } catch (InvalidYmlFileError e) {
+            // In case of invalid yml, empty the file.
+            removeFileContents();
             return false;
         }
     }

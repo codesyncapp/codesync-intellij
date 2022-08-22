@@ -206,7 +206,7 @@ public class CodeSyncSetup {
 
     public static void createSystemDirectories() {
         // Create system folders
-        String[] systemFolders = {CODESYNC_ROOT, DIFFS_REPO, ORIGINALS_REPO, SHADOW_REPO, DELETED_REPO, LOCK_FILE_DIR};
+        String[] systemFolders = {CODESYNC_ROOT, DIFFS_REPO, ORIGINALS_REPO, SHADOW_REPO, DELETED_REPO};
         for (String systemFolder : systemFolders) {
             File folder = new File(systemFolder);
             folder.mkdirs();

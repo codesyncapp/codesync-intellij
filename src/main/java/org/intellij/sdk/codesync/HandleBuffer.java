@@ -118,9 +118,8 @@ public class HandleBuffer {
     }
 
     public static void handleBuffer(Project project) {
-        CodeSyncLock codeSyncLock = new CodeSyncLock();
+        CodeSyncLock codeSyncLock = new CodeSyncLock(DIFFS_DAEMON_LOCK_KEY);
         if (!codeSyncLock.acquireLock(project.getName())) {
-            System.out.println("Calling HandleBuffer.handleBuffer()");
             return;
         }
 
