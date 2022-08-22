@@ -17,10 +17,6 @@ public class CodeSyncLock {
     LockFile.Lock lock = null;
     LockFile lockFile;
 
-    public CodeSyncLock () {
-        this(Constants.GLOBAL_LOCK_KEY);
-    }
-
     public CodeSyncLock (String category) {
         lockFile = loadLockFile();
         if (lockFile != null) {

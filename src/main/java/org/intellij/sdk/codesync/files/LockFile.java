@@ -158,10 +158,6 @@ public class LockFile extends CodeSyncYmlFile {
         return this.locks.values().toArray(new Lock[0]);
     }
 
-    public Lock getLock() {
-        return getLock(Constants.GLOBAL_LOCK_KEY);
-    }
-
     public void updateLock (String category, Date expiry, String identifier) {
         this.locks.put(category, new Lock(category, expiry, identifier));
     }
