@@ -1,11 +1,16 @@
 package org.intellij.sdk.codesync.files;
 
 import com.google.common.io.CharStreams;
+import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.*;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.util.Map;
 
 /*
@@ -27,14 +32,13 @@ abstract public class CodeSyncYmlFile {
 
         try (Reader reader = new InputStreamReader(inputStream)) {
             text = CharStreams.toString(reader);
-        } catch (IOException e) {
+            return yaml.load(text);
+        } catch (IOException | YAMLException e) {
             throw new InvalidYmlFileError(e.getMessage());
         }
-
-        return yaml.load(text);
     }
 
-    public void writeYml() throws FileNotFoundException, InvalidYmlFileError {
+    public void writeYml() throws FileNotFoundException, InvalidYmlFileError, FileLockedError {
         final DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         options.setPrettyFlow(true);
@@ -48,14 +52,31 @@ abstract public class CodeSyncYmlFile {
             throw new FileNotFoundException(String.format("Yml file \"%s\" not found.", ymlFile.getPath()));
         }
 
-        FileWriter writer;
         try {
-            writer = new FileWriter(ymlFile);
-        } catch (IOException e) {
-            throw new InvalidYmlFileError(e.getMessage());
+            RandomAccessFile randomAccessFile = new RandomAccessFile(ymlFile, "rw");
+            FileChannel fileChannel = randomAccessFile.getChannel();
+            FileLock fileLock = fileChannel.tryLock();
+            if (fileLock != null) {
+                try {
+                    FileWriter writer = new FileWriter(ymlFile);
+                    yaml.dump(yamlConfig, writer);
+                } catch (IOException | YAMLException e) {
+                    throw new InvalidYmlFileError(e.getMessage());
+                }
+                fileLock.release();
+            } else {
+                throw new FileLockedError(String.format("File lock could not be acquired for '%s'.", ymlFile.getPath()));
+            }
+        } catch (IOException | OverlappingFileLockException e) {
+            throw new FileLockedError(e.getMessage());
         }
 
-        yaml.dump(yamlConfig, writer);
+        try {
+            FileWriter writer = new FileWriter(ymlFile);
+            yaml.dump(yamlConfig, writer);
+        } catch (IOException | YAMLException e) {
+            throw new InvalidYmlFileError(e.getMessage());
+        }
     }
 
     public static boolean createFile(String filePath) {

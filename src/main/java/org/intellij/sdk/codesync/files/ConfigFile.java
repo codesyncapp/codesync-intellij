@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 
@@ -100,7 +101,7 @@ public class ConfigFile extends CodeSyncYmlFile {
         this.updateRepo(updatedRepo.repoPath, updatedRepo);
         try {
             this.writeYml();
-        } catch (FileNotFoundException | InvalidYmlFileError e) {
+        } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
             throw new InvalidConfigFileError(e.getMessage());
         }
     }
@@ -110,7 +111,7 @@ public class ConfigFile extends CodeSyncYmlFile {
         this.getRepo(updatedRepo.repoPath).updateRepoBranch(updatedBranch.branchName, updatedBranch);
         try {
             this.writeYml();
-        } catch (FileNotFoundException | InvalidYmlFileError e) {
+        } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
             throw new InvalidConfigFileError(e.getMessage());
         }
     }
@@ -120,7 +121,7 @@ public class ConfigFile extends CodeSyncYmlFile {
         this.getRepo(updatedRepo.repoPath).deleteRepoBranch(updatedBranch.branchName);
         try {
             this.writeYml();
-        } catch (FileNotFoundException | InvalidYmlFileError e) {
+        } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
             throw new InvalidConfigFileError(e.getMessage());
         }
     }

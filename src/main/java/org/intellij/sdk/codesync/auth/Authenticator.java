@@ -4,6 +4,7 @@ import com.auth0.jwt.interfaces.Claim;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.commands.ClearReposToIgnoreCache;
+import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.exceptions.RequestError;
@@ -107,9 +108,9 @@ public class Authenticator extends HttpServlet {
         new ClearReposToIgnoreCache().execute();
         try {
             userFile.writeYml();
-        } catch (FileNotFoundException | InvalidYmlFileError e) {
+        } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
             CodeSyncLogger.logEvent(
-                    String.format("[INTELLIJ_AUTH_ERROR]: Could write to auth file. Error: %s", e.getMessage())
+                    String.format("[INTELLIJ_AUTH_ERROR]: Could not write to auth file. Error: %s", e.getMessage())
             );
         }
     }
