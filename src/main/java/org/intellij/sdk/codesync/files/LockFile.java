@@ -1,19 +1,21 @@
 package org.intellij.sdk.codesync.files;
 
-import org.intellij.sdk.codesync.Constants;
+import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.intellij.sdk.codesync.Constants.LOCK_FILE;
 
 /*
 A file that will contain information about different kinds of inter-process and inter-thread synchronization data.
@@ -118,6 +120,17 @@ public class LockFile extends CodeSyncYmlFile {
         this.loadYmlContent();
     }
 
+    @Override
+    public Map<String, Object> readYml() throws FileNotFoundException {
+        try {
+            return super.readYml();
+        } catch (InvalidYmlFileError e) {
+            e.printStackTrace();
+            this.removeFileContents();
+            return new HashMap<>();
+        }
+    }
+
     public File getYmlFile() {
         return this.lockFile;
     }
@@ -179,7 +192,7 @@ public class LockFile extends CodeSyncYmlFile {
         try {
             this.writeYml();
             return true;
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException | FileLockedError e) {
             return false;
         } catch (InvalidYmlFileError e) {
             // In case of invalid yml, empty the file.

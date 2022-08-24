@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync.files;
 
+import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
@@ -101,7 +102,7 @@ public class SequenceTokenFile extends CodeSyncYmlFile {
         this.updateSequenceToken(userEmail, sequenceToken);
         try {
             this.writeYml();
-        } catch (FileNotFoundException | InvalidYmlFileError e) {
+        } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
             // Ignore errors while updating to sequence token file
         }
     }
