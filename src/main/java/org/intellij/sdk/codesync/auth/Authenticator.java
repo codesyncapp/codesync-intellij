@@ -110,7 +110,7 @@ public class Authenticator extends HttpServlet {
             userFile.writeYml();
         } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
             CodeSyncLogger.logEvent(
-                    String.format("[INTELLIJ_AUTH_ERROR]: Could write to auth file. Error: %s", e.getMessage())
+                    String.format("[INTELLIJ_AUTH_ERROR]: Could not write to auth file. Error: %s", e.getMessage())
             );
         }
     }
