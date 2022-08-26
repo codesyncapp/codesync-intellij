@@ -84,7 +84,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       for (VirtualFile contentRoot: contentRoots) {
         String repoPath = FileUtils.normalizeFilePath(contentRoot.getPath());
         String repoName = contentRoot.getName();
-        CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, false);
+        CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, false, false);
       }
 
       for (Pair<Project, DocumentListener> pair: changeHandlers.values()) {

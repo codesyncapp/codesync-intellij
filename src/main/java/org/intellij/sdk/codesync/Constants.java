@@ -77,6 +77,7 @@ public final class Constants {
 
     public static String SYNC_IGNORE_COMMENT = "# CodeSync won't sync the files in the .syncignore. It follows same format as .gitignore.";
 
+    // Locks used by other IDEs alongside intellij.
     public static String DIFFS_DAEMON_LOCK_KEY = "send_diffs_intellij";
     public static String POPULATE_BUFFER_DAEMON_LOCK_KEY = "populate_buffer";
 

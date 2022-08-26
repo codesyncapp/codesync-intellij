@@ -75,7 +75,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                         );
                     }
                 } else {
-                    CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, true);
+                    CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, true, false);
                 }
             } catch (AssertionError | FileNotInModuleError error) {
                 NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
@@ -102,7 +102,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                     );
                 }
             } else {
-                CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, true);
+                CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, true, false);
             }
         } else {
             NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);

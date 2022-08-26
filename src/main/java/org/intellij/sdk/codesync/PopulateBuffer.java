@@ -55,6 +55,7 @@ import java.util.stream.Collectors;
 */
 public class PopulateBuffer {
     public Set<String> renamedFiles = new HashSet<>();
+    public static final Set<String> reposBeingSynced = new HashSet<>();
     String repoPath, branchName;
     ConfigFile configFile;
     ConfigRepo configRepo;
@@ -213,28 +214,31 @@ public class PopulateBuffer {
                 // TODO: Handle out of sync repo.
                 continue;
             }
+            String repoAndBranchName = String.format("%s-%s", repoPath, branchName);
             OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath, branchName);
-            if (!configRepo.containsBranch(branchName)) {
+            if (!configRepo.containsBranch(branchName) && !reposBeingSynced.contains(repoAndBranchName)) {
                 Project project = CommonUtils.getCurrentProject(repoPath);
                 if (Paths.get(originalsRepoManager.getBaseRepoBranchDir()).toFile().exists()) {
                     String[] filePaths = FileUtils.listFiles(repoPath);
 
-                    CodeSyncSetup.uploadRepoAsync(repoPath, repoName, filePaths, project);
+                    CodeSyncSetup.uploadRepoAsync(repoPath, repoName, filePaths, project, true);
                 } else {
-                    CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, true);
+                    CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, true, true);
                 }
 
+                reposBeingSynced.add(repoAndBranchName);
                 continue;
             }
 
             ConfigRepoBranch configRepoBranch = configRepo.getRepoBranch(branchName);
 
-            if (!configRepoBranch.hasValidFiles()) {
+            if (!configRepoBranch.hasValidFiles() && !reposBeingSynced.contains(repoAndBranchName)) {
                 Project project = CommonUtils.getCurrentProject(repoPath);
 
                 String[] filePaths = FileUtils.listFiles(repoPath);
-                CodeSyncSetup.uploadRepoAsync(repoPath, repoName, filePaths, project);
+                CodeSyncSetup.uploadRepoAsync(repoPath, repoName, filePaths, project, true);
 
+                reposBeingSynced.add(repoAndBranchName);
                 // this repo can be checked in the next iteration.
                 continue;
             }
