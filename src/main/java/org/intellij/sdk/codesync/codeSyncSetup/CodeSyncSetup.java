@@ -14,10 +14,8 @@ import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
-import org.intellij.sdk.codesync.commands.Command;
 import org.intellij.sdk.codesync.commands.ReloadStateCommand;
 import org.intellij.sdk.codesync.commands.ResumeCodeSyncCommand;
-import org.intellij.sdk.codesync.commands.ResumeRepoUploadCommand;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.exceptions.file.UserFileError;
 import org.intellij.sdk.codesync.exceptions.network.RepoUpdateError;
@@ -49,22 +47,6 @@ import static org.intellij.sdk.codesync.Constants.*;
 
 public class CodeSyncSetup {
     public static final Set<String> reposBeingSynced = new HashSet<>();
-
-    // TODO: need to figure out a way to improve this.
-    private static Command resumeUploadCommand = null;
-
-    public static void registerResumeUploadCommand(Project project, String repoPath, String repoName, String branchName) {
-        resumeUploadCommand = new ResumeRepoUploadCommand(project, repoPath, repoName, branchName);
-    }
-
-    public static void executeResumeUploadCommand() {
-        if (resumeUploadCommand != null){
-            resumeUploadCommand.execute();
-
-            // This is done to avoid multiple invocations.
-            resumeUploadCommand = null;
-        }
-    }
 
     /*
     This can be called to disconnect an already connected repo.
@@ -137,32 +119,32 @@ public class CodeSyncSetup {
         }
     }
 
-    public static void setupCodeSyncRepoAsync(Project project, String repoPath, String repoName, boolean skipSyncPrompt) {
+    public static void setupCodeSyncRepoAsync(Project project, String repoPath, String repoName, boolean skipSyncPrompt, boolean skipIsPublicPrompt) {
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
 
                 // Set the progress bar percentage and text
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                setupCodeSyncRepo(project, repoPath, repoName, codeSyncProgressIndicator, skipSyncPrompt);
+                setupCodeSyncRepo(project, repoPath, repoName, codeSyncProgressIndicator, skipSyncPrompt, skipIsPublicPrompt);
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
             }});
     }
 
-    public static void setupCodeSyncRepo(Project project, String repoPath, String repoName, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipSyncPrompt) {
+    public static void setupCodeSyncRepo(Project project, String repoPath, String repoName, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipSyncPrompt, boolean skipIsPublicPrompt) {
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
             ConfigRepo configRepo = configFile.getRepo(repoPath);
 
-            if (configFile.isRepoDisconnected(repoPath) || !configRepo.isSuccessfullySynced()) {
+            if (configFile.isRepoDisconnected(repoPath) || !configRepo.isSuccessfullySyncedWithBranch()) {
                 String branchName = Utils.GetGitBranch(repoPath);
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CHECK_USER_ACCESS);
 
                 if (skipSyncPrompt) {
                     if (checkUserAccess(project, repoPath, repoName, branchName)) {
-                        syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator);
+                        syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, skipIsPublicPrompt);
                     }
                     return;
                 }
@@ -184,14 +166,9 @@ public class CodeSyncSetup {
                     if (shouldSyncRepo) {
                         boolean hasAccessToken = checkUserAccess(project, repoPath, repoName, branchName);
                         if (hasAccessToken) {
-                            syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator);
+                            syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, false);
                         }
                     }
-                } else if (shouldSyncRepo) {
-                    NotificationManager.notifyInformation(
-                            String.format(Notification.REPO_SYNC_IN_PROGRESS_MESSAGE, repoName),
-                            project
-                    );
                 }
             } else if (!configFile.isRepoDisconnected(repoPath)) {
                 NotificationManager.notifyInformation(
@@ -329,48 +306,17 @@ public class CodeSyncSetup {
 
                 // Set the progress bar percentage and text
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                syncRepo(finalRepoPath, repoName, branchName, project, codeSyncProgressIndicator);
+                syncRepo(finalRepoPath, repoName, branchName, project, codeSyncProgressIndicator, false);
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
             }});
     }
 
-    /*
-    This method is useful when repo upload needs to be resumed after user has updated syncignore file.
-     */
-    public static void resumeRepoUploadAsync(Project project, String repoPath, String repoName, String branchName, boolean ignoreSyncIgnoreUpdate) {
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo") {
-            public void run(@NotNull ProgressIndicator progressIndicator) {
-                CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
-
-                // Set the progress bar percentage and text
-                codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, ignoreSyncIgnoreUpdate);
-
-                // Finished
-                codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
-            }
-        });
-    }
-
-    public static void syncRepo(String repoPath, String repoName, String branchName, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator) {
-        syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, false);
-    }
-
-    public static void syncRepo(String repoPath, String repoName, String branchName, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean ignoreSyncIgnoreUpdate) {
+    public static void syncRepo(String repoPath, String repoName, String branchName, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipIsPublicPrompt) {
         // create .syncignore file.
         createSyncIgnore(repoPath);
 
-        /*
-        TODO: If we decide to keep this disabled, then we need to remove this and related code.
-        if (!ignoreSyncIgnoreUpdate) {
-            // Ask user to modify the .syncignore file.
-            askUserToUpdateSyncIgnore(project, branchName);
-
-            return;
-        }
-        */
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.FETCH_FILES);
         String[] filePaths = FileUtils.listFiles(repoPath);
 
@@ -385,7 +331,7 @@ public class CodeSyncSetup {
 
         // Upload the repo.
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.SENDING_REPO);
-        boolean wasUploadSuccessful = uploadRepo(repoPath, repoName, filePaths, project, codeSyncProgressIndicator);
+        boolean wasUploadSuccessful = uploadRepo(repoPath, repoName, filePaths, project, codeSyncProgressIndicator, skipIsPublicPrompt);
 
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CLEANUP);
         if (wasUploadSuccessful) {
@@ -401,54 +347,14 @@ public class CodeSyncSetup {
         }
     }
 
-//    public static void askUserToUpdateSyncIgnore(Project project. String repoPath, String repoName, String branchName){
-//        CommonUtils.invokeAndWait(
-//                () -> {
-//                    // Ask user to modify the syncignore file
-//                    TODO: Cannot use project.getBasePath() we would probably need to use something else.
-//                    VirtualFile syncIgnoreFile = CommonUtils.findSingleFile(".syncignore", project.getBasePath());
-//                    if (syncIgnoreFile != null) {
-//                        new OpenFileDescriptor(project, syncIgnoreFile, 0).navigate(true);
-//
-//                        ToolWindow codeSyncToolWindow = ToolWindowManager.getInstance(project).getToolWindow("CodeSyncToolWindow");
-//                        if (codeSyncToolWindow != null) {
-//                            codeSyncToolWindow.show();
-//                        }
-//
-//                        registerResumeUploadCommand(project, repoPath, repoName, branchName);
-//
-//                        new UserInputDialog(
-//                                "Please update .syncignore file.",
-//                                "Once you have updated the file, you can resume repo initialization " +
-//                                        "process, by click 'Continue with Initialization' button on the left CodeSync " +
-//                                        "menu."
-//                        ).show();
-//
-//                    } else {
-//                        boolean shouldRetry = CodeSyncMessages.showYesNoMessage(
-//                                "Something went wrong!",
-//                                "Do you want to try again? If problem persists please contact support.",
-//                                project
-//                        );
-//                        if (shouldRetry) {
-//                            new ResumeRepoUploadCommand(project, branchName, false).execute();
-//                        }
-//                    }
-//
-//                    return null;
-//                },
-//                ModalityState.defaultModalityState()
-//        );
-//    }
-
-    public static void uploadRepoAsync(String repoPath, String repoName, String[] filePaths, Project project){
+    public static void uploadRepoAsync(String repoPath, String repoName, String[] filePaths, Project project, boolean skipIsPublicPrompt){
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
 
                 // Set the progress bar percentage and text
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                uploadRepo(repoPath, repoName, filePaths, project, codeSyncProgressIndicator);
+                uploadRepo(repoPath, repoName, filePaths, project, codeSyncProgressIndicator, skipIsPublicPrompt);
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
@@ -462,7 +368,7 @@ public class CodeSyncSetup {
     @return: true if all repo upload operations (including repo upload and S3 upload) completed successfully,
         false otherwise.
     */
-    public static boolean uploadRepo(String repoPath, String repoName, String[] filePaths, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator) {
+    public static boolean uploadRepo(String repoPath, String repoName, String[] filePaths, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipIsPublicPrompt) {
         ConfigFile configFile;
         try {
             configFile = new ConfigFile(CONFIG_PATH);
@@ -503,8 +409,9 @@ public class CodeSyncSetup {
             item.put("created_at", CommonUtils.getPosixTime((String) fileInfo.get("creationTime")));
             filesData.put(relativeFilePath, item);
         }
-        ConfigRepo configRepo = new ConfigRepo(repoPath);
+        ConfigRepo configRepo;
         if(configFile.isRepoDisconnected(repoPath)) {
+            configRepo = new ConfigRepo(repoPath);
             configRepo.updateRepoBranch(branchName, new ConfigRepoBranch(branchName, branchFiles));
             configFile.updateRepo(repoPath, configRepo);
             try {
@@ -518,20 +425,24 @@ public class CodeSyncSetup {
                 // Can not proceed. This should never happen as the same check is applied at the start.
                 return false;
             }
-        } else if(!configRepo.containsBranch(branchName)) {
-            ConfigRepoBranch configRepoBranch = new ConfigRepoBranch(branchName, branchFiles);
-            try {
-                configFile.publishBranchUpdate(configRepo, configRepoBranch);
-            } catch (InvalidConfigFileError e) {
-                e.printStackTrace();
+        } else {
+            configRepo = configFile.getRepo(repoPath);
+            if(!configRepo.containsBranch(branchName)) {
+                ConfigRepoBranch configRepoBranch = new ConfigRepoBranch(branchName, branchFiles);
+                try {
+                    configFile.publishBranchUpdate(configRepo, configRepoBranch);
+                } catch (InvalidConfigFileError e) {
+                    e.printStackTrace();
 
-                // Show error message.
-                NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+                    // Show error message.
+                    NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
 
-                // Can not proceed. This should never happen as the same check is applied at the start.
-                return false;
+                    // Can not proceed. This should never happen as the same check is applied at the start.
+                    return false;
+                }
             }
         }
+
         String accessToken = UserFile.getAccessToken();
         if (accessToken == null) {
             // Show error message.
@@ -542,12 +453,14 @@ public class CodeSyncSetup {
         }
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         JSONObject payload = new JSONObject();
-
-        boolean isPublic = CodeSyncMessages.showYesNoMessage(
-                Notification.PUBLIC_OR_PRIVATE,
-                Notification.PUBLIC_OR_PRIVATE,
-                project
-        );
+        boolean isPublic = false;
+        if (!skipIsPublicPrompt) {
+            isPublic = CodeSyncMessages.showYesNoMessage(
+                    Notification.PUBLIC_OR_PRIVATE,
+                    Notification.PUBLIC_OR_PRIVATE,
+                    project
+            );
+        }
 
         payload.put("name", repoName);
         payload.put("is_public", isPublic);

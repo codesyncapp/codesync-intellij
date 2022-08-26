@@ -37,9 +37,11 @@ public class CodeSyncLock {
     }
 
     public boolean acquireLock(String identifier) {
-        if (this.lock == null || this.lock.isActive()) {
+        if (this.lock == null) {
             return false;
-        } else {
+        } else if (this.lock.isActive() && !this.lock.compareIdentifier(identifier)) {
+            return false;
+        }else {
             Instant expiry = Instant.now().plus(5, ChronoUnit.MINUTES);
             return this.lockFile.publishNewLock(this.lock.getCategory(), Date.from(expiry), identifier);
         }

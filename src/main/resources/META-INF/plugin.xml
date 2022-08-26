@@ -75,10 +75,5 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup id="CodeSync Notifications" displayType="BALLOON" key="codesync.notification"/>
-
-<!--    TODO: We do not need this for now, as user input for the update of syncignore is disabled for now.-->
-<!--    <toolWindow id="CodeSyncToolWindow" secondary="true" icon="SdkIcons.codeSyncIcon" anchor="left"-->
-<!--                factoryClass="org.intellij.sdk.codesync.ui.toolWindows.CodeSyncToolWindowFactory"-->
-<!--    />-->
   </extensions>
 </idea-plugin>
