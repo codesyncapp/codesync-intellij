@@ -156,7 +156,7 @@ public class CodeSyncSetup {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
             ConfigRepo configRepo = configFile.getRepo(repoPath);
 
-            if (configFile.isRepoDisconnected(repoPath) || !configRepo.isSuccessfullySynced()) {
+            if (configFile.isRepoDisconnected(repoPath) || !configRepo.isSuccessfullySyncedWithBranch()) {
                 String branchName = Utils.GetGitBranch(repoPath);
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CHECK_USER_ACCESS);
 

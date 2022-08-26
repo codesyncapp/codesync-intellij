@@ -76,11 +76,21 @@ public class ConfigRepo {
         this.branches.remove(branchName);
     }
 
-    public boolean isSuccessfullySynced() {
+    /*
+        Check if the repo is successfully synced with the server, ignore the branch.
+    */
+    public boolean isSynced() {
+        return !this.branches.isEmpty();
+    }
+
+    /*
+    Make sure the current branch is successfully synced with the server.
+     */
+    public boolean isSuccessfullySyncedWithBranch() {
         String branchName = Utils.GetGitBranch(this.repoPath);
         if (!this.branches.containsKey(branchName)) {
             // If branch is not synced, daemon will take care of it.
-            return true;
+            return false;
         }
 
         ConfigRepoBranch configRepoBranch = this.getRepoBranch(branchName);

@@ -221,7 +221,7 @@ public class PopulateBuffer {
 
                     CodeSyncSetup.uploadRepoAsync(repoPath, repoName, filePaths, project);
                 } else {
-                    CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, false);
+                    CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, true);
                 }
 
                 continue;
