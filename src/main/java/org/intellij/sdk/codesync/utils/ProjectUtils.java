@@ -18,6 +18,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -49,7 +50,8 @@ public class ProjectUtils {
     }
 
     public static VirtualFile[] getAllContentRoots(Project project) {
-        return ProjectRootManager.getInstance(project).getContentRootsFromAllModules();
+        VirtualFile[] contentRoots = ProjectRootManager.getInstance(project).getContentRootsFromAllModules();
+        return Arrays.stream(contentRoots).distinct().toArray(VirtualFile[]::new);
     }
 
     public static PluginState getModuleState(VirtualFile virtualFile, Project project) throws FileNotInModuleError {
