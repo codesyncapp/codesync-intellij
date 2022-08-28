@@ -94,9 +94,9 @@ public class AuthAction extends AnAction {
 
         } catch (Exception exc) {
             exc.printStackTrace();
-            CodeSyncLogger.logEvent(
-                "[INTELLIJ_AUTH_ERROR]: IntelliJ Login Error, an error occurred during user authentication."
-            );
+            CodeSyncLogger.logEvent(String.format(
+                "[INTELLIJ_AUTH_ERROR]: IntelliJ Login Error, an error occurred during user authentication. Error: %s", exc.getMessage()
+            ));
         }
     }
 }

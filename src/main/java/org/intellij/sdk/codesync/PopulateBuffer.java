@@ -1,6 +1,5 @@
 package org.intellij.sdk.codesync;
 
-import com.google.rpc.Code;
 import com.intellij.openapi.project.Project;
 import org.apache.commons.text.similarity.*;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
@@ -8,7 +7,6 @@ import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.exceptions.FileInfoError;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
-import org.intellij.sdk.codesync.exceptions.network.ServerConnectionError;
 import org.intellij.sdk.codesync.factories.DiffFactory;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
