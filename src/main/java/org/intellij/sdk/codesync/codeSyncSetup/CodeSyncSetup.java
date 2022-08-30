@@ -119,21 +119,21 @@ public class CodeSyncSetup {
         }
     }
 
-    public static void setupCodeSyncRepoAsync(Project project, String repoPath, String repoName, boolean skipSyncPrompt, boolean skipIsPublicPrompt) {
+    public static void setupCodeSyncRepoAsync(Project project, String repoPath, String repoName, boolean skipSyncPrompt, boolean skipUserInteraction) {
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
 
                 // Set the progress bar percentage and text
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                setupCodeSyncRepo(project, repoPath, repoName, codeSyncProgressIndicator, skipSyncPrompt, skipIsPublicPrompt);
+                setupCodeSyncRepo(project, repoPath, repoName, codeSyncProgressIndicator, skipSyncPrompt, skipUserInteraction);
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
             }});
     }
 
-    public static void setupCodeSyncRepo(Project project, String repoPath, String repoName, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipSyncPrompt, boolean skipIsPublicPrompt) {
+    public static void setupCodeSyncRepo(Project project, String repoPath, String repoName, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipSyncPrompt, boolean skipUserInteraction) {
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
             ConfigRepo configRepo = configFile.getRepo(repoPath);
@@ -144,7 +144,7 @@ public class CodeSyncSetup {
 
                 if (skipSyncPrompt) {
                     if (checkUserAccess(project, repoPath, repoName, branchName)) {
-                        syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, skipIsPublicPrompt);
+                        syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, skipUserInteraction);
                     }
                     return;
                 }
@@ -313,7 +313,7 @@ public class CodeSyncSetup {
             }});
     }
 
-    public static void syncRepo(String repoPath, String repoName, String branchName, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipIsPublicPrompt) {
+    public static void syncRepo(String repoPath, String repoName, String branchName, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipUserInteraction) {
         // create .syncignore file.
         createSyncIgnore(repoPath);
 
@@ -331,7 +331,7 @@ public class CodeSyncSetup {
 
         // Upload the repo.
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.SENDING_REPO);
-        boolean wasUploadSuccessful = uploadRepo(repoPath, repoName, filePaths, project, codeSyncProgressIndicator, skipIsPublicPrompt);
+        boolean wasUploadSuccessful = uploadRepo(repoPath, repoName, filePaths, project, codeSyncProgressIndicator, skipUserInteraction);
 
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CLEANUP);
         if (wasUploadSuccessful) {
@@ -339,22 +339,26 @@ public class CodeSyncSetup {
             originalsRepoManager.delete();
 
             // Show success message and update state
-            NotificationManager.notifyInformation(Notification.INIT_SUCCESS_MESSAGE, project);
+            if (!skipUserInteraction){
+                NotificationManager.notifyInformation(Notification.INIT_SUCCESS_MESSAGE, project);
+            }
             StateUtils.reloadState(project);
         } else {
             // Show failure message.
-            NotificationManager.notifyError(Notification.INIT_FAILURE_MESSAGE, project);
+            if (!skipUserInteraction){
+                NotificationManager.notifyError(Notification.INIT_FAILURE_MESSAGE, project);
+            }
         }
     }
 
-    public static void uploadRepoAsync(String repoPath, String repoName, String[] filePaths, Project project, boolean skipIsPublicPrompt){
+    public static void uploadRepoAsync(String repoPath, String repoName, String[] filePaths, Project project, boolean skipUserInteraction){
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
 
                 // Set the progress bar percentage and text
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                uploadRepo(repoPath, repoName, filePaths, project, codeSyncProgressIndicator, skipIsPublicPrompt);
+                uploadRepo(repoPath, repoName, filePaths, project, codeSyncProgressIndicator, skipUserInteraction);
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
@@ -368,7 +372,7 @@ public class CodeSyncSetup {
     @return: true if all repo upload operations (including repo upload and S3 upload) completed successfully,
         false otherwise.
     */
-    public static boolean uploadRepo(String repoPath, String repoName, String[] filePaths, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipIsPublicPrompt) {
+    public static boolean uploadRepo(String repoPath, String repoName, String[] filePaths, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipUserInteraction) {
         ConfigFile configFile;
         try {
             configFile = new ConfigFile(CONFIG_PATH);
@@ -454,7 +458,7 @@ public class CodeSyncSetup {
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         JSONObject payload = new JSONObject();
         boolean isPublic = false;
-        if (!skipIsPublicPrompt) {
+        if (!skipUserInteraction) {
             isPublic = CodeSyncMessages.showYesNoMessage(
                     Notification.PUBLIC_OR_PRIVATE,
                     Notification.PUBLIC_OR_PRIVATE,

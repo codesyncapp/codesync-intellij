@@ -15,6 +15,7 @@ import org.intellij.sdk.codesync.utils.FileUtils;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static org.intellij.sdk.codesync.Constants.*;
@@ -264,18 +265,32 @@ public class HandleBuffer {
             }
 
             Integer fileId = configRepoBranch.getFileId(diffFile.fileRelativePath);
-            if (fileId == null && !diffFile.isRename && !diffFile.isDeleted) {
-                System.out.printf("File ID not found for; %s.\n", diffFile.fileRelativePath);
-                diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
-                continue;
-            }
-            if (fileId == null && diffFile.isDeleted) {
-                ShadowRepoManager shadowRepoManager = new ShadowRepoManager(diffFile.repoPath, diffFile.branch);
-                cleanUpDeletedDiff(
-                        configFile, configRepo, configRepoBranch, diffFile,
-                        shadowRepoManager.getFilePath(diffFile.fileRelativePath)
-                );
-                diffFile.delete();
+            if (fileId == null) {
+                if (diffFile.isDeleted) {
+                    ShadowRepoManager shadowRepoManager = new ShadowRepoManager(diffFile.repoPath, diffFile.branch);
+                    cleanUpDeletedDiff(
+                            configFile, configRepo, configRepoBranch, diffFile,
+                            shadowRepoManager.getFilePath(diffFile.fileRelativePath)
+                    );
+                    diffFile.delete();
+                    diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
+                    continue;
+                }
+                if (diffFile.isRename) {
+                    forceUploadNullFile(client, accessToken, diffFile, configFile, configRepo, configRepoBranch);
+                    diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
+                    continue;
+                }
+                Path filePath = Paths.get(diffFile.repoPath, diffFile.fileRelativePath);
+
+                // Delete the diff file if actual file whose updates are in the diff file is now non-existent.
+                if (!filePath.toFile().exists()) {
+                    diffFile.delete();
+                } else {
+                    // If file exists, then we need to upload this file to the server.
+                    forceUploadNullFile(client, accessToken, diffFile, configFile, configRepo, configRepoBranch);
+                }
+
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                 continue;
             }
@@ -430,5 +445,17 @@ public class HandleBuffer {
         } catch (InvalidConfigFileError error) {
             error.printStackTrace();
         }
+    }
+
+    public static boolean forceUploadNullFile(CodeSyncClient client, String accessToken, DiffFile diffFile, ConfigFile configFile, ConfigRepo repo, ConfigRepoBranch configRepoBranch) {
+        OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(diffFile.repoPath, diffFile.branch);
+        File originalsFile = originalsRepoManager.getFilePath(diffFile.fileRelativePath).toFile();
+
+        // Copy the file to originals directory if it is not already in there.
+        if (!originalsFile.exists()) {
+            Path filePath = Paths.get(diffFile.repoPath, diffFile.fileRelativePath);
+            originalsRepoManager.copyFiles(new String[]{filePath.toString()});
+        }
+        return handleNewFile(client, accessToken, diffFile, configFile, repo, configRepoBranch);
     }
 }
