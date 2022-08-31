@@ -70,7 +70,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                     } catch (BaseException | BaseNetworkException error) {
                         NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
                         NotificationManager.notifyError(error.getMessage(), project);
-                        CodeSyncLogger.logEvent(
+                        CodeSyncLogger.critical(
                             String.format("Could not disconnect the repo. Error: %s", error.getMessage())
                         );
                     }
@@ -80,7 +80,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
             } catch (AssertionError | FileNotInModuleError error) {
                 NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
                 NotificationManager.notifyError(error.getMessage(), project);
-                CodeSyncLogger.logEvent(
+                CodeSyncLogger.error(
                     String.format("Could not disconnect the repo. Error: %s", error.getMessage())
                 );
             }
@@ -97,7 +97,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                 } catch (BaseException | BaseNetworkException error) {
                     NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
                     NotificationManager.notifyError(error.getMessage(), project);
-                    CodeSyncLogger.logEvent(
+                    CodeSyncLogger.critical(
                         String.format("Could not disconnect the repo. Error: %s", error.getMessage())
                     );
                 }
@@ -106,7 +106,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
             }
         } else {
             NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
-            CodeSyncLogger.logEvent("Could not disconnect the repo. 0 module returned for the given project.");
+            CodeSyncLogger.error("Could not disconnect the repo. 0 module returned for the given project.");
         }
      }
 }

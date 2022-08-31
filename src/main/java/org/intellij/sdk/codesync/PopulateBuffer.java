@@ -81,7 +81,7 @@ public class PopulateBuffer {
         try {
             configFile = new ConfigFile(CONFIG_PATH);
         } catch (InvalidConfigFileError error) {
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.critical(String.format(
                     "[INTELLIJ_PLUGIN][POPULATE_BUFFER] Config file error, %s.\n", error.getMessage()
             ));
             return ;
@@ -113,7 +113,7 @@ public class PopulateBuffer {
                 this.fileInfoMap.put(relativeFilePath, FileUtils.getFileInfo(filePath.toString()));
             } catch (FileInfoError error) {
                 // Log the message and continue.
-                CodeSyncLogger.logEvent(String.format(
+                CodeSyncLogger.error(String.format(
                         "Error while getting the file info for %s, Error: %s", filePath, error.getMessage()
                 ));
             }
@@ -158,7 +158,7 @@ public class PopulateBuffer {
         try {
             configFile = new ConfigFile(CONFIG_PATH);
         } catch (InvalidConfigFileError error) {
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.critical(String.format(
                     "[INTELLIJ_PLUGIN][POPULATE_BUFFER] Config file error, %s.\n", error.getMessage()
             ));
             return reposToUpdate;
@@ -169,7 +169,7 @@ public class PopulateBuffer {
         try {
             userFile = new UserFile(USER_FILE_PATH);
         } catch (FileNotFoundException | InvalidYmlFileError error) {
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.critical(String.format(
                     "[INTELLIJ_PLUGIN][POPULATE_BUFFER] User file error, %s.\n", error.getMessage()
             ));
             return reposToUpdate;
@@ -197,7 +197,7 @@ public class PopulateBuffer {
             }
 
             if (user.getAccessToken() == null) {
-                CodeSyncLogger.logEvent(String.format("Access token not found for repo: %s, %s`.", repoPath, configRepo.email));
+                CodeSyncLogger.error(String.format("Access token not found for repo: %s, %s`.", repoPath, configRepo.email));
                 continue;
             }
 
@@ -258,7 +258,7 @@ public class PopulateBuffer {
             PopulateBuffer populateBuffer = new PopulateBuffer(repoPath, branchName);
             if (populateBuffer.configFile == null || populateBuffer.configRepoBranch == null || populateBuffer.configRepo == null) {
                 // Skip it for now, it will be handled in the future.
-                CodeSyncLogger.logEvent(String.format(
+                CodeSyncLogger.critical(String.format(
                         "[INTELLIJ][NON_IDE_EVENTS] Could not populate for missed events, because config file for repo '%s' could not be opened.",
                         repoPath
                 ));
@@ -382,7 +382,7 @@ public class PopulateBuffer {
                         }
                     } catch (FileInfoError error) {
                         // Log the message and continue.
-                        CodeSyncLogger.logEvent(String.format(
+                        CodeSyncLogger.error(String.format(
                                 "Error while getting the file info for shadow file %s, Error: %s",
                                 shadowFile.getPath(),
                                 error.getMessage()

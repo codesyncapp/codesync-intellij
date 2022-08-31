@@ -177,7 +177,7 @@ public class CodeSyncSetup {
                 );
             }
         } catch (InvalidConfigFileError error) {
-            CodeSyncLogger.logEvent(String.format("Config file error, %s.\n", error.getMessage()));
+            CodeSyncLogger.critical(String.format("Config file error, %s.\n", error.getMessage()));
         }
     }
 
@@ -260,6 +260,10 @@ public class CodeSyncSetup {
             }
         }
 
+        CodeSyncLogger.debug(
+                "[INTELLIJ_AUTH]: Login prompt displayed to the user."
+        );
+
         boolean shouldSignup = CodeSyncMessages.showYesNoMessage(
                 "Do you want to login or sign up to use CodeSync?",
                 "To stream your code to the cloud, you'll need to authenticate.",
@@ -269,6 +273,9 @@ public class CodeSyncSetup {
         // If user said no to signup request the return here.
         if (!shouldSignup) {
             // TODO: We should add logic here to not ask the user again next time he opens the project.
+            CodeSyncLogger.debug(
+                    "[INTELLIJ_AUTH]: User declined login prompt."
+            );
             return false;
         }
 
@@ -278,13 +285,18 @@ public class CodeSyncSetup {
             CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(project, repoPath, repoName, branchName));
             CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
             BrowserUtil.browse(server.getAuthorizationUrl());
+
+            CodeSyncLogger.debug(
+                    "[INTELLIJ_AUTH]: User redirected to the login page."
+            );
         } catch (Exception exc) {
             exc.printStackTrace();
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.critical(String.format(
                 "[INTELLIJ_AUTH_ERROR]: IntelliJ Login Error, an error occurred during user authentication. Error: %s", exc.getMessage()
             ));
             NotificationManager.notifyError("There was a problem with login, please try again later.", project);
         }
+
 
         return false;
     }
@@ -401,7 +413,7 @@ public class CodeSyncSetup {
             try {
                 fileInfo = FileUtils.getFileInfo(Paths.get(repoPath, relativeFilePath).toString());
             } catch (FileInfoError error) {
-                CodeSyncLogger.logEvent(String.format("File Info could not be found for %s", relativeFilePath));
+                CodeSyncLogger.warning(String.format("File Info could not be found for %s", relativeFilePath));
 
                 // Skip this file.
                 continue;
@@ -490,7 +502,7 @@ public class CodeSyncSetup {
                     (String) userObject.get("iam_secret_key")
             );
         } catch (ClassCastException err) {
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.critical(String.format(
                     "Error parsing the response of /init endpoint. Error: %s", err.getMessage()
             ));
 
@@ -504,7 +516,7 @@ public class CodeSyncSetup {
             JSONObject filePathAndIdsObject = (JSONObject) response.get("file_path_and_id");
 
             if (filePathAndIdsObject == null) {
-                CodeSyncLogger.logEvent("Invalid response from /init endpoint. Missing `file_path_and_id` key.");
+                CodeSyncLogger.critical("Invalid response from /init endpoint. Missing `file_path_and_id` key.");
 
                 return false;
             }
@@ -514,7 +526,7 @@ public class CodeSyncSetup {
             // Save File IDs
             saveFileIds(branchName, email, repoId, filePathAndIds, configRepo, configFile);
         } catch (ClassCastException | JsonProcessingException err) {
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.critical(String.format(
                     "Error parsing the response of /init endpoint. Error: %s", err.getMessage()
             ));
 
@@ -525,7 +537,7 @@ public class CodeSyncSetup {
             Map<String, Object> fileUrls = new HashMap<>();
             JSONObject urls = (JSONObject) response.get("urls");
             if (urls == null) {
-                CodeSyncLogger.logEvent("Invalid response from /init endpoint. Missing `urls` key.");
+                CodeSyncLogger.critical("Invalid response from /init endpoint. Missing `urls` key.");
 
                 return false;
             }
@@ -537,7 +549,7 @@ public class CodeSyncSetup {
             ReloadStateCommand reloadStateCommand = new ReloadStateCommand(project);
             reloadStateCommand.execute();
         } catch (ClassCastException | JsonProcessingException err) {
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.critical(String.format(
                     "Error parsing the response of /init endpoint. Error: %s", err.getMessage()
             ));
             return false;
@@ -552,19 +564,19 @@ public class CodeSyncSetup {
         try {
             userFile = new UserFile(USER_FILE_PATH, true);
         } catch (FileNotFoundException e) {
-            CodeSyncLogger.logEvent(
+            CodeSyncLogger.critical(
                     String.format("[INTELLI_REPO_INIT_ERROR]: auth file not found. Error: %s", e.getMessage())
             );
             return;
         } catch (InvalidYmlFileError error) {
             error.printStackTrace();
-            CodeSyncLogger.logEvent(
+            CodeSyncLogger.critical(
                     String.format("[INTELLI_REPO_INIT_ERROR]: Invalid auth file. Error: %s", error.getMessage())
             );
             // Could not read user file.
             return;
         } catch (FileNotCreatedError error) {
-            CodeSyncLogger.logEvent(
+            CodeSyncLogger.critical(
                     String.format("[INTELLI_REPO_INIT_ERROR]: Could not create user auth file. Error %s", error.getMessage())
             );
             return;
@@ -574,7 +586,7 @@ public class CodeSyncSetup {
         try {
             userFile.writeYml();
         } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError error) {
-            CodeSyncLogger.logEvent(
+            CodeSyncLogger.critical(
                     String.format("[INTELLI_REPO_INIT_ERROR]: Could not write to user auth file. Error %s", error.getMessage())
             );
         }
@@ -592,7 +604,7 @@ public class CodeSyncSetup {
             configRepo.updateRepoBranch(branchName, configRepoBranch);
             configFile.publishRepoUpdate(configRepo);
         } catch (InvalidConfigFileError error) {
-            CodeSyncLogger.logEvent(
+            CodeSyncLogger.critical(
                     String.format("[INTELLI_REPO_INIT_ERROR]: Could not update config file. Error %s", error.getMessage())
             );
         }
@@ -617,7 +629,7 @@ public class CodeSyncSetup {
                         (Map<String, Object>) fileUrl.getValue()
                 );
             } catch (RequestError | ClassCastException error) {
-                CodeSyncLogger.logEvent(
+                CodeSyncLogger.critical(
                         String.format("[INTELLI_REPO_INIT_ERROR]: Could not upload file to S3. Error %s", error.getMessage())
                 );
             }

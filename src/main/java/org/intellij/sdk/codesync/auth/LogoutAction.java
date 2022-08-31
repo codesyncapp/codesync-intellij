@@ -28,7 +28,7 @@ public class LogoutAction extends AnAction {
             BrowserUtil.browse(uriBuilder.toString());
         } catch (Exception exc) {
             exc.printStackTrace();
-            CodeSyncLogger.logEvent(
+            CodeSyncLogger.critical(
                     "[INTELLIJ_AUTH_ERROR]: IntelliJ Logout Error, an error occurred during user logout flow."
             );
         }

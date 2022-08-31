@@ -291,7 +291,7 @@ public class Utils {
 
     public static void handleDocumentUpdates(VirtualFile file, String repoPath, String currentText) {
         if (file == null) {
-            CodeSyncLogger.logEvent("Skipping the update event, file is null.");
+            CodeSyncLogger.error("Skipping the update event, file is null.");
             return;
         }
         float time = System.currentTimeMillis();
@@ -300,7 +300,7 @@ public class Utils {
 
         String branch = Utils.GetGitBranch(repoPath);
         if (repoPath == null) {
-            CodeSyncLogger.logEvent("Skipping the update event, repoPath is null.");
+            CodeSyncLogger.error("Skipping the update event, repoPath is null.");
             return;
         }
 
@@ -310,7 +310,7 @@ public class Utils {
 
         if (shouldSkipEvent(repoPath) || FileUtils.shouldIgnoreFile(relativeFilePath, repoPath)) {
             // TODO: Remove after debugging.
-            CodeSyncLogger.logEvent(
+            CodeSyncLogger.debug(
                     String.format("Skipping the event, file '%s' in repo '%s' is ignored.", relativeFilePath, repoPath)
             );
             return;
@@ -319,7 +319,7 @@ public class Utils {
         // Skipping duplicate events for key press
         if (!filePath.contains(repoPath)) {
             // TODO: Remove after debugging.
-            CodeSyncLogger.logEvent("Skipping the duplicate event.");
+            CodeSyncLogger.debug("Skipping the duplicate event.");
             return;
         }
 
@@ -336,7 +336,7 @@ public class Utils {
         // If shadow text is same as current content, no need to compute diffs
         if (shadowText.equals(currentText)) {
             // TODO: Remove after debugging.
-            CodeSyncLogger.logEvent("Skipping the event, shadow text is same as current text.");
+            CodeSyncLogger.debug("Skipping the event, shadow text is same as current text.");
             return;
         }
         // Update shadow file
@@ -345,7 +345,7 @@ public class Utils {
             myWriter.write(currentText);
             myWriter.close();
         } catch (IOException e) {
-            CodeSyncLogger.logEvent(String.format("Error updating the shadow file. Error: %s", e.getMessage()));
+            CodeSyncLogger.error(String.format("Error updating the shadow file. Error: %s", e.getMessage()));
             e.printStackTrace();
         }
         diff_match_patch dmp = new diff_match_patch();

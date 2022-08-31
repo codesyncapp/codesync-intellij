@@ -115,4 +115,15 @@ public final class Constants {
         public static String REPO_UNSYNCED = "Repo disconnected successfully";
         public static String REPO_UNSYNC_FAILED = "Could not unsync the repo";
     }
+
+    public static final class LogMessageType {
+        private LogMessageType() {
+            // restrict instantiation
+        }
+        public static String CRITICAL = "CRITICAL";
+        public static String ERROR = "ERROR";
+        public static String WARNING = "WARNING";
+        public static String INFO = "INFO";
+        public static String DEBUG = "DEBUG";
+    }
 }

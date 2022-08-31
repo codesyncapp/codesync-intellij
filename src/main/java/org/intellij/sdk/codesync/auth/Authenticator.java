@@ -43,12 +43,15 @@ public class Authenticator extends HttpServlet {
 
     public void createUser(String accessToken, String idToken){
         Map<String, Claim> claims;
+        CodeSyncLogger.debug(
+                "[INTELLIJ_AUTH]: User successfully authenticated, now saving auth token."
+        );
 
         try {
             DecodedJWT jwt = JWT.decode(idToken);
             claims = jwt.getClaims();
         } catch (JWTDecodeException exception){
-            CodeSyncLogger.logEvent(
+            CodeSyncLogger.critical(
                     String.format("[INTELLIJ_AUTH_ERROR]: Error while decoding jwt. Token: '%s'", idToken)
             );
             return;
@@ -60,14 +63,14 @@ public class Authenticator extends HttpServlet {
         try {
             jsonResponse = ClientUtils.sendPost(API_USERS, payload, accessToken);
         } catch (RequestError | InvalidJsonError error) {
-            CodeSyncLogger.logEvent(
+            CodeSyncLogger.critical(
                     String.format("[INTELLIJ_AUTH_ERROR]: Error while creating the user. access token: '%s'", accessToken)
             );
             return;
         }
 
         if (jsonResponse.containsKey("error")) {
-            CodeSyncLogger.logEvent(
+            CodeSyncLogger.critical(
                     String.format("[INTELLIJ_AUTH_ERROR]: Error while creating the user. server error: '%s'", jsonResponse.get("error"))
             );
             return;
@@ -80,7 +83,7 @@ public class Authenticator extends HttpServlet {
                 try {
                     userFile = new UserFile(USER_FILE_PATH);
                 } catch (FileNotFoundException | InvalidYmlFileError error) {
-                    CodeSyncLogger.logEvent(
+                    CodeSyncLogger.error(
                             String.format("[INTELLIJ_AUTH_ERROR]: Error opening auth file. Error: %s", error.getMessage())
                     );
                     // Could not open user file.
@@ -90,12 +93,12 @@ public class Authenticator extends HttpServlet {
                 // Could not create user file.
                 return;
             }
-            CodeSyncLogger.logEvent(
+            CodeSyncLogger.error(
                     String.format("[INTELLIJ_AUTH_ERROR]: auth file not found. Error: %s", e.getMessage())
             );
         } catch (InvalidYmlFileError error) {
             error.printStackTrace();
-            CodeSyncLogger.logEvent(
+            CodeSyncLogger.critical(
                     String.format("[INTELLIJ_AUTH_ERROR]: Invalid auth file. Error: %s", error.getMessage())
             );
             // Could not read user file.
@@ -109,9 +112,13 @@ public class Authenticator extends HttpServlet {
         try {
             userFile.writeYml();
         } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
-            CodeSyncLogger.logEvent(
+            CodeSyncLogger.error(
                     String.format("[INTELLIJ_AUTH_ERROR]: Could not write to auth file. Error: %s", e.getMessage())
             );
         }
+
+        CodeSyncLogger.debug(
+                "[INTELLIJ_AUTH]: User completed login flow."
+        );
     }
 }

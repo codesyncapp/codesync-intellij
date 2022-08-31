@@ -43,7 +43,7 @@ public class FilePlaybackAction extends BaseModuleAction {
 
         if( project == null ) {
             NotificationManager.notifyError("An error occurred trying to perform file playback action.");
-            CodeSyncLogger.logEvent("An error occurred trying to perform file playback action. e.getProject() is null.");
+            CodeSyncLogger.warning("An error occurred trying to perform file playback action. e.getProject() is null.");
 
             return;
         }
@@ -57,7 +57,7 @@ public class FilePlaybackAction extends BaseModuleAction {
             repoName = ProjectUtils.getRepoName(virtualFile, project);
         } catch (FileNotInModuleError error) {
             NotificationManager.notifyError("An error occurred trying to perform file playback action.");
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.warning(String.format(
                     "An error occurred trying to perform file playback action. file '%s' is not present in the project.",
                     virtualFile.getPath()
             ));
@@ -78,7 +78,7 @@ public class FilePlaybackAction extends BaseModuleAction {
                 "An error occurred trying to perform file playback action. CodeSync configuration file is malformed.",
                 project
             );
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.critical(String.format(
                     "An error occurred trying to perform file playback action. Invalid Config File. Error: %s",
                     error.getMessage()
             ));
@@ -94,7 +94,7 @@ public class FilePlaybackAction extends BaseModuleAction {
                 ),
                 project
             );
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.warning(String.format(
                 "An error occurred trying to perform file playback action. Repo '%s' not found in the config file.",
                 repoPath
             ));
@@ -112,7 +112,7 @@ public class FilePlaybackAction extends BaseModuleAction {
                 ),
                 project
             );
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.warning(String.format(
                 "An error occurred trying to perform file playback action. " +
                 "Branch '%s' not found in the config file repo '%s'.",
                 branchName,
@@ -129,7 +129,7 @@ public class FilePlaybackAction extends BaseModuleAction {
                 "An error occurred trying to perform file playback action. This file is not yet synced with CodeSync servers.",
                 project
             );
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.warning(String.format(
                 "An error occurred trying to perform file playback action. " +
                         "File '%s' not found in the config file repo '%s'.",
                 relativeFilePath,
