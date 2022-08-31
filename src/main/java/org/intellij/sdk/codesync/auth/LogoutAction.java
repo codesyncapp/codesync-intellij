@@ -5,7 +5,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.apache.http.client.utils.URIBuilder;
 import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.Constants.*;
 import org.jetbrains.annotations.NotNull;
 
 import static org.intellij.sdk.codesync.Constants.CODESYNC_LOGOUT_URL;
@@ -29,9 +28,8 @@ public class LogoutAction extends AnAction {
             BrowserUtil.browse(uriBuilder.toString());
         } catch (Exception exc) {
             exc.printStackTrace();
-            CodeSyncLogger.logEvent(
-                    "[INTELLIJ_AUTH_ERROR]: IntelliJ Logout Error, an error occurred during user logout flow.",
-                    LogMessageType.CRITICAL
+            CodeSyncLogger.critical(
+                    "[INTELLIJ_AUTH_ERROR]: IntelliJ Logout Error, an error occurred during user logout flow."
             );
         }
     }

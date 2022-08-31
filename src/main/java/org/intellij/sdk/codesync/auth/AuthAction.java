@@ -51,9 +51,8 @@ public class AuthAction extends AnAction {
                     NotificationManager.notifyError(
                             "An error occurred trying to logout the user, please tyr again later."
                     );
-                    CodeSyncLogger.logEvent(
-                            String.format("[INTELLIJ_AUTH_ERROR]: auth file not found. Error: %s", error.getMessage()),
-                            LogMessageType.ERROR
+                    CodeSyncLogger.error(
+                            String.format("[INTELLIJ_AUTH_ERROR]: auth file not found. Error: %s", error.getMessage())
                     );
                     return;
                 } catch (InvalidYmlFileError error) {
@@ -61,9 +60,8 @@ public class AuthAction extends AnAction {
                     NotificationManager.notifyError(
                             "An error occurred trying to logout the user, please tyr again later."
                     );
-                    CodeSyncLogger.logEvent(
-                            String.format("[INTELLIJ_AUTH_ERROR]: Invalid auth file. Error: %s", error.getMessage()),
-                            LogMessageType.CRITICAL
+                    CodeSyncLogger.critical(
+                            String.format("[INTELLIJ_AUTH_ERROR]: Invalid auth file. Error: %s", error.getMessage())
                     );
                     // Could not read user file.
                     return;
@@ -78,9 +76,8 @@ public class AuthAction extends AnAction {
                     NotificationManager.notifyError(
                             "An error occurred trying to logout the user, please tyr again later."
                     );
-                    CodeSyncLogger.logEvent(
-                            String.format("[INTELLIJ_AUTH_ERROR]: Could write to auth file. Error: %s", error.getMessage()),
-                            LogMessageType.ERROR
+                    CodeSyncLogger.error(
+                            String.format("[INTELLIJ_AUTH_ERROR]: Could write to auth file. Error: %s", error.getMessage())
                     );
                     return;
                 }
@@ -91,9 +88,8 @@ public class AuthAction extends AnAction {
                         "You have been logged out successfully."
                 );
             } else {
-                CodeSyncLogger.logEvent(
-                        "[INTELLIJ_AUTH]: User initiated login flow.",
-                        LogMessageType.DEBUG
+                CodeSyncLogger.debug(
+                        "[INTELLIJ_AUTH]: User initiated login flow."
                 );
                 BrowserUtil.browse(targetURL);
                 CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(e.getProject()));
@@ -101,9 +97,9 @@ public class AuthAction extends AnAction {
 
         } catch (Exception exc) {
             exc.printStackTrace();
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.critical(String.format(
                 "[INTELLIJ_AUTH_ERROR]: IntelliJ Login Error, an error occurred during user authentication. Error: %s", exc.getMessage()
-            ), LogMessageType.CRITICAL);
+            ));
         }
     }
 }

@@ -41,9 +41,8 @@ public class ResumeCodeSyncCommand implements Command {
         try {
             if (accessToken != null && CodeSyncSetup.validateAccessToken(accessToken)) {
 
-                CodeSyncLogger.logEvent(
-                        "[INTELLIJ_AUTH]: Repo sync resumed after login..",
-                        LogMessageType.DEBUG
+                CodeSyncLogger.debug(
+                        "[INTELLIJ_AUTH]: Repo sync resumed after login.."
                 );
 
                 CodeSyncSetup.syncRepoAsync(project, this.repoPath, this.repoName, branchName);
@@ -59,9 +58,8 @@ public class ResumeCodeSyncCommand implements Command {
             // we should retry with authentication.
             try {
 
-                CodeSyncLogger.logEvent(
-                        "[INTELLIJ_AUTH]: User about to be redirected again to the login page because of invalid access token.",
-                        LogMessageType.DEBUG
+                CodeSyncLogger.debug(
+                        "[INTELLIJ_AUTH]: User about to be redirected again to the login page because of invalid access token."
                 );
 
                 CodeSyncAuthServer codeSyncAuthServer = CodeSyncAuthServer.getInstance();
@@ -71,16 +69,15 @@ public class ResumeCodeSyncCommand implements Command {
                 ));
                 CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
 
-                CodeSyncLogger.logEvent(
-                        "[INTELLIJ_AUTH]: User redirected again to the login page because of invalid access token.",
-                        LogMessageType.DEBUG
+                CodeSyncLogger.debug(
+                        "[INTELLIJ_AUTH]: User redirected again to the login page because of invalid access token."
                 );
 
             } catch (Exception e) {
-                CodeSyncLogger.logEvent(String.format(
+                CodeSyncLogger.critical(String.format(
                         "[RESUME_CODESYNC_COMMAND] could not instantiate codesync auth server. Error: %s",
                         e.getMessage()
-                ), LogMessageType.CRITICAL);
+                ));
 
             }
         }

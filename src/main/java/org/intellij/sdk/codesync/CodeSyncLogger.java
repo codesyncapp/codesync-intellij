@@ -137,4 +137,44 @@ public class CodeSyncLogger {
             }
         }
     }
+
+    public static void debug (String message, String userEmail) {
+        logEvent(message, userEmail, LogMessageType.DEBUG);
+    }
+
+    public static void debug (String message) {
+        debug(message, null);
+    }
+
+    public static void info (String message, String userEmail) {
+        logEvent(message, userEmail, LogMessageType.INFO);
+    }
+
+    public static void info (String message) {
+        info(message, null);
+    }
+
+    public static void warning (String message, String userEmail) {
+        logEvent(message, userEmail, LogMessageType.WARNING);
+    }
+
+    public static void warning (String message) {
+        warning(message, null);
+    }
+
+    public static void error (String message, String userEmail) {
+        logEvent(message, userEmail, LogMessageType.ERROR);
+    }
+
+    public static void error (String message) {
+        error(message, null);
+    }
+
+    public static void critical (String message, String userEmail) {
+        logEvent(message, userEmail, LogMessageType.CRITICAL);
+    }
+
+    public static void critical (String message) {
+        critical(message, null);
+    }
 }

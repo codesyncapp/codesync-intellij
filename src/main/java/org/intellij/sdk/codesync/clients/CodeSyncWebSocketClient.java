@@ -56,7 +56,7 @@ public class CodeSyncWebSocketClient {
     public void authenticate(AuthenticationHandler authenticationHandler) {
         this.webSocketClientEndpoint.setMessageHandler(message -> {
             if (message.isEmpty()) {
-                CodeSyncLogger.logEvent("Got empty response while authenticating.", LogMessageType.CRITICAL);
+                CodeSyncLogger.critical("Got empty response while authenticating.");
                 authenticationHandler.handleAuthenticated(false);
             }
 
@@ -65,14 +65,14 @@ public class CodeSyncWebSocketClient {
                 response = (JSONObject) JSONValue.parseWithException(message);
                 Long statusCode = (Long) response.get("status");
                 if (statusCode != 200) {
-                    CodeSyncLogger.logEvent(String.format("Diff auth Failed with error: %s.", response.get("error")), LogMessageType.CRITICAL);
+                    CodeSyncLogger.critical(String.format("Diff auth Failed with error: %s.", response.get("error")));
                 }
                 authenticationHandler.handleAuthenticated(statusCode == 200);
             } catch (org.json.simple.parser.ParseException error) {
-                CodeSyncLogger.logEvent(String.format("Invalid JSON from server while authenticating. %s.", error.getMessage()), LogMessageType.CRITICAL);
+                CodeSyncLogger.critical(String.format("Invalid JSON from server while authenticating. %s.", error.getMessage()));
                 authenticationHandler.handleAuthenticated(false);
             } catch (ClassCastException error) {
-                CodeSyncLogger.logEvent(String.format("Invalid JSON data from server while authenticating caused cast exception: %s.", error.getMessage()), LogMessageType.CRITICAL);
+                CodeSyncLogger.critical(String.format("Invalid JSON data from server while authenticating caused cast exception: %s.", error.getMessage()));
                 authenticationHandler.handleAuthenticated(false);
             }
         });
@@ -106,7 +106,7 @@ public class CodeSyncWebSocketClient {
 
         this.webSocketClientEndpoint.setMessageHandler(message -> {
             if (message.isEmpty()) {
-                CodeSyncLogger.logEvent("Got empty response while sending diffs", LogMessageType.ERROR);
+                CodeSyncLogger.error("Got empty response while sending diffs");
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             }
 
@@ -116,14 +116,14 @@ public class CodeSyncWebSocketClient {
                 Long statusCode = (Long) response.get("status");
                 String diffFilePath = (String) response.get("diff_file_path");
                 if (statusCode != 200) {
-                    CodeSyncLogger.logEvent(String.format("Diff upload failed with error: %s.", response.get("error")), LogMessageType.CRITICAL);
+                    CodeSyncLogger.critical(String.format("Diff upload failed with error: %s.", response.get("error")));
                 }
                 dataTransmissionHandler.dataTransferStatusCallback(statusCode == 200, diffFilePath);
             } catch (org.json.simple.parser.ParseException error) {
-                CodeSyncLogger.logEvent(String.format("Invalid JSON from server while sending diff file.: %s.", error.getMessage()), LogMessageType.CRITICAL);
+                CodeSyncLogger.critical(String.format("Invalid JSON from server while sending diff file.: %s.", error.getMessage()));
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             } catch (ClassCastException error) {
-                CodeSyncLogger.logEvent(String.format("Invalid JSON data  from server caused cast exception: %s.", error.getMessage()), LogMessageType.CRITICAL);
+                CodeSyncLogger.critical(String.format("Invalid JSON data  from server caused cast exception: %s.", error.getMessage()));
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             }
         });
@@ -161,7 +161,7 @@ public class CodeSyncWebSocketClient {
 
         this.webSocketClientEndpoint.setMessageHandler(message -> {
             if (message.isEmpty()) {
-                CodeSyncLogger.logEvent("Got empty response while sending diffs", LogMessageType.ERROR);
+                CodeSyncLogger.error("Got empty response while sending diffs");
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             }
 
@@ -171,14 +171,14 @@ public class CodeSyncWebSocketClient {
                 Long statusCode = (Long) response.get("status");
                 String diffFilePath = (String) response.get("diff_file_path");
                 if (statusCode != 200) {
-                    CodeSyncLogger.logEvent(String.format("Diff upload failed with error: %s.", response.get("error")), LogMessageType.CRITICAL);
+                    CodeSyncLogger.critical(String.format("Diff upload failed with error: %s.", response.get("error")));
                 }
                 dataTransmissionHandler.dataTransferStatusCallback(statusCode == 200, diffFilePath);
             } catch (org.json.simple.parser.ParseException error) {
-                CodeSyncLogger.logEvent(String.format("Invalid JSON from server while sending diff file.: %s.", error.getMessage()), LogMessageType.CRITICAL);
+                CodeSyncLogger.critical(String.format("Invalid JSON from server while sending diff file.: %s.", error.getMessage()));
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             } catch (ClassCastException error) {
-                CodeSyncLogger.logEvent(String.format("Invalid JSON data  from server caused cast exception: %s.", error.getMessage()), LogMessageType.CRITICAL);
+                CodeSyncLogger.critical(String.format("Invalid JSON data  from server caused cast exception: %s.", error.getMessage()));
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             }
         });

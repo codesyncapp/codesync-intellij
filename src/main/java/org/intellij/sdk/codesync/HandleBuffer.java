@@ -43,28 +43,27 @@ public class HandleBuffer {
         }
 
         if (!diffFile.isValid()) {
-            CodeSyncLogger.logEvent(
+            CodeSyncLogger.info(
                     String.format("Skipping invalid diff file: %s, Diff: %s",
                         diffFile.originalDiffFile.getPath(), diffFile.contents
-                    ),
-                    LogMessageType.INFO
+                    )
             );
             diffFile.delete();
             return true;
         }
 
         if (!configFile.hasRepo(diffFile.repoPath)) {
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.warning(String.format(
                     "Repo %s is not in config.yml.", diffFile.repoPath
-            ), LogMessageType.WARNING);
+            ));
             diffFile.delete();
             return true;
         }
 
         if (configFile.isRepoDisconnected(diffFile.repoPath)) {
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.info(String.format(
                     "Repo %s is disconnected.", diffFile.repoPath
-            ), LogMessageType.INFO);
+            ));
             diffFile.delete();
             return true;
         }
@@ -72,12 +71,11 @@ public class HandleBuffer {
         ConfigRepo configRepo = configFile.getRepo(diffFile.repoPath);
 
         if (!configRepo.containsBranch(diffFile.branch)) {
-            CodeSyncLogger.logEvent(
+            CodeSyncLogger.warning(
                 String.format(
                     "Branch: %s is not synced for Repo %s.", diffFile.branch, diffFile.repoPath
                 ),
-                configRepo.email,
-                LogMessageType.WARNING
+                configRepo.email
             );
             return true;
         }
@@ -133,7 +131,7 @@ public class HandleBuffer {
         try {
             configFile = new ConfigFile(CONFIG_PATH);
         } catch (InvalidConfigFileError error) {
-            CodeSyncLogger.logEvent(String.format("Config file error, %s.\n", error.getMessage()), LogMessageType.CRITICAL);
+            CodeSyncLogger.critical(String.format("Config file error, %s.\n", error.getMessage()));
             return;
         }
 
@@ -149,7 +147,7 @@ public class HandleBuffer {
 
         CodeSyncClient client = new CodeSyncClient();
         if (!client.isServerUp()) {
-            CodeSyncLogger.logEvent(CONNECTION_ERROR_MESSAGE, LogMessageType.CRITICAL);
+            CodeSyncLogger.critical(CONNECTION_ERROR_MESSAGE);
             return;
         }
 
@@ -178,7 +176,7 @@ public class HandleBuffer {
             System.out.printf("Processing diff file: %s.\n", diffFile.originalDiffFile.getPath());
 
             if (!configFile.repos.containsKey(diffFile.repoPath)) {
-                CodeSyncLogger.logEvent(String.format("Repo `%s` is in buffer but not in configFile.yml.\n", diffFile.repoPath), LogMessageType.ERROR);
+                CodeSyncLogger.error(String.format("Repo `%s` is in buffer but not in configFile.yml.\n", diffFile.repoPath));
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                 continue;
             }
@@ -187,11 +185,10 @@ public class HandleBuffer {
             String accessToken = UserFile.getAccessToken(configRepo.email);
 
             if (accessToken == null) {
-                CodeSyncLogger.logEvent(String.format(
+                CodeSyncLogger.critical(String.format(
                         "Access token for user '%s' not present so skipping diff file '%s'.",
                         configRepo.email, diffFile.originalDiffFile.getPath()
-                    ),
-                    LogMessageType.CRITICAL
+                    )
                 );
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                 diffReposToIgnore.add(diffFile.repoPath);
@@ -201,7 +198,7 @@ public class HandleBuffer {
             }
 
             if (!configRepo.branches.containsKey(diffFile.branch)) {
-                CodeSyncLogger.logEvent(String.format("Branch: `%s` is not synced for Repo `%s`.\n", diffFile.branch, diffFile.repoPath), LogMessageType.WARNING);
+                CodeSyncLogger.warning(String.format("Branch: `%s` is not synced for Repo `%s`.\n", diffFile.branch, diffFile.repoPath));
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                 continue;
             }
@@ -243,9 +240,9 @@ public class HandleBuffer {
 
                 Integer oldFileId = configRepoBranch.getFileId(diffFile.oldRelativePath);
                 if (oldFileId == null) {
-                    CodeSyncLogger.logEvent(String.format("old_file: %s was not synced for rename of %s/%s.\n",
+                    CodeSyncLogger.warning(String.format("old_file: %s was not synced for rename of %s/%s.\n",
                             diffFile.oldRelativePath, diffFile.repoPath, diffFile.fileRelativePath
-                    ), LogMessageType.WARNING);
+                    ));
                     diffFile.delete();
                     diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                     continue;
@@ -308,7 +305,7 @@ public class HandleBuffer {
         }
 
         if (configFile.isRepoDisconnected(currentRepo)) {
-            CodeSyncLogger.logEvent("Repo is disconnected so, skipping the diffs.", LogMessageType.INFO);
+            CodeSyncLogger.info("Repo is disconnected so, skipping the diffs.");
             return;
         }
 
@@ -317,10 +314,10 @@ public class HandleBuffer {
         ConfigRepo configRepo = configFile.getRepo(currentRepo);
         String accessToken = UserFile.getAccessToken(configRepo.email);
         if (accessToken ==  null) {
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.warning(String.format(
                     "Access token for user '%s' not present so skipping diffs for repo '%s'.",
-                    configRepo.email, currentRepo),
-                    LogMessageType.WARNING
+                    configRepo.email, currentRepo
+                )
             );
             return;
         } else {
@@ -334,7 +331,7 @@ public class HandleBuffer {
                     codeSyncWebSocketClient.sendDiffs(diffsToSend, (successfullyTransferred, diffFilePath) -> {
                         diffFilesBeingProcessed.remove(diffFilePath);
                         if (!successfullyTransferred) {
-                            CodeSyncLogger.logEvent("Error while sending the diff files to the server.", configRepo.email, LogMessageType.ERROR);
+                            CodeSyncLogger.error("Error while sending the diff files to the server.", configRepo.email);
                             return;
                         }
                         System.out.printf("Diff file '%s' successfully processed.\n", diffFilePath);
@@ -342,11 +339,11 @@ public class HandleBuffer {
                     });
                 } catch (WebSocketConnectionError error) {
                     diffFilesBeingProcessed.clear();
-                    CodeSyncLogger.logEvent(String.format("Connection error while sending diff to the server at %s.\n", WEBSOCKET_ENDPOINT), configRepo.email, LogMessageType.CRITICAL);
+                    CodeSyncLogger.critical(String.format("Connection error while sending diff to the server at %s.\n", WEBSOCKET_ENDPOINT), configRepo.email);
                 }
             } else {
                 diffFilesBeingProcessed.clear();
-                CodeSyncLogger.logEvent(String.format("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT), configRepo.email, LogMessageType.ERROR);
+                CodeSyncLogger.error(String.format("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT), configRepo.email);
             }
         });
     }
@@ -369,16 +366,16 @@ public class HandleBuffer {
             try {
                 configFile.publishBranchUpdate(repo, configRepoBranch);
             } catch (InvalidConfigFileError error)  {
-                CodeSyncLogger.logEvent(String.format("Error while updating the config file with new file ID. \n%s", error.getMessage()), LogMessageType.CRITICAL);
+                CodeSyncLogger.critical(String.format("Error while updating the config file with new file ID. \n%s", error.getMessage()));
                 error.printStackTrace();
                 return false;
             }
         } catch (FileInfoError error) {
-            CodeSyncLogger.logEvent(String.format("Error while getting file information. \n%s", error.getMessage()), LogMessageType.ERROR);
+            CodeSyncLogger.error(String.format("Error while getting file information. \n%s", error.getMessage()));
             error.printStackTrace();
             return false;
         } catch (RequestError | InvalidJsonError error) {
-            CodeSyncLogger.logEvent(String.format("Error while uploading a new file '%s'. \n%s", diffFile.fileRelativePath, error.getMessage()), LogMessageType.ERROR);
+            CodeSyncLogger.error(String.format("Error while uploading a new file '%s'. \n%s", diffFile.fileRelativePath, error.getMessage()));
             error.printStackTrace();
             return false;
         }

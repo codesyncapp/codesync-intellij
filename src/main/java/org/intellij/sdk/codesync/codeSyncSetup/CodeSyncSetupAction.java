@@ -70,9 +70,8 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                     } catch (BaseException | BaseNetworkException error) {
                         NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
                         NotificationManager.notifyError(error.getMessage(), project);
-                        CodeSyncLogger.logEvent(
-                            String.format("Could not disconnect the repo. Error: %s", error.getMessage()),
-                            LogMessageType.CRITICAL
+                        CodeSyncLogger.critical(
+                            String.format("Could not disconnect the repo. Error: %s", error.getMessage())
                         );
                     }
                 } else {
@@ -81,9 +80,8 @@ public class CodeSyncSetupAction extends BaseModuleAction {
             } catch (AssertionError | FileNotInModuleError error) {
                 NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
                 NotificationManager.notifyError(error.getMessage(), project);
-                CodeSyncLogger.logEvent(
-                    String.format("Could not disconnect the repo. Error: %s", error.getMessage()),
-                    LogMessageType.ERROR
+                CodeSyncLogger.error(
+                    String.format("Could not disconnect the repo. Error: %s", error.getMessage())
                 );
             }
         } else if (contentRoots.length == 1) {
@@ -99,9 +97,8 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                 } catch (BaseException | BaseNetworkException error) {
                     NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
                     NotificationManager.notifyError(error.getMessage(), project);
-                    CodeSyncLogger.logEvent(
-                        String.format("Could not disconnect the repo. Error: %s", error.getMessage()),
-                        LogMessageType.CRITICAL
+                    CodeSyncLogger.critical(
+                        String.format("Could not disconnect the repo. Error: %s", error.getMessage())
                     );
                 }
             } else {
@@ -109,7 +106,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
             }
         } else {
             NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
-            CodeSyncLogger.logEvent("Could not disconnect the repo. 0 module returned for the given project.", LogMessageType.ERROR);
+            CodeSyncLogger.error("Could not disconnect the repo. 0 module returned for the given project.");
         }
      }
 }

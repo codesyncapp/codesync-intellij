@@ -29,9 +29,9 @@ public class CodeSyncLock {
             return new LockFile(LOCK_FILE, true);
         } catch (InvalidYmlFileError | FileNotFoundException | FileNotCreatedError error) {
             error.printStackTrace();
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.error(String.format(
                     "[LOCK_FILE]] Lock file error, %s.\n", error.getMessage()
-            ), LogMessageType.ERROR);
+            ));
             return null;
         }
     }

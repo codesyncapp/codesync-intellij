@@ -72,7 +72,7 @@ public class DiffUtils {
         try {
             writer = new FileWriter(diffFilePath.toFile());
         } catch (IOException e) {
-            CodeSyncLogger.logEvent(String.format("Error writing to diff file. Error: %s", e.getMessage()), LogMessageType.ERROR);
+            CodeSyncLogger.error(String.format("Error writing to diff file. Error: %s", e.getMessage()));
             e.printStackTrace();
         }
         yaml.dump(data, writer);

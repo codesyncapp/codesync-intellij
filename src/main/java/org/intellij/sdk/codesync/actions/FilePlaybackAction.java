@@ -6,7 +6,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.Constants.*;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
@@ -44,7 +43,7 @@ public class FilePlaybackAction extends BaseModuleAction {
 
         if( project == null ) {
             NotificationManager.notifyError("An error occurred trying to perform file playback action.");
-            CodeSyncLogger.logEvent("An error occurred trying to perform file playback action. e.getProject() is null.", LogMessageType.WARNING);
+            CodeSyncLogger.warning("An error occurred trying to perform file playback action. e.getProject() is null.");
 
             return;
         }
@@ -58,10 +57,10 @@ public class FilePlaybackAction extends BaseModuleAction {
             repoName = ProjectUtils.getRepoName(virtualFile, project);
         } catch (FileNotInModuleError error) {
             NotificationManager.notifyError("An error occurred trying to perform file playback action.");
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.warning(String.format(
                     "An error occurred trying to perform file playback action. file '%s' is not present in the project.",
                     virtualFile.getPath()
-            ), LogMessageType.WARNING);
+            ));
 
             return;
         }
@@ -79,10 +78,10 @@ public class FilePlaybackAction extends BaseModuleAction {
                 "An error occurred trying to perform file playback action. CodeSync configuration file is malformed.",
                 project
             );
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.critical(String.format(
                     "An error occurred trying to perform file playback action. Invalid Config File. Error: %s",
                     error.getMessage()
-            ), LogMessageType.CRITICAL);
+            ));
 
             return;
         }
@@ -95,10 +94,10 @@ public class FilePlaybackAction extends BaseModuleAction {
                 ),
                 project
             );
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.warning(String.format(
                 "An error occurred trying to perform file playback action. Repo '%s' not found in the config file.",
                 repoPath
-            ), LogMessageType.WARNING);
+            ));
 
             return;
         }
@@ -113,12 +112,12 @@ public class FilePlaybackAction extends BaseModuleAction {
                 ),
                 project
             );
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.warning(String.format(
                 "An error occurred trying to perform file playback action. " +
                 "Branch '%s' not found in the config file repo '%s'.",
                 branchName,
                 repoPath
-            ), LogMessageType.WARNING);
+            ));
 
             return;
         }
@@ -130,12 +129,12 @@ public class FilePlaybackAction extends BaseModuleAction {
                 "An error occurred trying to perform file playback action. This file is not yet synced with CodeSync servers.",
                 project
             );
-            CodeSyncLogger.logEvent(String.format(
+            CodeSyncLogger.warning(String.format(
                 "An error occurred trying to perform file playback action. " +
                         "File '%s' not found in the config file repo '%s'.",
                 relativeFilePath,
                 repoPath
-            ), LogMessageType.WARNING);
+            ));
 
             return;
         }
