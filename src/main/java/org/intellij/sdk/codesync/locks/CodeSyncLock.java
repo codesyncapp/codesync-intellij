@@ -1,7 +1,7 @@
 package org.intellij.sdk.codesync.locks;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.Constants;
+import org.intellij.sdk.codesync.Constants.*;
 import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.files.LockFile;
@@ -31,7 +31,7 @@ public class CodeSyncLock {
             error.printStackTrace();
             CodeSyncLogger.logEvent(String.format(
                     "[LOCK_FILE]] Lock file error, %s.\n", error.getMessage()
-            ));
+            ), LogMessageType.ERROR);
             return null;
         }
     }

@@ -23,7 +23,7 @@ public class CodeSyncLogger {
     private static Integer retryCount = 0;
 
     private static void logMessageToCloudWatch(
-            String logGroupName, String userEmail, String accessKey, String secretKey, String message
+            String logGroupName, String userEmail, String accessKey, String secretKey, String message, String type
     ) {
         try
         {
@@ -51,6 +51,7 @@ public class CodeSyncLogger {
             msg.put("msg", message);
             msg.put("source", DIFF_SOURCE);
             msg.put("version", version);
+            msg.put("type", type);
             InputLogEvent inputLogEvent = InputLogEvent.builder()
                     .message(msg.toJSONString())
                     .timestamp(System.currentTimeMillis())
@@ -93,11 +94,11 @@ public class CodeSyncLogger {
         }
     }
 
-    public static void logEvent(String message) {
-        logEvent(message, null);
+    public static void logEvent(String message, String type) {
+        logEvent(message, null, type);
     }
 
-    public static void logEvent(String message, String userEmail) {
+    public static void logEvent(String message, String userEmail, String type) {
         LOGGER.log(Level.SEVERE, message);
         UserFile.User user = null;
         UserFile userFile = null;
@@ -124,7 +125,7 @@ public class CodeSyncLogger {
 
         try {
             logMessageToCloudWatch(
-                    CLIENT_LOGS_GROUP_NAME, user.getUserEmail(), user.getAccessKey(), user.getSecretKey(), message
+                    CLIENT_LOGS_GROUP_NAME, user.getUserEmail(), user.getAccessKey(), user.getSecretKey(), message, type
             );
         } catch (CloudWatchException e) {
             if (retryCount > 10) {
@@ -132,7 +133,7 @@ public class CodeSyncLogger {
                 retryCount = 0;
             } else {
                 // try again.
-                logEvent(message, userEmail);
+                logEvent(message, userEmail, type);
             }
         }
     }

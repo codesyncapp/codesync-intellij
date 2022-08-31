@@ -56,7 +56,7 @@ public class CodeSyncAuthServer {
         return String.format("%slogin-success", this.server.getURI().toString());
     }
 
-    public String getAuthorizationUrl(boolean skipConnectPrompt) {
+    public String getAuthorizationUrl() {
         try {
             URIBuilder uriBuilder = new URIBuilder(CODESYNC_AUTHORIZE_URL);
             uriBuilder.addParameter("redirect_uri", getServerURL());
@@ -64,14 +64,11 @@ public class CodeSyncAuthServer {
             return uriBuilder.toString();
         } catch (URISyntaxException e) {
             CodeSyncLogger.logEvent(
-                    String.format("[INTELLIJ_AUTH_ERROR]: Invalid `CODESYNC_AUTHORIZE_URL` settings. Error: %s", e.getMessage())
+                    String.format("[INTELLIJ_AUTH_ERROR]: Invalid `CODESYNC_AUTHORIZE_URL` settings. Error: %s", e.getMessage()),
+                    LogMessageType.CRITICAL
             );
             return null;
         }
-    }
-
-    public String getAuthorizationUrl() {
-        return getAuthorizationUrl(false);
     }
 
     public static void registerPostAuthCommand(Command command) {

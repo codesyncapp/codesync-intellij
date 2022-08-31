@@ -51,7 +51,7 @@ public class RepoPlaybackAction extends BaseModuleAction {
         Project project = e.getProject();
         if(project == null) {
             NotificationManager.notifyError("An error occurred trying to perform repo playback action.");
-            CodeSyncLogger.logEvent("An error occurred trying to perform repo playback action. e.getProject() is null.");
+            CodeSyncLogger.logEvent("An error occurred trying to perform repo playback action. e.getProject() is null.", LogMessageType.WARNING);
 
             return;
         }
@@ -74,7 +74,7 @@ public class RepoPlaybackAction extends BaseModuleAction {
                     "An error occurred trying to perform repo playback action. " +
                     "We could not detect the module of the opened file. Error: %s",
                     error.getMessage()
-                ));
+                ), LogMessageType.WARNING);
 
                 return;
             }
@@ -89,7 +89,8 @@ public class RepoPlaybackAction extends BaseModuleAction {
             );
             CodeSyncLogger.logEvent(
                 "An error occurred trying to perform repo playback action. 0 modules returned." +
-                "We could not detect the module of the opened file."
+                "We could not detect the module of the opened file.",
+                LogMessageType.WARNING
             );
             return;
         }
@@ -105,7 +106,7 @@ public class RepoPlaybackAction extends BaseModuleAction {
             CodeSyncLogger.logEvent(String.format(
                 "An error occurred trying to perform repo playback action. Invalid Config File. Error: %s",
                 error.getMessage()
-            ));
+            ), LogMessageType.CRITICAL);
 
             return;
         }
@@ -121,7 +122,7 @@ public class RepoPlaybackAction extends BaseModuleAction {
             CodeSyncLogger.logEvent(String.format(
                     "An error occurred trying to perform repo playback action. Repo '%s' not found in the config file.",
                     repoPath
-            ));
+            ), LogMessageType.WARNING);
 
             return;
         }

@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync.utils;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.Constants.*;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -71,7 +72,7 @@ public class DiffUtils {
         try {
             writer = new FileWriter(diffFilePath.toFile());
         } catch (IOException e) {
-            CodeSyncLogger.logEvent(String.format("Error writing to diff file. Error: %s", e.getMessage()));
+            CodeSyncLogger.logEvent(String.format("Error writing to diff file. Error: %s", e.getMessage()), LogMessageType.ERROR);
             e.printStackTrace();
         }
         yaml.dump(data, writer);

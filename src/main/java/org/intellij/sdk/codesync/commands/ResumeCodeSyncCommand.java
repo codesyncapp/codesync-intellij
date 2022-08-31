@@ -3,6 +3,7 @@ package org.intellij.sdk.codesync.commands;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.Constants.*;
 import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.exceptions.InvalidAccessTokenError;
@@ -39,6 +40,12 @@ public class ResumeCodeSyncCommand implements Command {
 
         try {
             if (accessToken != null && CodeSyncSetup.validateAccessToken(accessToken)) {
+
+                CodeSyncLogger.logEvent(
+                        "[INTELLIJ_AUTH]: Repo sync resumed after login..",
+                        LogMessageType.DEBUG
+                );
+
                 CodeSyncSetup.syncRepoAsync(project, this.repoPath, this.repoName, branchName);
             }
         } catch (InvalidAccessTokenError error) {
@@ -51,17 +58,30 @@ public class ResumeCodeSyncCommand implements Command {
             // For some reason user authentication did not result in a valid token,
             // we should retry with authentication.
             try {
+
+                CodeSyncLogger.logEvent(
+                        "[INTELLIJ_AUTH]: User about to be redirected again to the login page because of invalid access token.",
+                        LogMessageType.DEBUG
+                );
+
                 CodeSyncAuthServer codeSyncAuthServer = CodeSyncAuthServer.getInstance();
                 BrowserUtil.browse(codeSyncAuthServer.getAuthorizationUrl());
                 CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(
                         project, this.repoPath, this.repoName, this.branchName, true
                 ));
                 CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
+
+                CodeSyncLogger.logEvent(
+                        "[INTELLIJ_AUTH]: User redirected again to the login page because of invalid access token.",
+                        LogMessageType.DEBUG
+                );
+
             } catch (Exception e) {
                 CodeSyncLogger.logEvent(String.format(
                         "[RESUME_CODESYNC_COMMAND] could not instantiate codesync auth server. Error: %s",
                         e.getMessage()
-                ));
+                ), LogMessageType.CRITICAL);
+
             }
         }
     }

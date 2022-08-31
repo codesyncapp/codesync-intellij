@@ -83,7 +83,7 @@ public class PopulateBuffer {
         } catch (InvalidConfigFileError error) {
             CodeSyncLogger.logEvent(String.format(
                     "[INTELLIJ_PLUGIN][POPULATE_BUFFER] Config file error, %s.\n", error.getMessage()
-            ));
+            ), LogMessageType.CRITICAL);
             return ;
         }
         ConfigRepo configRepo = configFile.getRepo(repoPath);
@@ -115,7 +115,7 @@ public class PopulateBuffer {
                 // Log the message and continue.
                 CodeSyncLogger.logEvent(String.format(
                         "Error while getting the file info for %s, Error: %s", filePath, error.getMessage()
-                ));
+                ), LogMessageType.ERROR);
             }
         }
     }
@@ -160,7 +160,7 @@ public class PopulateBuffer {
         } catch (InvalidConfigFileError error) {
             CodeSyncLogger.logEvent(String.format(
                     "[INTELLIJ_PLUGIN][POPULATE_BUFFER] Config file error, %s.\n", error.getMessage()
-            ));
+            ), LogMessageType.CRITICAL);
             return reposToUpdate;
         }
         Map<String, ConfigRepo> configRepoMap = configFile.getRepos();
@@ -171,7 +171,7 @@ public class PopulateBuffer {
         } catch (FileNotFoundException | InvalidYmlFileError error) {
             CodeSyncLogger.logEvent(String.format(
                     "[INTELLIJ_PLUGIN][POPULATE_BUFFER] User file error, %s.\n", error.getMessage()
-            ));
+            ), LogMessageType.CRITICAL);
             return reposToUpdate;
         }
 
@@ -197,7 +197,7 @@ public class PopulateBuffer {
             }
 
             if (user.getAccessToken() == null) {
-                CodeSyncLogger.logEvent(String.format("Access token not found for repo: %s, %s`.", repoPath, configRepo.email));
+                CodeSyncLogger.logEvent(String.format("Access token not found for repo: %s, %s`.", repoPath, configRepo.email), LogMessageType.ERROR);
                 continue;
             }
 
@@ -261,7 +261,7 @@ public class PopulateBuffer {
                 CodeSyncLogger.logEvent(String.format(
                         "[INTELLIJ][NON_IDE_EVENTS] Could not populate for missed events, because config file for repo '%s' could not be opened.",
                         repoPath
-                ));
+                ), LogMessageType.CRITICAL);
             }
 
             if (!populateBuffer.configRepo.isDisconnected) {
@@ -386,7 +386,7 @@ public class PopulateBuffer {
                                 "Error while getting the file info for shadow file %s, Error: %s",
                                 shadowFile.getPath(),
                                 error.getMessage()
-                        ));
+                        ), LogMessageType.ERROR);
                         continue;
                     }
                     previousFileContent = FileUtils.readFileToString(shadowFile);

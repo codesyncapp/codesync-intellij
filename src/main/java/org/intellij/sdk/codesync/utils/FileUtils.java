@@ -2,6 +2,7 @@ package org.intellij.sdk.codesync.utils;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.Constants.*;
 import org.intellij.sdk.codesync.exceptions.FileInfoError;
 import org.intellij.sdk.codesync.exceptions.FileNotFoundError;
 import org.intellij.sdk.codesync.files.IgnoreFile;
@@ -51,7 +52,7 @@ public class FileUtils
         try {
             return org.apache.commons.io.FileUtils.readFileToString(file, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            CodeSyncLogger.logEvent(String.format("Could not read file '%s'. Error: %s", file.getPath(), e.getMessage()));
+            CodeSyncLogger.logEvent(String.format("Could not read file '%s'. Error: %s", file.getPath(), e.getMessage()), LogMessageType.ERROR);
             return null;
         }
     }

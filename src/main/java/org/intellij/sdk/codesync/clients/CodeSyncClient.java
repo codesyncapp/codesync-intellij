@@ -59,7 +59,7 @@ public class CodeSyncClient {
         try {
             response = ClientUtils.sendGet(API_USERS, accessToken);
         } catch (RequestError | InvalidJsonError error) {
-            CodeSyncLogger.logEvent("Could not make a successful request to CodeSync server.");
+            CodeSyncLogger.logEvent("Could not make a successful request to CodeSync server.", LogMessageType.ERROR);
             throw new RequestError("Could not make a successful request to CodeSync server.");
         }
 
@@ -85,7 +85,7 @@ public class CodeSyncClient {
         } catch (ClassCastException err) {
             CodeSyncLogger.logEvent(String.format(
                 "Error parsing the response of /users endpoint. Error: %s", err.getMessage()
-            ));
+            ), LogMessageType.CRITICAL);
             throw new RequestError("Error parsing the response from the server.");
         }
     }
@@ -217,7 +217,7 @@ public class CodeSyncClient {
         } catch (RequestError | InvalidJsonError error) {
             error.printStackTrace();
 
-            CodeSyncLogger.logEvent(String.format("Error while repo init, %s", error.getMessage()));
+            CodeSyncLogger.logEvent(String.format("Error while repo init, %s", error.getMessage()), LogMessageType.CRITICAL);
             return null;
         }
 
@@ -231,7 +231,7 @@ public class CodeSyncClient {
         } catch (RequestError | InvalidJsonError error) {
             error.printStackTrace();
 
-            CodeSyncLogger.logEvent(String.format("Error while repo init, %s", error.getMessage()));
+            CodeSyncLogger.logEvent(String.format("Error while repo init, %s", error.getMessage()), LogMessageType.CRITICAL);
             return null;
         }
 

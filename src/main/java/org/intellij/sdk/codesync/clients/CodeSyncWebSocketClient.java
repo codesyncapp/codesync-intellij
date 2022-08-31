@@ -2,6 +2,7 @@ package org.intellij.sdk.codesync.clients;
 
 import kotlin.Pair;
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.Constants.*;
 import org.intellij.sdk.codesync.files.DiffFile;
 import org.intellij.sdk.codesync.exceptions.*;
 
@@ -55,7 +56,7 @@ public class CodeSyncWebSocketClient {
     public void authenticate(AuthenticationHandler authenticationHandler) {
         this.webSocketClientEndpoint.setMessageHandler(message -> {
             if (message.isEmpty()) {
-                CodeSyncLogger.logEvent("Got empty response while authenticating.");
+                CodeSyncLogger.logEvent("Got empty response while authenticating.", LogMessageType.CRITICAL);
                 authenticationHandler.handleAuthenticated(false);
             }
 
@@ -64,14 +65,14 @@ public class CodeSyncWebSocketClient {
                 response = (JSONObject) JSONValue.parseWithException(message);
                 Long statusCode = (Long) response.get("status");
                 if (statusCode != 200) {
-                    CodeSyncLogger.logEvent(String.format("Diff auth Failed with error: %s.", response.get("error")));
+                    CodeSyncLogger.logEvent(String.format("Diff auth Failed with error: %s.", response.get("error")), LogMessageType.CRITICAL);
                 }
                 authenticationHandler.handleAuthenticated(statusCode == 200);
             } catch (org.json.simple.parser.ParseException error) {
-                CodeSyncLogger.logEvent(String.format("Invalid JSON from server while authenticating. %s.", error.getMessage()));
+                CodeSyncLogger.logEvent(String.format("Invalid JSON from server while authenticating. %s.", error.getMessage()), LogMessageType.CRITICAL);
                 authenticationHandler.handleAuthenticated(false);
             } catch (ClassCastException error) {
-                CodeSyncLogger.logEvent(String.format("Invalid JSON data from server while authenticating caused cast exception: %s.", error.getMessage()));
+                CodeSyncLogger.logEvent(String.format("Invalid JSON data from server while authenticating caused cast exception: %s.", error.getMessage()), LogMessageType.CRITICAL);
                 authenticationHandler.handleAuthenticated(false);
             }
         });
@@ -105,7 +106,7 @@ public class CodeSyncWebSocketClient {
 
         this.webSocketClientEndpoint.setMessageHandler(message -> {
             if (message.isEmpty()) {
-                CodeSyncLogger.logEvent("Got empty response while sending diffs");
+                CodeSyncLogger.logEvent("Got empty response while sending diffs", LogMessageType.ERROR);
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             }
 
@@ -115,14 +116,14 @@ public class CodeSyncWebSocketClient {
                 Long statusCode = (Long) response.get("status");
                 String diffFilePath = (String) response.get("diff_file_path");
                 if (statusCode != 200) {
-                    CodeSyncLogger.logEvent(String.format("Diff upload failed with error: %s.", response.get("error")));
+                    CodeSyncLogger.logEvent(String.format("Diff upload failed with error: %s.", response.get("error")), LogMessageType.CRITICAL);
                 }
                 dataTransmissionHandler.dataTransferStatusCallback(statusCode == 200, diffFilePath);
             } catch (org.json.simple.parser.ParseException error) {
-                CodeSyncLogger.logEvent(String.format("Invalid JSON from server while sending diff file.: %s.", error.getMessage()));
+                CodeSyncLogger.logEvent(String.format("Invalid JSON from server while sending diff file.: %s.", error.getMessage()), LogMessageType.CRITICAL);
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             } catch (ClassCastException error) {
-                CodeSyncLogger.logEvent(String.format("Invalid JSON data  from server caused cast exception: %s.", error.getMessage()));
+                CodeSyncLogger.logEvent(String.format("Invalid JSON data  from server caused cast exception: %s.", error.getMessage()), LogMessageType.CRITICAL);
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             }
         });
@@ -160,7 +161,7 @@ public class CodeSyncWebSocketClient {
 
         this.webSocketClientEndpoint.setMessageHandler(message -> {
             if (message.isEmpty()) {
-                CodeSyncLogger.logEvent("Got empty response while sending diffs");
+                CodeSyncLogger.logEvent("Got empty response while sending diffs", LogMessageType.ERROR);
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             }
 
@@ -170,14 +171,14 @@ public class CodeSyncWebSocketClient {
                 Long statusCode = (Long) response.get("status");
                 String diffFilePath = (String) response.get("diff_file_path");
                 if (statusCode != 200) {
-                    CodeSyncLogger.logEvent(String.format("Diff upload failed with error: %s.", response.get("error")));
+                    CodeSyncLogger.logEvent(String.format("Diff upload failed with error: %s.", response.get("error")), LogMessageType.CRITICAL);
                 }
                 dataTransmissionHandler.dataTransferStatusCallback(statusCode == 200, diffFilePath);
             } catch (org.json.simple.parser.ParseException error) {
-                CodeSyncLogger.logEvent(String.format("Invalid JSON from server while sending diff file.: %s.", error.getMessage()));
+                CodeSyncLogger.logEvent(String.format("Invalid JSON from server while sending diff file.: %s.", error.getMessage()), LogMessageType.CRITICAL);
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             } catch (ClassCastException error) {
-                CodeSyncLogger.logEvent(String.format("Invalid JSON data  from server caused cast exception: %s.", error.getMessage()));
+                CodeSyncLogger.logEvent(String.format("Invalid JSON data  from server caused cast exception: %s.", error.getMessage()), LogMessageType.CRITICAL);
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             }
         });

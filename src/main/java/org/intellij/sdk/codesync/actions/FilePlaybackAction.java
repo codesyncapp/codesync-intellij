@@ -6,6 +6,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.Constants.*;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
@@ -43,7 +44,7 @@ public class FilePlaybackAction extends BaseModuleAction {
 
         if( project == null ) {
             NotificationManager.notifyError("An error occurred trying to perform file playback action.");
-            CodeSyncLogger.logEvent("An error occurred trying to perform file playback action. e.getProject() is null.");
+            CodeSyncLogger.logEvent("An error occurred trying to perform file playback action. e.getProject() is null.", LogMessageType.WARNING);
 
             return;
         }
@@ -60,7 +61,7 @@ public class FilePlaybackAction extends BaseModuleAction {
             CodeSyncLogger.logEvent(String.format(
                     "An error occurred trying to perform file playback action. file '%s' is not present in the project.",
                     virtualFile.getPath()
-            ));
+            ), LogMessageType.WARNING);
 
             return;
         }
@@ -81,7 +82,7 @@ public class FilePlaybackAction extends BaseModuleAction {
             CodeSyncLogger.logEvent(String.format(
                     "An error occurred trying to perform file playback action. Invalid Config File. Error: %s",
                     error.getMessage()
-            ));
+            ), LogMessageType.CRITICAL);
 
             return;
         }
@@ -97,7 +98,7 @@ public class FilePlaybackAction extends BaseModuleAction {
             CodeSyncLogger.logEvent(String.format(
                 "An error occurred trying to perform file playback action. Repo '%s' not found in the config file.",
                 repoPath
-            ));
+            ), LogMessageType.WARNING);
 
             return;
         }
@@ -117,7 +118,7 @@ public class FilePlaybackAction extends BaseModuleAction {
                 "Branch '%s' not found in the config file repo '%s'.",
                 branchName,
                 repoPath
-            ));
+            ), LogMessageType.WARNING);
 
             return;
         }
@@ -134,7 +135,7 @@ public class FilePlaybackAction extends BaseModuleAction {
                         "File '%s' not found in the config file repo '%s'.",
                 relativeFilePath,
                 repoPath
-            ));
+            ), LogMessageType.WARNING);
 
             return;
         }

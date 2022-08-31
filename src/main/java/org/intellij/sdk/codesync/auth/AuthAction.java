@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.FileNotFoundException;
 
-import static org.intellij.sdk.codesync.Constants.USER_FILE_PATH;
+import static org.intellij.sdk.codesync.Constants.*;
 
 
 public class AuthAction extends AnAction {
@@ -52,7 +52,8 @@ public class AuthAction extends AnAction {
                             "An error occurred trying to logout the user, please tyr again later."
                     );
                     CodeSyncLogger.logEvent(
-                            String.format("[INTELLIJ_AUTH_ERROR]: auth file not found. Error: %s", error.getMessage())
+                            String.format("[INTELLIJ_AUTH_ERROR]: auth file not found. Error: %s", error.getMessage()),
+                            LogMessageType.ERROR
                     );
                     return;
                 } catch (InvalidYmlFileError error) {
@@ -61,7 +62,8 @@ public class AuthAction extends AnAction {
                             "An error occurred trying to logout the user, please tyr again later."
                     );
                     CodeSyncLogger.logEvent(
-                            String.format("[INTELLIJ_AUTH_ERROR]: Invalid auth file. Error: %s", error.getMessage())
+                            String.format("[INTELLIJ_AUTH_ERROR]: Invalid auth file. Error: %s", error.getMessage()),
+                            LogMessageType.CRITICAL
                     );
                     // Could not read user file.
                     return;
@@ -77,7 +79,8 @@ public class AuthAction extends AnAction {
                             "An error occurred trying to logout the user, please tyr again later."
                     );
                     CodeSyncLogger.logEvent(
-                            String.format("[INTELLIJ_AUTH_ERROR]: Could write to auth file. Error: %s", error.getMessage())
+                            String.format("[INTELLIJ_AUTH_ERROR]: Could write to auth file. Error: %s", error.getMessage()),
+                            LogMessageType.ERROR
                     );
                     return;
                 }
@@ -88,6 +91,10 @@ public class AuthAction extends AnAction {
                         "You have been logged out successfully."
                 );
             } else {
+                CodeSyncLogger.logEvent(
+                        "[INTELLIJ_AUTH]: User initiated login flow.",
+                        LogMessageType.DEBUG
+                );
                 BrowserUtil.browse(targetURL);
                 CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(e.getProject()));
             }
@@ -96,7 +103,7 @@ public class AuthAction extends AnAction {
             exc.printStackTrace();
             CodeSyncLogger.logEvent(String.format(
                 "[INTELLIJ_AUTH_ERROR]: IntelliJ Login Error, an error occurred during user authentication. Error: %s", exc.getMessage()
-            ));
+            ), LogMessageType.CRITICAL);
         }
     }
 }
