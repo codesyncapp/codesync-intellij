@@ -61,7 +61,8 @@ public class AuthAction extends AnAction {
                             "An error occurred trying to logout the user, please tyr again later."
                     );
                     CodeSyncLogger.critical(
-                            String.format("[INTELLIJ_AUTH_ERROR]: Invalid auth file. Error: %s", error.getMessage())
+                            String.format("[INTELLIJ_AUTH_ERROR]: Invalid auth file. Error: %s", error.getMessage()),
+                            pluginState.userEmail
                     );
                     // Could not read user file.
                     return;
@@ -97,9 +98,10 @@ public class AuthAction extends AnAction {
 
         } catch (Exception exc) {
             exc.printStackTrace();
-            CodeSyncLogger.critical(String.format(
-                "[INTELLIJ_AUTH_ERROR]: IntelliJ Login Error, an error occurred during user authentication. Error: %s", exc.getMessage()
-            ));
+            CodeSyncLogger.critical(
+                String.format("[INTELLIJ_AUTH_ERROR]: IntelliJ Login Error, an error occurred during user authentication. Error: %s", exc.getMessage()),
+                pluginState.userEmail
+            );
         }
     }
 }

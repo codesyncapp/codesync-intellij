@@ -82,7 +82,7 @@ public class PopulateBuffer {
             configFile = new ConfigFile(CONFIG_PATH);
         } catch (InvalidConfigFileError error) {
             CodeSyncLogger.critical(String.format(
-                    "[INTELLIJ_PLUGIN][POPULATE_BUFFER] Config file error, %s.\n", error.getMessage()
+                    "[POPULATE_BUFFER] Config file error, %s.\n", error.getMessage()
             ));
             return ;
         }
@@ -159,7 +159,7 @@ public class PopulateBuffer {
             configFile = new ConfigFile(CONFIG_PATH);
         } catch (InvalidConfigFileError error) {
             CodeSyncLogger.critical(String.format(
-                    "[INTELLIJ_PLUGIN][POPULATE_BUFFER] Config file error, %s.\n", error.getMessage()
+                    "[POPULATE_BUFFER] Config file error, %s.\n", error.getMessage()
             ));
             return reposToUpdate;
         }
@@ -170,7 +170,7 @@ public class PopulateBuffer {
             userFile = new UserFile(USER_FILE_PATH);
         } catch (FileNotFoundException | InvalidYmlFileError error) {
             CodeSyncLogger.critical(String.format(
-                    "[INTELLIJ_PLUGIN][POPULATE_BUFFER] User file error, %s.\n", error.getMessage()
+                    "[POPULATE_BUFFER] User file error, %s.\n", error.getMessage()
             ));
             return reposToUpdate;
         }
@@ -259,7 +259,7 @@ public class PopulateBuffer {
             if (populateBuffer.configFile == null || populateBuffer.configRepoBranch == null || populateBuffer.configRepo == null) {
                 // Skip it for now, it will be handled in the future.
                 CodeSyncLogger.critical(String.format(
-                        "[INTELLIJ][NON_IDE_EVENTS] Could not populate for missed events, because config file for repo '%s' could not be opened.",
+                        "[NON_IDE_EVENTS] Could not populate for missed events, because config file for repo '%s' could not be opened.",
                         repoPath
                 ));
             }

@@ -188,7 +188,7 @@ public class HandleBuffer {
                 CodeSyncLogger.critical(String.format(
                         "Access token for user '%s' not present so skipping diff file '%s'.",
                         configRepo.email, diffFile.originalDiffFile.getPath()
-                    )
+                    ), configRepo.email
                 );
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                 diffReposToIgnore.add(diffFile.repoPath);
@@ -366,7 +366,10 @@ public class HandleBuffer {
             try {
                 configFile.publishBranchUpdate(repo, configRepoBranch);
             } catch (InvalidConfigFileError error)  {
-                CodeSyncLogger.critical(String.format("Error while updating the config file with new file ID. \n%s", error.getMessage()));
+                CodeSyncLogger.critical(
+                    String.format("Error while updating the config file with new file ID. \n%s", error.getMessage()),
+                    repo.email
+                );
                 error.printStackTrace();
                 return false;
             }

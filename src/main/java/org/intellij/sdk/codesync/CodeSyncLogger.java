@@ -116,7 +116,7 @@ public class CodeSyncLogger {
         }
 
         if (user == null) {
-            // Can't log any thing.
+            // Can't log anything.
             return;
         } else if (user.getAccessKey() == null || user.getSecretKey() == null || user.getUserEmail() == null) {
             // can't log anything

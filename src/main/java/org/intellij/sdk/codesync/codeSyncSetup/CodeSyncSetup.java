@@ -516,7 +516,10 @@ public class CodeSyncSetup {
             JSONObject filePathAndIdsObject = (JSONObject) response.get("file_path_and_id");
 
             if (filePathAndIdsObject == null) {
-                CodeSyncLogger.critical("Invalid response from /init endpoint. Missing `file_path_and_id` key.");
+                CodeSyncLogger.critical(
+                    "Invalid response from /init endpoint. Missing `file_path_and_id` key.",
+                    email
+                );
 
                 return false;
             }
@@ -526,9 +529,10 @@ public class CodeSyncSetup {
             // Save File IDs
             saveFileIds(branchName, email, repoId, filePathAndIds, configRepo, configFile);
         } catch (ClassCastException | JsonProcessingException err) {
-            CodeSyncLogger.critical(String.format(
-                    "Error parsing the response of /init endpoint. Error: %s", err.getMessage()
-            ));
+            CodeSyncLogger.critical(
+                    String.format("Error parsing the response of /init endpoint. Error: %s", err.getMessage()),
+                    email
+            );
 
             return false;
         }
@@ -537,7 +541,7 @@ public class CodeSyncSetup {
             Map<String, Object> fileUrls = new HashMap<>();
             JSONObject urls = (JSONObject) response.get("urls");
             if (urls == null) {
-                CodeSyncLogger.critical("Invalid response from /init endpoint. Missing `urls` key.");
+                CodeSyncLogger.critical("Invalid response from /init endpoint. Missing `urls` key.", email);
 
                 return false;
             }
@@ -549,9 +553,10 @@ public class CodeSyncSetup {
             ReloadStateCommand reloadStateCommand = new ReloadStateCommand(project);
             reloadStateCommand.execute();
         } catch (ClassCastException | JsonProcessingException err) {
-            CodeSyncLogger.critical(String.format(
-                    "Error parsing the response of /init endpoint. Error: %s", err.getMessage()
-            ));
+            CodeSyncLogger.critical(
+                String.format("Error parsing the response of /init endpoint. Error: %s", err.getMessage()),
+                email
+            );
             return false;
         }
 
@@ -605,7 +610,8 @@ public class CodeSyncSetup {
             configFile.publishRepoUpdate(configRepo);
         } catch (InvalidConfigFileError error) {
             CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: Could not update config file. Error %s", error.getMessage())
+                String.format("[INTELLI_REPO_INIT_ERROR]: Could not update config file. Error %s", error.getMessage()),
+                userEmail
             );
         }
     }
@@ -630,7 +636,8 @@ public class CodeSyncSetup {
                 );
             } catch (RequestError | ClassCastException error) {
                 CodeSyncLogger.critical(
-                        String.format("[INTELLI_REPO_INIT_ERROR]: Could not upload file to S3. Error %s", error.getMessage())
+                    String.format("[INTELLI_REPO_INIT_ERROR]: Could not upload file to S3. Error %s", error.getMessage()),
+                    userEmail
                 );
             }
         }
