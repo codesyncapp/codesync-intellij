@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync.utils;
 
 import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
@@ -23,10 +24,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.intellij.sdk.codesync.Constants.DATE_TIME_FORMAT;
@@ -63,6 +61,37 @@ public class CommonUtils {
 
         // Default is Unix.
         return Constants.PlatformIdentifier.UNIX;
+    }
+
+    public static Calendar getIDEBuildDate () {
+        return ApplicationInfo.getInstance().getBuildDate();
+    }
+
+    /*
+    Returns true if the IDE version is equal to or older than the year and month given in the argument.
+
+    Example:
+        To check if IDE build is 2020.3 we can call `isIDEOlderOrEqual(2020, 3)`,
+        `true` would mean IDE is 2020.3 or older and `false` would mean IDE is pre-2020.3
+     */
+    public static boolean isIDEOlderOrEqual(int year, int month) {
+        Calendar buildDate = getIDEBuildDate();
+        int buildYear = buildDate.get(Calendar.YEAR);
+        int buildMonth = buildDate.get(Calendar.MONTH);
+
+        // build year higher than the given year means IDE is older than the given date.
+        if (buildYear > year) {
+            return true;
+        }
+
+        // build year less than the given year means IDE was released before the given date.
+        if (buildYear < year) {
+            return false;
+        }
+
+        // If IDE build year and given year is same then we only need to compare build months.
+        return buildMonth >= month;
+
     }
 
     @Nullable

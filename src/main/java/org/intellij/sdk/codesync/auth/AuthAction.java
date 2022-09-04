@@ -49,7 +49,7 @@ public class AuthAction extends AnAction {
                     userFile = new UserFile(USER_FILE_PATH);
                 } catch (FileNotFoundException error) {
                     NotificationManager.notifyError(
-                            "An error occurred trying to logout the user, please tyr again later."
+                            "An error occurred trying to logout the user, please tyr again later.", e.getProject()
                     );
                     CodeSyncLogger.error(
                             String.format("[INTELLIJ_AUTH_ERROR]: auth file not found. Error: %s", error.getMessage())
@@ -58,7 +58,7 @@ public class AuthAction extends AnAction {
                 } catch (InvalidYmlFileError error) {
                     error.printStackTrace();
                     NotificationManager.notifyError(
-                            "An error occurred trying to logout the user, please tyr again later."
+                            "An error occurred trying to logout the user, please tyr again later.", e.getProject()
                     );
                     CodeSyncLogger.critical(
                             String.format("[INTELLIJ_AUTH_ERROR]: Invalid auth file. Error: %s", error.getMessage()),
@@ -75,7 +75,7 @@ public class AuthAction extends AnAction {
                     userFile.writeYml();
                 } catch (FileNotFoundException | InvalidYmlFileError error) {
                     NotificationManager.notifyError(
-                            "An error occurred trying to logout the user, please tyr again later."
+                            "An error occurred trying to logout the user, please tyr again later.", e.getProject()
                     );
                     CodeSyncLogger.error(
                             String.format("[INTELLIJ_AUTH_ERROR]: Could write to auth file. Error: %s", error.getMessage())
@@ -86,7 +86,7 @@ public class AuthAction extends AnAction {
                 StateUtils.reloadState(e.getProject());
 
                 NotificationManager.notifyInformation(
-                        "You have been logged out successfully."
+                        "You have been logged out successfully.", e.getProject()
                 );
             } else {
                 CodeSyncLogger.debug(
