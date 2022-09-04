@@ -153,7 +153,9 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     DocumentListener changesHandler = new DocumentListener() {
       @Override
       public void documentChanged(@NotNull DocumentEvent event) {
-        ChangesHandler(event, project);
+        if (!project.isDisposed()){
+          ChangesHandler(event, project);
+        }
       }
     };
     changeHandlers.put(project.getBasePath(), new Pair<>(project, changesHandler));
