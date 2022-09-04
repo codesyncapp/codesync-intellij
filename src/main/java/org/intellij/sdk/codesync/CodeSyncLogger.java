@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync;
 
 import org.intellij.sdk.codesync.files.SequenceTokenFile;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.json.simple.JSONObject;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -52,6 +53,7 @@ public class CodeSyncLogger {
             msg.put("source", DIFF_SOURCE);
             msg.put("version", version);
             msg.put("type", type);
+            msg.put("platform", CommonUtils.getOS());
             InputLogEvent inputLogEvent = InputLogEvent.builder()
                     .message(msg.toJSONString())
                     .timestamp(System.currentTimeMillis())

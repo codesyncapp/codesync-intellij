@@ -56,7 +56,7 @@ public class FilePlaybackAction extends BaseModuleAction {
             repoPath = ProjectUtils.getRepoPath(virtualFile, project);
             repoName = ProjectUtils.getRepoName(virtualFile, project);
         } catch (FileNotInModuleError error) {
-            NotificationManager.notifyError("An error occurred trying to perform file playback action.");
+            NotificationManager.notifyError("An error occurred trying to perform file playback action.", project);
             CodeSyncLogger.warning(String.format(
                     "An error occurred trying to perform file playback action. file '%s' is not present in the project.",
                     virtualFile.getPath()

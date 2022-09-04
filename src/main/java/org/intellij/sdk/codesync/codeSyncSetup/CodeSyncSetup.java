@@ -119,21 +119,21 @@ public class CodeSyncSetup {
         }
     }
 
-    public static void setupCodeSyncRepoAsync(Project project, String repoPath, String repoName, boolean skipSyncPrompt, boolean skipUserInteraction) {
+    public static void setupCodeSyncRepoAsync(Project project, String repoPath, String repoName, boolean skipSyncPrompt, boolean isSyncingBranch) {
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
 
                 // Set the progress bar percentage and text
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                setupCodeSyncRepo(project, repoPath, repoName, codeSyncProgressIndicator, skipSyncPrompt, skipUserInteraction);
+                setupCodeSyncRepo(project, repoPath, repoName, codeSyncProgressIndicator, skipSyncPrompt, isSyncingBranch);
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
             }});
     }
 
-    public static void setupCodeSyncRepo(Project project, String repoPath, String repoName, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipSyncPrompt, boolean skipUserInteraction) {
+    public static void setupCodeSyncRepo(Project project, String repoPath, String repoName, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipSyncPrompt, boolean isSyncingBranch) {
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
             ConfigRepo configRepo = configFile.getRepo(repoPath);
@@ -144,7 +144,7 @@ public class CodeSyncSetup {
 
                 if (skipSyncPrompt) {
                     if (checkUserAccess(project, repoPath, repoName, branchName)) {
-                        syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, skipUserInteraction);
+                        syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, isSyncingBranch);
                     }
                     return;
                 }
@@ -325,7 +325,7 @@ public class CodeSyncSetup {
             }});
     }
 
-    public static void syncRepo(String repoPath, String repoName, String branchName, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipUserInteraction) {
+    public static void syncRepo(String repoPath, String repoName, String branchName, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean isSyncingBranch) {
         // create .syncignore file.
         createSyncIgnore(repoPath);
 
@@ -343,7 +343,7 @@ public class CodeSyncSetup {
 
         // Upload the repo.
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.SENDING_REPO);
-        boolean wasUploadSuccessful = uploadRepo(repoPath, repoName, filePaths, project, codeSyncProgressIndicator, skipUserInteraction);
+        boolean wasUploadSuccessful = uploadRepo(repoPath, repoName, filePaths, project, codeSyncProgressIndicator, isSyncingBranch);
 
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CLEANUP);
         if (wasUploadSuccessful) {
@@ -351,26 +351,33 @@ public class CodeSyncSetup {
             originalsRepoManager.delete();
 
             // Show success message and update state
-            if (!skipUserInteraction){
+            if (!isSyncingBranch){
                 NotificationManager.notifyInformation(Notification.INIT_SUCCESS_MESSAGE, project);
+            } else {
+                NotificationManager.notifyInformation(
+                    String.format(Notification.BRANCH_INIT_SUCCESS_MESSAGE, branchName), project);
             }
             StateUtils.reloadState(project);
         } else {
             // Show failure message.
-            if (!skipUserInteraction){
+            if (!isSyncingBranch){
                 NotificationManager.notifyError(Notification.INIT_FAILURE_MESSAGE, project);
+            } else {
+                NotificationManager.notifyError(
+                    String.format(Notification.BRANCH_INIT_FAILURE_MESSAGE, branchName), project
+                );
             }
         }
     }
 
-    public static void uploadRepoAsync(String repoPath, String repoName, String[] filePaths, Project project, boolean skipUserInteraction){
+    public static void uploadRepoAsync(String repoPath, String repoName, String[] filePaths, Project project, boolean isSyncingBranch){
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
 
                 // Set the progress bar percentage and text
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                uploadRepo(repoPath, repoName, filePaths, project, codeSyncProgressIndicator, skipUserInteraction);
+                uploadRepo(repoPath, repoName, filePaths, project, codeSyncProgressIndicator, isSyncingBranch);
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
@@ -384,7 +391,9 @@ public class CodeSyncSetup {
     @return: true if all repo upload operations (including repo upload and S3 upload) completed successfully,
         false otherwise.
     */
-    public static boolean uploadRepo(String repoPath, String repoName, String[] filePaths, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipUserInteraction) {
+    public static boolean uploadRepo(String repoPath, String repoName, String[] filePaths, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean isSyncingBranch) {
+        String branchName = Utils.GetGitBranch(repoPath);
+
         ConfigFile configFile;
         try {
             configFile = new ConfigFile(CONFIG_PATH);
@@ -392,12 +401,17 @@ public class CodeSyncSetup {
             e.printStackTrace();
 
             // Show error message.
-            NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+            if (!isSyncingBranch) {
+                NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+            } else {
+                NotificationManager.notifyInformation(
+                    String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
+                );
+            }
 
             // Can not proceed. This should never happen as the same check is applied at the start.
             return false;
         }
-        String branchName = Utils.GetGitBranch(repoPath);
 
         Map<String, Integer> branchFiles = new HashMap<>();
         JSONObject filesData = new JSONObject();
@@ -436,7 +450,13 @@ public class CodeSyncSetup {
                 e.printStackTrace();
 
                 // Show error message.
-                NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+                if (!isSyncingBranch) {
+                    NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+                } else {
+                    NotificationManager.notifyInformation(
+                            String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
+                    );
+                }
 
                 // Can not proceed. This should never happen as the same check is applied at the start.
                 return false;
@@ -451,7 +471,13 @@ public class CodeSyncSetup {
                     e.printStackTrace();
 
                     // Show error message.
-                    NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+                    if (!isSyncingBranch) {
+                        NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+                    } else {
+                        NotificationManager.notifyInformation(
+                                String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
+                        );
+                    }
 
                     // Can not proceed. This should never happen as the same check is applied at the start.
                     return false;
@@ -462,7 +488,13 @@ public class CodeSyncSetup {
         String accessToken = UserFile.getAccessToken();
         if (accessToken == null) {
             // Show error message.
-            NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+            if (!isSyncingBranch) {
+                NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+            } else {
+                NotificationManager.notifyInformation(
+                        String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
+                );
+            }
 
             // Can not proceed. This should never happen as the same check is applied at the start.
             return false;
@@ -470,7 +502,7 @@ public class CodeSyncSetup {
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         JSONObject payload = new JSONObject();
         boolean isPublic = false;
-        if (!skipUserInteraction) {
+        if (!isSyncingBranch) {
             isPublic = CodeSyncMessages.showYesNoMessage(
                     Notification.PUBLIC_OR_PRIVATE,
                     Notification.PUBLIC_OR_PRIVATE,
@@ -489,7 +521,14 @@ public class CodeSyncSetup {
         JSONObject response = codeSyncClient.uploadRepo(accessToken, payload);
 
         if (response.containsKey("error")) {
-            NotificationManager.notifyError(Notification.INIT_ERROR_MESSAGE, project);
+            // Show error message.
+            if (!isSyncingBranch) {
+                NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+            } else {
+                NotificationManager.notifyInformation(
+                        String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
+                );
+            }
             return false;
         }
         String email;

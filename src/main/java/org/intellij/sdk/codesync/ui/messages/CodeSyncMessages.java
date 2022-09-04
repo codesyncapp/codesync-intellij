@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 
+import icons.CodeSyncIcons;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 
 public class CodeSyncMessages {
@@ -14,7 +15,7 @@ public class CodeSyncMessages {
 
     public static boolean showYesNoMessage(String title, String message, Project project) {
         Integer result = CommonUtils.invokeAndWait(
-                () -> Messages.showYesNoDialog(project, message, title, Messages.getQuestionIcon()),
+                () -> Messages.showYesNoDialog(project, message, title, CodeSyncIcons.getCodeSyncIcon()),
                 ModalityState.defaultModalityState()
         );
 

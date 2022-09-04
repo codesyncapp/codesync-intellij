@@ -107,6 +107,10 @@ public final class Constants {
         public static String INIT_ERROR_MESSAGE = "Repo initialization errored out, please try again later. If problem persists then contact support.";
         public static String INIT_FAILURE_MESSAGE = "Repo could not be initialized successfully, please try again later. If problem persists then contact support.";
 
+        public static final String BRANCH_INIT_SUCCESS_MESSAGE = "Branch '%s' initialized successfully, your new branch will now be synced with CodeSync.";
+        public static final String BRANCH_INIT_ERROR_MESSAGE = "Branch '%s' initialization errored out, please try again later. If problem persists then contact support.";
+        public static final String BRANCH_INIT_FAILURE_MESSAGE = "Branch '%s' could not be initialized successfully, please try again later. If problem persists then contact support.";
+
         public static String REPO_SYNC_IN_PROGRESS_MESSAGE = "Repo '%s' is being synced with CodeSync.";
         public static String REPO_IN_SYNC_MESSAGE = "Repo '%s' is synced with CodeSync.";
         public static String REPO_ALREADY_IN_SYNC_MESSAGE = "Repo '%s' is already being synced with CodeSync.";
