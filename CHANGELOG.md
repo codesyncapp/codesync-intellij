@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.11.1] - 2022-09-06
+- Fixed compatibility issue for IDEs older than March 2020
+
 ## [3.11.0] - 2022-09-04
 - Add platform name in the CW log event.
 - Updated handling for notifications and deprecated the old API to start using the new one.
