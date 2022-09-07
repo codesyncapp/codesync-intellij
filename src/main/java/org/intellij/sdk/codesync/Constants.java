@@ -19,7 +19,7 @@ public final class Constants {
     private static final String WEB_APP_URL = configuration.getCodeSyncWebAppURL();
 
     public static String USER_HOME = System.getProperty("user.home");
-    public static String CODESYNC_ROOT =Paths.get(USER_HOME, CODESYNC_DIR_NAME).toString();
+    public static String CODESYNC_ROOT = Paths.get(USER_HOME, CODESYNC_DIR_NAME).toString();
     public static String DIFFS_REPO = Paths.get(CODESYNC_ROOT, ".diffs", ".intellij").toString();
     public static String LOCK_FILE = Paths.get(CODESYNC_ROOT, "locks.yml").toString();
     public static String ORIGINALS_REPO = Paths.get(CODESYNC_ROOT, ".originals").toString();
