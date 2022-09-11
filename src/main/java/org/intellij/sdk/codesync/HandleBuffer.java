@@ -104,7 +104,6 @@ public class HandleBuffer {
                 try {
                     HandleBuffer.handleBuffer(project);
                 } catch (Exception e) {
-                    HandleBuffer.diffFilesBeingProcessed.clear();
                     System.out.println("handleBuffer with error:");
                     e.printStackTrace();
                 }
@@ -362,7 +361,10 @@ public class HandleBuffer {
         File originalsFile = originalsFilePath.toFile();
 
         if (!originalsFile.exists()) {
-            System.out.printf("Original file: %s not found.\n", originalsFilePath);
+            CodeSyncLogger.error(String.format("Could not find the original file: %s not found.\n", originalsFilePath));
+
+            // We can not process this file yet, so we need to remove the diff and mark this a successful upload.
+            return true;
         }
 
         System.out.printf("Uploading new file: %s .\n", diffFile.fileRelativePath);

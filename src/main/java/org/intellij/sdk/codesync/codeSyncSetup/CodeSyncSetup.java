@@ -42,6 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -330,10 +331,16 @@ public class CodeSyncSetup {
 
     public static void syncRepo(String repoPath, String repoName, String branchName, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean isSyncingBranch) {
         // create .syncignore file.
-        createSyncIgnore(repoPath);
+        String syncIgnoreFilePath = createSyncIgnore(repoPath);
 
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.FETCH_FILES);
         String[] filePaths = FileUtils.listFiles(repoPath);
+
+        // For some reason, syncignore file is not added to original and shadow repo.
+        // We are enforcing here that syncignore is always added.
+        if (syncIgnoreFilePath != null && Arrays.stream(filePaths).noneMatch(syncIgnoreFilePath::equals)) {
+            filePaths = Stream.concat(Arrays.stream(filePaths), Stream.of(syncIgnoreFilePath)).toArray(String[]::new);
+        }
 
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.COPY_FILES);
         // Copy files to shadow repo.
@@ -685,7 +692,7 @@ public class CodeSyncSetup {
         }
     }
 
-    public static void createSyncIgnore(String repoPath) {
+    public static String createSyncIgnore(String repoPath) {
         File syncIgnoreFile = Paths.get(repoPath, ".syncignore").toFile();
         File gitIgnoreFile = Paths.get(repoPath, ".gitignore").toFile();;
         PluginState pluginState = StateUtils.getState(repoPath);
@@ -696,7 +703,7 @@ public class CodeSyncSetup {
 
         // no need to create .syncignore if it already exists.
         if (syncIgnoreFile.exists()) {
-            return ;
+            return syncIgnoreFile.getPath();
         }
 
         if (!gitIgnoreFile.exists()) {
@@ -715,7 +722,7 @@ public class CodeSyncSetup {
                 );
                 e.printStackTrace();
             }
-            return;
+            return null;
         }
 
         try {
@@ -733,5 +740,6 @@ public class CodeSyncSetup {
             e.printStackTrace();
         }
 
+        return syncIgnoreFile.getPath();
     }
 }
