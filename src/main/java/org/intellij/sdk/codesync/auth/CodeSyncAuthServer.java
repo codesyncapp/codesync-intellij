@@ -34,7 +34,7 @@ public class CodeSyncAuthServer {
     }
 
     public void start() throws Exception {
-        int maxThreads = 10;
+        int maxThreads = 20;
         int minThreads = 1;
         int idleTimeout = 120;
 

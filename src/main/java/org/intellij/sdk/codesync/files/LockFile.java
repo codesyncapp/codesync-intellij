@@ -4,8 +4,12 @@ import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.*;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -177,12 +181,21 @@ public class LockFile extends CodeSyncYmlFile {
 
     public void removeFileContents() {
         try {
-            FileWriter fileWriter = new FileWriter(this.lockFile);
-            // Write empty yml dict.
-            fileWriter.write("{}");
-            fileWriter.close();
-        } catch (IOException e) {
-            // Ignore the errors.
+            RandomAccessFile randomAccessFile = new RandomAccessFile(this.lockFile, "rw");
+            FileChannel fileChannel = randomAccessFile.getChannel();
+            FileLock fileLock = fileChannel.tryLock();
+            if (fileLock != null) {
+                try {
+                    FileWriter writer = new FileWriter(this.lockFile);
+                    writer.write("{}");
+                } catch (IOException | YAMLException e) {
+                    // Ignore errors
+                    e.printStackTrace();
+                }
+                fileLock.release();
+            }
+        } catch (IOException | OverlappingFileLockException e) {
+            // Ignore errors
             e.printStackTrace();
         }
     }
