@@ -77,6 +77,10 @@ public class SequenceTokenFile extends CodeSyncYmlFile {
     }
 
     private void loadYmlContent () throws InvalidYmlFileError {
+        if (this.contentsMap == null) {
+            return;
+        }
+
         try {
             for (Map.Entry<String, Object> userEntry : this.contentsMap.entrySet()) {
                 if (userEntry.getValue() != null) {

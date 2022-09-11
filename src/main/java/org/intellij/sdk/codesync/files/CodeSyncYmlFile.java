@@ -88,4 +88,32 @@ abstract public class CodeSyncYmlFile {
         return false;
     }
 
+    /*
+    Remove the contents of the file and replace with empty dict, this is useful when invalid yaml error is raised.
+    */
+    public void removeFileContents() {
+        try {
+            File ymlFile = this.getYmlFile();
+            if (!ymlFile.exists()) {
+                ymlFile.createNewFile();
+            }
+            RandomAccessFile randomAccessFile = new RandomAccessFile(ymlFile, "rw");
+            FileChannel fileChannel = randomAccessFile.getChannel();
+            FileLock fileLock = fileChannel.tryLock();
+            if (fileLock != null) {
+                try {
+                    FileWriter writer = new FileWriter(ymlFile);
+                    writer.write("{}");
+                } catch (IOException | YAMLException e) {
+                    // Ignore errors
+                    e.printStackTrace();
+                } finally {
+                    fileLock.release();
+                }
+            }
+        } catch (IOException | OverlappingFileLockException e) {
+            // Ignore errors
+            e.printStackTrace();
+        }
+    }
 }
