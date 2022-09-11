@@ -191,8 +191,9 @@ public class LockFile extends CodeSyncYmlFile {
                 } catch (IOException | YAMLException e) {
                     // Ignore errors
                     e.printStackTrace();
+                } finally {
+                    fileLock.release();
                 }
-                fileLock.release();
             }
         } catch (IOException | OverlappingFileLockException e) {
             // Ignore errors
@@ -209,8 +210,7 @@ public class LockFile extends CodeSyncYmlFile {
             return false;
         } catch (InvalidYmlFileError e) {
             // In case of invalid yml, empty the file.
-            e.printStackTrace();
-//            removeFileContents();
+            removeFileContents();
             return false;
         }
     }
