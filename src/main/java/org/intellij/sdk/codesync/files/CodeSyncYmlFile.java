@@ -52,26 +52,6 @@ abstract public class CodeSyncYmlFile {
             throw new FileNotFoundException(String.format("Yml file \"%s\" not found.", ymlFile.getPath()));
         }
         try {
-            RandomAccessFile randomAccessFile = new RandomAccessFile(ymlFile, "rw");
-            FileChannel fileChannel = randomAccessFile.getChannel();
-            FileLock fileLock = fileChannel.tryLock();
-            if (fileLock != null) {
-                try {
-                    FileWriter writer = new FileWriter(ymlFile);
-                    yaml.dump(yamlConfig, writer);
-                } catch (IOException | YAMLException e) {
-                    throw new InvalidYmlFileError(e.getMessage());
-                } finally {
-                    fileLock.release();
-                }
-            } else {
-                throw new FileLockedError(String.format("File lock could not be acquired for '%s'.", ymlFile.getPath()));
-            }
-        } catch (IOException | OverlappingFileLockException e) {
-            throw new FileLockedError(e.getMessage());
-        }
-
-        try {
             FileWriter writer = new FileWriter(ymlFile);
             yaml.dump(yamlConfig, writer);
         } catch (IOException | YAMLException e) {
