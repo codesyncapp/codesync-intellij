@@ -75,6 +75,8 @@ public class CodeSyncLogger {
             try {
                 PutLogEventsResponse putLogEventsResponse = logsClient.putLogEvents(putLogEventsRequest);
                 nextSequenceToken = putLogEventsResponse.nextSequenceToken();
+            } catch (InvalidSequenceTokenException error) {
+                nextSequenceToken = error.expectedSequenceToken();
             } catch (DataAlreadyAcceptedException error) {
                 nextSequenceToken = error.expectedSequenceToken();
             }

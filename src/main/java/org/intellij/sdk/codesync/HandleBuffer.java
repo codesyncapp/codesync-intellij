@@ -104,6 +104,7 @@ public class HandleBuffer {
                 try {
                     HandleBuffer.handleBuffer(project);
                 } catch (Exception e) {
+                    HandleBuffer.diffFilesBeingProcessed.clear();
                     System.out.println("handleBuffer with error:");
                     e.printStackTrace();
                 }
@@ -135,7 +136,12 @@ public class HandleBuffer {
             return;
         }
 
+        // Get the list of diffs and shuffle, shuffling is ned to make sure all repos get a chance for processing.
         DiffFile[] diffFiles = getDiffFiles(DIFFS_REPO, ".yml", configFile);
+        List<DiffFile> diffFilesList = Arrays.asList(diffFiles);
+        Collections.shuffle(diffFilesList);
+        diffFilesList.toArray(diffFiles);
+
         ArrayList<Pair<Integer, DiffFile>> diffsToSend = new ArrayList<>();
 
         // We only process one repo per handleBuffer call.
