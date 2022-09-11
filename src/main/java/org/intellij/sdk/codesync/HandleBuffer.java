@@ -119,7 +119,7 @@ public class HandleBuffer {
     }
 
     public static void handleBuffer(Project project) {
-        CodeSyncLock codeSyncLock = new CodeSyncLock(DIFFS_DAEMON_LOCK_KEY);
+        CodeSyncLock codeSyncLock = new CodeSyncLock(LockFileType.HANDLE_BUFFER_LOCK, DIFFS_DAEMON_LOCK_KEY);
         if (!codeSyncLock.acquireLock(project.getName())) {
             return;
         }

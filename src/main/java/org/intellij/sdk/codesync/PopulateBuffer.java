@@ -140,7 +140,7 @@ public class PopulateBuffer {
     }
 
     public static void populateBuffer(Project project) {
-        CodeSyncLock codeSyncLock = new CodeSyncLock(POPULATE_BUFFER_DAEMON_LOCK_KEY);
+        CodeSyncLock codeSyncLock = new CodeSyncLock(LockFileType.POPULATE_BUFFER_LOCK, POPULATE_BUFFER_DAEMON_LOCK_KEY);
         if (codeSyncLock.acquireLock(project.getName())) {
             Map<String, String> reposToUpdate = detectBranchChange();
             populateBufferForMissedEvents(reposToUpdate);

@@ -64,7 +64,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     // Schedule buffer handler.
     HandleBuffer.scheduleBufferHandler(project);
 
-    CodeSyncLock codeSyncProjectLock = new CodeSyncLock(project.getBasePath());
+    CodeSyncLock codeSyncProjectLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, project.getBasePath());
     boolean shouldContinue = codeSyncProjectLock.acquireLock(project.getName());
 
     // This code is executed multiple times when a project window is opened,
@@ -174,7 +174,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
 
   public void disposeProjectListeners(Project project) {
     // Release all the locks acquired by this project.
-    CodeSyncLock.releaseAllLocks(project.getName());
+    CodeSyncLock.releaseAllLocks(LockFileType.PROJECT_LOCK, project.getName());
 
     DocumentListener changesHandler = changeHandlers.get(project.getBasePath()).getSecond();
     if (changesHandler != null) {
