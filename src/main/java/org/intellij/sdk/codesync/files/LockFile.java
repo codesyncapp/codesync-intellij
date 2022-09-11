@@ -126,7 +126,7 @@ public class LockFile extends CodeSyncYmlFile {
             return super.readYml();
         } catch (InvalidYmlFileError e) {
             e.printStackTrace();
-            this.removeFileContents();
+//            this.removeFileContents();
             return new HashMap<>();
         }
     }
@@ -209,7 +209,8 @@ public class LockFile extends CodeSyncYmlFile {
             return false;
         } catch (InvalidYmlFileError e) {
             // In case of invalid yml, empty the file.
-            removeFileContents();
+            e.printStackTrace();
+//            removeFileContents();
             return false;
         }
     }

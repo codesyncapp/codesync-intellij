@@ -51,7 +51,6 @@ abstract public class CodeSyncYmlFile {
         if (!ymlFile.exists()) {
             throw new FileNotFoundException(String.format("Yml file \"%s\" not found.", ymlFile.getPath()));
         }
-
         try {
             RandomAccessFile randomAccessFile = new RandomAccessFile(ymlFile, "rw");
             FileChannel fileChannel = randomAccessFile.getChannel();
@@ -62,8 +61,9 @@ abstract public class CodeSyncYmlFile {
                     yaml.dump(yamlConfig, writer);
                 } catch (IOException | YAMLException e) {
                     throw new InvalidYmlFileError(e.getMessage());
+                } finally {
+                    fileLock.release();
                 }
-                fileLock.release();
             } else {
                 throw new FileLockedError(String.format("File lock could not be acquired for '%s'.", ymlFile.getPath()));
             }
