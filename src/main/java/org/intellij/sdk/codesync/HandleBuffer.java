@@ -119,7 +119,7 @@ public class HandleBuffer {
     }
 
     public static void handleBuffer(Project project) {
-        CodeSyncLock codeSyncLock = new CodeSyncLock(DIFFS_DAEMON_LOCK_KEY);
+        CodeSyncLock codeSyncLock = new CodeSyncLock(LockFileType.HANDLE_BUFFER_LOCK, DIFFS_DAEMON_LOCK_KEY);
         if (!codeSyncLock.acquireLock(project.getName())) {
             return;
         }
@@ -135,7 +135,12 @@ public class HandleBuffer {
             return;
         }
 
+        // Get the list of diffs and shuffle, shuffling is ned to make sure all repos get a chance for processing.
         DiffFile[] diffFiles = getDiffFiles(DIFFS_REPO, ".yml", configFile);
+        List<DiffFile> diffFilesList = Arrays.asList(diffFiles);
+        Collections.shuffle(diffFilesList);
+        diffFilesList.toArray(diffFiles);
+
         ArrayList<Pair<Integer, DiffFile>> diffsToSend = new ArrayList<>();
 
         // We only process one repo per handleBuffer call.
@@ -356,7 +361,10 @@ public class HandleBuffer {
         File originalsFile = originalsFilePath.toFile();
 
         if (!originalsFile.exists()) {
-            System.out.printf("Original file: %s not found.\n", originalsFilePath);
+            CodeSyncLogger.error(String.format("Could not find the original file: %s not found.", originalsFilePath));
+
+            // We can not process this file yet, so we need to remove the diff and mark this a successful upload.
+            return true;
         }
 
         System.out.printf("Uploading new file: %s .\n", diffFile.fileRelativePath);

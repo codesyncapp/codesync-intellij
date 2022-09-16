@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync.files;
 
 import com.google.common.io.CharStreams;
+import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.yaml.snakeyaml.DumperOptions;
@@ -51,26 +52,6 @@ abstract public class CodeSyncYmlFile {
         if (!ymlFile.exists()) {
             throw new FileNotFoundException(String.format("Yml file \"%s\" not found.", ymlFile.getPath()));
         }
-
-        try {
-            RandomAccessFile randomAccessFile = new RandomAccessFile(ymlFile, "rw");
-            FileChannel fileChannel = randomAccessFile.getChannel();
-            FileLock fileLock = fileChannel.tryLock();
-            if (fileLock != null) {
-                try {
-                    FileWriter writer = new FileWriter(ymlFile);
-                    yaml.dump(yamlConfig, writer);
-                } catch (IOException | YAMLException e) {
-                    throw new InvalidYmlFileError(e.getMessage());
-                }
-                fileLock.release();
-            } else {
-                throw new FileLockedError(String.format("File lock could not be acquired for '%s'.", ymlFile.getPath()));
-            }
-        } catch (IOException | OverlappingFileLockException e) {
-            throw new FileLockedError(e.getMessage());
-        }
-
         try {
             FileWriter writer = new FileWriter(ymlFile);
             yaml.dump(yamlConfig, writer);
@@ -108,4 +89,47 @@ abstract public class CodeSyncYmlFile {
         return false;
     }
 
+    /*
+    Remove the contents of the file and replace with empty dict, this is useful when invalid yaml error is raised.
+    */
+    public void removeFileContents() {
+        try {
+            File ymlFile = this.getYmlFile();
+            if (!ymlFile.exists()) {
+                if (!ymlFile.createNewFile()){
+                    CodeSyncLogger.critical(String.format(
+                            "Could not create a yml for while removing its contents with name '%s'.",
+                            this.getYmlFile().getPath()
+                    ));
+                }
+            }
+            RandomAccessFile randomAccessFile = new RandomAccessFile(ymlFile, "rw");
+            FileChannel fileChannel = randomAccessFile.getChannel();
+            FileLock fileLock = fileChannel.tryLock();
+            if (fileLock != null) {
+                writeEmptyDictToFile(ymlFile, fileLock);
+            }
+        } catch (IOException | OverlappingFileLockException e) {
+            // Ignore errors
+            CodeSyncLogger.error(String.format(
+                    "Error while removing the contents of the yml file with name '%s'. Error: %s",
+                    this.getYmlFile().getPath(), e.getMessage()
+            ));
+        }
+    }
+
+    private void writeEmptyDictToFile(File ymlFile, FileLock fileLock) throws IOException {
+        try {
+            FileWriter writer = new FileWriter(ymlFile);
+            writer.write("{}");
+        } catch (IOException | YAMLException e) {
+            // Ignore errors
+            CodeSyncLogger.error(String.format(
+                    "Error while writing empty dict to the yml file with name '%s'. Error: %s",
+                    ymlFile.getPath(), e.getMessage()
+            ));
+        } finally {
+            fileLock.release();
+        }
+    }
 }

@@ -61,7 +61,7 @@ public class ConfigFile extends CodeSyncYmlFile {
     }
 
     private void loadYmlContent () throws InvalidConfigFileError {
-        if (!this.contentsMap.containsKey("repos")) {
+        if (this.contentsMap == null || !this.contentsMap.containsKey("repos")) {
             // Empty config file.
             return;
         }

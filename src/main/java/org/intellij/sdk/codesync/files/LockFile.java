@@ -4,6 +4,7 @@ import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -15,7 +16,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.intellij.sdk.codesync.Constants.LOCK_FILE;
 
 /*
 A file that will contain information about different kinds of inter-process and inter-thread synchronization data.
@@ -126,7 +126,6 @@ public class LockFile extends CodeSyncYmlFile {
             return super.readYml();
         } catch (InvalidYmlFileError e) {
             e.printStackTrace();
-            this.removeFileContents();
             return new HashMap<>();
         }
     }
@@ -144,6 +143,10 @@ public class LockFile extends CodeSyncYmlFile {
     }
 
     private void loadYmlContent () throws InvalidYmlFileError {
+        if (this.contentsMap == null) {
+            // Empty file.
+            return;
+        }
         try {
             for (Map.Entry<String, Object> lockEntry : this.contentsMap.entrySet()) {
                 if (lockEntry.getValue() != null) {
@@ -173,18 +176,6 @@ public class LockFile extends CodeSyncYmlFile {
 
     public void updateLock (String category, Date expiry, String identifier) {
         this.locks.put(category, new Lock(category, expiry, identifier));
-    }
-
-    public void removeFileContents() {
-        try {
-            FileWriter fileWriter = new FileWriter(this.lockFile);
-            // Write empty yml dict.
-            fileWriter.write("{}");
-            fileWriter.close();
-        } catch (IOException e) {
-            // Ignore the errors.
-            e.printStackTrace();
-        }
     }
 
     public boolean publishNewLock (String category, Date expiry, String identifier) {

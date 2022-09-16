@@ -67,26 +67,4 @@ public class ProjectUtils {
         }
         return version;
     }
-
-    public static boolean acquireLock() {
-        File lockFile = new File(LOCK_FILE);
-        if (!lockFile.exists()) {
-            try {
-                lockFile.getParentFile().mkdirs();
-                org.apache.commons.io.FileUtils.writeStringToFile(lockFile, "", Charset.defaultCharset());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        try {
-            RandomAccessFile randomAccessFile = new RandomAccessFile(LOCK_FILE, "rw");
-            FileChannel fileChannel = randomAccessFile.getChannel();
-            FileLock fileLock = fileChannel.tryLock();
-            return fileLock != null;
-        } catch (IOException | OverlappingFileLockException e) {
-            return false;
-        }
-
-    }
 }
