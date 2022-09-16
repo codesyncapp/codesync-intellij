@@ -96,7 +96,12 @@ abstract public class CodeSyncYmlFile {
         try {
             File ymlFile = this.getYmlFile();
             if (!ymlFile.exists()) {
-                ymlFile.createNewFile();
+                if (!ymlFile.createNewFile()){
+                    CodeSyncLogger.critical(String.format(
+                            "Could not create a yml for while removing its contents with name '%s'.",
+                            this.getYmlFile().getPath()
+                    ));
+                }
             }
             RandomAccessFile randomAccessFile = new RandomAccessFile(ymlFile, "rw");
             FileChannel fileChannel = randomAccessFile.getChannel();
@@ -107,7 +112,7 @@ abstract public class CodeSyncYmlFile {
         } catch (IOException | OverlappingFileLockException e) {
             // Ignore errors
             CodeSyncLogger.error(String.format(
-                    "Error while removing the contents of the yml file with name '%s'. Error: ",
+                    "Error while removing the contents of the yml file with name '%s'. Error: %s",
                     this.getYmlFile().getPath(), e.getMessage()
             ));
         }
@@ -120,7 +125,7 @@ abstract public class CodeSyncYmlFile {
         } catch (IOException | YAMLException e) {
             // Ignore errors
             CodeSyncLogger.error(String.format(
-                    "Error while writing empty dict to the yml file with name '%s'. Error: ",
+                    "Error while writing empty dict to the yml file with name '%s'. Error: %s",
                     ymlFile.getPath(), e.getMessage()
             ));
         } finally {
