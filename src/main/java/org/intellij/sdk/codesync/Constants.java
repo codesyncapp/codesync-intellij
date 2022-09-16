@@ -21,10 +21,10 @@ public final class Constants {
     public static String USER_HOME = System.getProperty("user.home");
     public static String CODESYNC_ROOT = Paths.get(USER_HOME, CODESYNC_DIR_NAME).toString();
     public static String DIFFS_REPO = Paths.get(CODESYNC_ROOT, ".diffs", ".intellij").toString();
-    public static String LOCKS_FILE_DIR = Paths.get(CODESYNC_ROOT, ".locks").toString();
-    public static String PROJECT_LOCK_FILE = Paths.get(LOCKS_FILE_DIR, "project_locks.yml").toString();
-    public static String POPULATE_BUFFER_LOCK_FILE = Paths.get(LOCKS_FILE_DIR, "populate_buffer_locks.yml").toString();
-    public static String HANDLE_BUFFER_LOCK_FILE = Paths.get(LOCKS_FILE_DIR, "handle_buffer_locks.yml").toString();
+    public static final String LOCKS_FILE_DIR = Paths.get(CODESYNC_ROOT, ".locks").toString();
+    public static final String PROJECT_LOCK_FILE = Paths.get(LOCKS_FILE_DIR, "project_locks.yml").toString();
+    public static final String POPULATE_BUFFER_LOCK_FILE = Paths.get(LOCKS_FILE_DIR, "populate_buffer_locks.yml").toString();
+    public static final String HANDLE_BUFFER_LOCK_FILE = Paths.get(LOCKS_FILE_DIR, "handle_buffer_locks.yml").toString();
     public static String ORIGINALS_REPO = Paths.get(CODESYNC_ROOT, ".originals").toString();
     public static String DELETED_REPO = Paths.get(CODESYNC_ROOT, ".deleted").toString();
     public static String SHADOW_REPO = Paths.get(CODESYNC_ROOT, ".shadow").toString();

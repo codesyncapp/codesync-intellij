@@ -126,7 +126,6 @@ public class LockFile extends CodeSyncYmlFile {
             return super.readYml();
         } catch (InvalidYmlFileError e) {
             e.printStackTrace();
-//            this.removeFileContents();
             return new HashMap<>();
         }
     }
@@ -177,28 +176,6 @@ public class LockFile extends CodeSyncYmlFile {
 
     public void updateLock (String category, Date expiry, String identifier) {
         this.locks.put(category, new Lock(category, expiry, identifier));
-    }
-
-    public void removeFileContents() {
-        try {
-            RandomAccessFile randomAccessFile = new RandomAccessFile(this.lockFile, "rw");
-            FileChannel fileChannel = randomAccessFile.getChannel();
-            FileLock fileLock = fileChannel.tryLock();
-            if (fileLock != null) {
-                try {
-                    FileWriter writer = new FileWriter(this.lockFile);
-                    writer.write("{}");
-                } catch (IOException | YAMLException e) {
-                    // Ignore errors
-                    e.printStackTrace();
-                } finally {
-                    fileLock.release();
-                }
-            }
-        } catch (IOException | OverlappingFileLockException e) {
-            // Ignore errors
-            e.printStackTrace();
-        }
     }
 
     public boolean publishNewLock (String category, Date expiry, String identifier) {

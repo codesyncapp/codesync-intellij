@@ -361,7 +361,7 @@ public class HandleBuffer {
         File originalsFile = originalsFilePath.toFile();
 
         if (!originalsFile.exists()) {
-            CodeSyncLogger.error(String.format("Could not find the original file: %s not found.\n", originalsFilePath));
+            CodeSyncLogger.error(String.format("Could not find the original file: %s not found.", originalsFilePath));
 
             // We can not process this file yet, so we need to remove the diff and mark this a successful upload.
             return true;

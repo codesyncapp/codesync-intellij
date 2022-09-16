@@ -101,19 +101,23 @@ abstract public class CodeSyncYmlFile {
             FileChannel fileChannel = randomAccessFile.getChannel();
             FileLock fileLock = fileChannel.tryLock();
             if (fileLock != null) {
-                try {
-                    FileWriter writer = new FileWriter(ymlFile);
-                    writer.write("{}");
-                } catch (IOException | YAMLException e) {
-                    // Ignore errors
-                    e.printStackTrace();
-                } finally {
-                    fileLock.release();
-                }
+                writeEmptyDictToFile(ymlFile, fileLock);
             }
         } catch (IOException | OverlappingFileLockException e) {
             // Ignore errors
             e.printStackTrace();
+        }
+    }
+
+    private void writeEmptyDictToFile(File ymlFile, FileLock fileLock) throws IOException {
+        try {
+            FileWriter writer = new FileWriter(ymlFile);
+            writer.write("{}");
+        } catch (IOException | YAMLException e) {
+            // Ignore errors
+            e.printStackTrace();
+        } finally {
+            fileLock.release();
         }
     }
 }
