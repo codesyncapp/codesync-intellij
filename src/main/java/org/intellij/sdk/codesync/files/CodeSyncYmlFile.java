@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync.files;
 
 import com.google.common.io.CharStreams;
+import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.yaml.snakeyaml.DumperOptions;
@@ -105,7 +106,10 @@ abstract public class CodeSyncYmlFile {
             }
         } catch (IOException | OverlappingFileLockException e) {
             // Ignore errors
-            e.printStackTrace();
+            CodeSyncLogger.error(String.format(
+                    "Error while removing the contents of the yml file with name '%s'. Error: ",
+                    this.getYmlFile().getPath(), e.getMessage()
+            ));
         }
     }
 
@@ -115,7 +119,10 @@ abstract public class CodeSyncYmlFile {
             writer.write("{}");
         } catch (IOException | YAMLException e) {
             // Ignore errors
-            e.printStackTrace();
+            CodeSyncLogger.error(String.format(
+                    "Error while writing empty dict to the yml file with name '%s'. Error: ",
+                    ymlFile.getPath(), e.getMessage()
+            ));
         } finally {
             fileLock.release();
         }
