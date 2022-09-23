@@ -20,6 +20,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
@@ -251,5 +255,20 @@ public class CommonUtils {
         if (t instanceof RuntimeException) throw (RuntimeException) t;
 
         throw (E) t;
+    }
+
+    public static String getMacAddress() {
+        try {
+            InetAddress localHost = InetAddress.getLocalHost();
+            NetworkInterface networkInterface = NetworkInterface.getByInetAddress(localHost);
+            byte[] hardwareAddress = networkInterface.getHardwareAddress();
+            String[] hexadecimal = new String[hardwareAddress.length];
+            for (int i = 0; i < hardwareAddress.length; i++) {
+                hexadecimal[i] = String.format("%02X", hardwareAddress[i]);
+            }
+            return String.join(".", hexadecimal);
+        } catch (UnknownHostException | SocketException e) {
+            return "";
+        }
     }
 }

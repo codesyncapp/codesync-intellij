@@ -24,7 +24,7 @@ public class CodeSyncLogger {
     private static Integer retryCount = 0;
 
     private static void logMessageToCloudWatch(
-            String logGroupName, String userEmail, String accessKey, String secretKey, String message, String type
+            String logGroupName, String streamName, String accessKey, String secretKey, String message, String type
     ) {
         try
         {
@@ -37,7 +37,7 @@ public class CodeSyncLogger {
 
             try {
                 SequenceTokenFile sequenceTokenFile = new SequenceTokenFile(SEQUENCE_TOKEN_FILE_PATH);
-                SequenceTokenFile.SequenceToken sequenceTokenInstance = sequenceTokenFile.getSequenceToken(userEmail);
+                SequenceTokenFile.SequenceToken sequenceTokenInstance = sequenceTokenFile.getSequenceToken(streamName);
                 if (sequenceTokenInstance != null) {
                     sequenceToken = sequenceTokenInstance.getTokenString();
                 }
@@ -54,6 +54,7 @@ public class CodeSyncLogger {
             msg.put("version", version);
             msg.put("type", type);
             msg.put("platform", CommonUtils.getOS());
+            msg.put("mac_address", CommonUtils.getMacAddress());
             InputLogEvent inputLogEvent = InputLogEvent.builder()
                     .message(msg.toJSONString())
                     .timestamp(System.currentTimeMillis())
@@ -65,7 +66,7 @@ public class CodeSyncLogger {
             PutLogEventsRequest.Builder putLogEventsRequestBuilder = PutLogEventsRequest.builder()
                     .logEvents(Collections.singletonList(inputLogEvent))
                     .logGroupName(logGroupName)
-                    .logStreamName(userEmail);
+                    .logStreamName(streamName);
             if (sequenceToken != null) {
                 putLogEventsRequestBuilder = putLogEventsRequestBuilder.sequenceToken(sequenceToken);
             }
@@ -87,7 +88,7 @@ public class CodeSyncLogger {
                 SequenceTokenFile sequenceTokenFile = new SequenceTokenFile(SEQUENCE_TOKEN_FILE_PATH);
 
                 // user email is the streamName.
-                sequenceTokenFile.publishNewSequenceToken(userEmail, nextSequenceToken);
+                sequenceTokenFile.publishNewSequenceToken(streamName, nextSequenceToken);
             } catch (FileNotFoundException | InvalidYmlFileError e) {
                 // skip update to sequence file if not found;
                 return;
@@ -119,17 +120,28 @@ public class CodeSyncLogger {
             user = userFile.getActiveUser();
         }
 
-        if (user == null) {
-            // Can't log anything.
-            return;
-        } else if (user.getAccessKey() == null || user.getSecretKey() == null || user.getUserEmail() == null) {
-            // can't log anything
-            return;
+        String streamName, accessKey, secretKey;
+
+        if (user == null || user.getAccessKey() == null || user.getSecretKey() == null || user.getUserEmail() == null) {
+            //Log with the plugin user.
+            streamName = PLUGIN_USER_LOG_STREAM;
+            if (PLUGIN_USER_ACCESS_KEY == null || PLUGIN_USER_SECRET_KEY == null) {
+                // get directly from configuration, this will trigger config reload from the server.s
+                accessKey = configuration.getPluginUserAccessKey();
+                secretKey = configuration.getPluginUserSecretKey();
+            } else {
+                accessKey = PLUGIN_USER_ACCESS_KEY;
+                secretKey = PLUGIN_USER_SECRET_KEY;
+            }
+        } else {
+            streamName = user.getUserEmail();
+            accessKey = user.getAccessKey();
+            secretKey = user.getSecretKey();
         }
 
         try {
             logMessageToCloudWatch(
-                    CLIENT_LOGS_GROUP_NAME, user.getUserEmail(), user.getAccessKey(), user.getSecretKey(), message, type
+                    CLIENT_LOGS_GROUP_NAME, streamName, accessKey, secretKey, message, type
             );
         } catch (CloudWatchException e) {
             if (retryCount > 10) {

@@ -6,7 +6,7 @@ import org.intellij.sdk.codesync.configuration.ConfigurationFactory;
 import java.nio.file.Paths;
 
 public final class Constants {
-    private static final Configuration configuration = ConfigurationFactory.getConfiguration();
+    public static final Configuration configuration = ConfigurationFactory.getConfiguration();
 
     private Constants() {
         // restrict instantiation
@@ -69,7 +69,12 @@ public final class Constants {
     public static Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
     public static String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS z";
     public static String DIFF_SOURCE = "intellij";
-    public static String CLIENT_LOGS_GROUP_NAME = "client-logs";
+
+    public static final String CLIENT_LOGS_GROUP_NAME = configuration.getLogGroupName();
+    public static final String PLUGIN_USER = configuration.getPluginUser();
+    public static final String PLUGIN_USER_LOG_STREAM = configuration.getPluginUserLogStream();
+    public static final String PLUGIN_USER_ACCESS_KEY = configuration.getPluginUserAccessKey();
+    public static final String PLUGIN_USER_SECRET_KEY = configuration.getPluginUserSecretKey();
 
     public static String CONNECTION_ERROR_MESSAGE = "Error => Server is not available. Please try again in a moment";
 
