@@ -4,12 +4,8 @@ import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.utils.CommonUtils;
-import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.*;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.channels.OverlappingFileLockException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;

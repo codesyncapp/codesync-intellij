@@ -1,15 +1,19 @@
 package org.intellij.sdk.codesync.utils;
 
 import com.intellij.openapi.vfs.VirtualFile;
+import org.apache.commons.io.IOUtils;
 import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.Constants.*;
 import org.intellij.sdk.codesync.exceptions.FileInfoError;
 import org.intellij.sdk.codesync.exceptions.FileNotFoundError;
 import org.intellij.sdk.codesync.files.IgnoreFile;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.ParseException;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -57,11 +61,34 @@ public class FileUtils
         }
     }
 
-    /*
-        List absolute file paths of all the files in a directory.
+    public static String readURLToString(String url) {
+        try {
+            return IOUtils.toString(new URL(url), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            return null;
+        }
+    }
 
-        This is recursively list all the files containing in the given directory and all its sub-directories.
-         */
+    public static JSONObject readURLToJson(String url) {
+        String jsonString = readURLToString(url);
+        JSONObject jsonObject = null;
+        if (jsonString != null) {
+            try {
+                jsonObject = (JSONObject) JSONValue.parseWithException(jsonString);
+            } catch (ParseException e) {
+                CodeSyncLogger.error(String.format("Error parsing json of plugin user json file. Error: %s", e.getMessage()));
+                // Ignore error.
+            }
+        }
+
+        return jsonObject;
+    }
+
+    /*
+    List absolute file paths of all the files in a directory.
+
+    This is recursively list all the files containing in the given directory and all its sub-directories.
+    */
     public static String[] listFiles(String directory) {
         String[] filePaths = {};
         IgnoreFile ignoreFile;
@@ -92,8 +119,8 @@ public class FileUtils
     }
 
     /*
-        Check if the given file is a binary or a text file.
-         */
+    Check if the given file is a binary or a text file.
+    */
     public static boolean isBinaryFile(File file) {
         try {
             return !isTextFile(file);

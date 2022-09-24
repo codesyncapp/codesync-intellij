@@ -1,5 +1,8 @@
 package org.intellij.sdk.codesync.configuration;
 
+import org.intellij.sdk.codesync.utils.FileUtils;
+import org.json.simple.JSONObject;
+
 public class DevConfiguration implements Configuration {
     private static DevConfiguration configuration = null;
 
@@ -9,11 +12,29 @@ public class DevConfiguration implements Configuration {
     public String CODESYNC_APP = "http://localhost:3000";
     public String WEB_APP_URL = "http://localhost:3000";
 
+    public String LOG_GROUP_NAME = "client-logs-dev";
+    public String PLUGIN_USER = "codesync-dev-plugin-user";
+    public String PLUGIN_USER_LOG_STREAM = "codesync-dev-common-logs";
+    public String CREDENTIALS_URL = "https://codesync-public.s3.amazonaws.com/plugin-dev-user.json";
+
+    // These 2 values will be lazy-loaded.
+    public String PLUGIN_USER_ACCESS_KEY = null;
+    public String PLUGIN_USER_SECRET_KEY = null;
+
     public static DevConfiguration getInstance () {
         if (configuration == null) {
             configuration = new DevConfiguration();
         }
         return configuration;
+    }
+
+    /*
+    Fetch credentials from the server and populate attributes, ignore the errors.
+     */
+    private void fetchCredentials() {
+        JSONObject jsonObject = FileUtils.readURLToJson(this.CREDENTIALS_URL);
+        this.PLUGIN_USER_ACCESS_KEY = (String) jsonObject.getOrDefault("IAM_ACCESS_KEY", null);
+        this.PLUGIN_USER_SECRET_KEY = (String) jsonObject.getOrDefault("IAM_SECRET_KEY", null);
     }
 
     @Override
@@ -39,5 +60,38 @@ public class DevConfiguration implements Configuration {
     @Override
     public String getCodeSyncWebAppURL() {
         return WEB_APP_URL;
+    }
+
+    @Override
+    public String getPluginUser() {
+        return this.PLUGIN_USER;
+    }
+
+    @Override
+    public String getPluginUserLogStream() {
+        return this.PLUGIN_USER_LOG_STREAM;
+    }
+
+    @Override
+    public String getPluginUserAccessKey() {
+        // Lazy load values, we are using lazy loading because these values are used only for tiny set of use cases
+        if (this.PLUGIN_USER_ACCESS_KEY == null) {
+            this.fetchCredentials();
+        }
+        return this.PLUGIN_USER_ACCESS_KEY;
+    }
+
+    @Override
+    public String getPluginUserSecretKey() {
+        // Lazy load values, we are using lazy loading because these values are used only for tiny set of use cases
+        if (this.PLUGIN_USER_SECRET_KEY == null) {
+            this.fetchCredentials();
+        }
+        return this.PLUGIN_USER_SECRET_KEY;
+    }
+
+    @Override
+    public String getLogGroupName() {
+        return LOG_GROUP_NAME;
     }
 }
