@@ -151,12 +151,8 @@ public class CommonUtils {
     }
 
     public static boolean getBoolValue(Map<String, Object> map, String key, boolean defaultValue) {
-        return getBoolValue(map, key, defaultValue, false);
-    }
-
-    public static boolean getBoolValue(Map<String, Object> map, String key, boolean defaultValue, boolean nullValue) {
         Boolean binaryValue = (Boolean) map.getOrDefault(key, defaultValue);
-        return (binaryValue != null ? binaryValue: nullValue);
+        return (binaryValue != null ? binaryValue: false);
     }
 
     public static String getCurrentDatetime()  {

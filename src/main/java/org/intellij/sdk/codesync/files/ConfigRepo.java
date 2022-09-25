@@ -39,9 +39,9 @@ public class ConfigRepo {
             throw new InvalidConfigFileError("Config file is not valid.");
         }
 
-        this.isInSync = CommonUtils.getBoolValue(configRepoMap, "is_in_sync", true, false);
+        this.isInSync = CommonUtils.getBoolValue(configRepoMap, "is_in_sync", true);
         this.isDeleted = CommonUtils.getBoolValue(configRepoMap, "is_deleted", false);
-        this.isDisconnected = CommonUtils.getBoolValue(configRepoMap, "is_disconnected", false, true);
+        this.isDisconnected = CommonUtils.getBoolValue(configRepoMap, "is_disconnected", false);
         this.pauseNotification = CommonUtils.getBoolValue(configRepoMap, "pause_notification", false);
     }
 
