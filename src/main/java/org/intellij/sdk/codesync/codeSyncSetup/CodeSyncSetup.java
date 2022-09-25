@@ -116,6 +116,7 @@ public class CodeSyncSetup {
             configRepo.isDisconnected = true;
             configFile.publishRepoUpdate(configRepo);
 
+            StateUtils.reloadState(project);
             NotificationManager.notifyInformation(Notification.REPO_UNSYNCED, project);
         }
     }
