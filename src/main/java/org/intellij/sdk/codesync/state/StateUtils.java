@@ -84,7 +84,7 @@ public class StateUtils {
 
             if (configFile.hasRepo(repoPath)) {
                 ConfigRepo configRepo = configFile.getRepo(repoPath);
-                pluginState.isRepoInSync = configRepo.isSynced();
+                pluginState.isRepoInSync = configRepo.isSynced() && !configRepo.isDisconnected;
             } else {
                 pluginState.isRepoInSync = false;
             }
