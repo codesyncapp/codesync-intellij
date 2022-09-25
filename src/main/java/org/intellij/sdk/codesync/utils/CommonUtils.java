@@ -151,8 +151,12 @@ public class CommonUtils {
     }
 
     public static boolean getBoolValue(Map<String, Object> map, String key, boolean defaultValue) {
+        return getBoolValue(map, key, defaultValue, false);
+    }
+
+    public static boolean getBoolValue(Map<String, Object> map, String key, boolean defaultValue, boolean nullValue) {
         Boolean binaryValue = (Boolean) map.getOrDefault(key, defaultValue);
-        return (binaryValue != null ? binaryValue: false);
+        return (binaryValue != null ? binaryValue: nullValue);
     }
 
     public static String getCurrentDatetime()  {
@@ -267,7 +271,7 @@ public class CommonUtils {
                 hexadecimal[i] = String.format("%02X", hardwareAddress[i]);
             }
             return String.join(".", hexadecimal);
-        } catch (UnknownHostException | SocketException e) {
+        } catch (UnknownHostException | SocketException | NullPointerException e) {
             return "";
         }
     }
