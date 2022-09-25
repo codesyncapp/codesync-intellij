@@ -267,7 +267,7 @@ public class CommonUtils {
                 hexadecimal[i] = String.format("%02X", hardwareAddress[i]);
             }
             return String.join(".", hexadecimal);
-        } catch (UnknownHostException | SocketException e) {
+        } catch (UnknownHostException | SocketException | NullPointerException e) {
             return "";
         }
     }

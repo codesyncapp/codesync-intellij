@@ -22,6 +22,10 @@ public class CodeSyncSetupAction extends BaseModuleAction {
     public void update(@NotNull AnActionEvent e) {
         // Check if any of the modules inside this project are synced with codesync or not.
         // We will show repo playback button if even a single repo is synced.
+        Project project = e.getProject();
+        if (project ==  null) {
+            e.getPresentation().setEnabled(false);
+        }
         VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(e.getProject());
         if (contentRoots.length > 1) {
             // If more than one module are present in the project then a file must be open to show repo setup action
@@ -32,6 +36,10 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                     Presentation presentation = e.getPresentation();
                     presentation.setText("Disconnect Repo...");
                     presentation.setDescription("Disconnect repo...");
+                } else {
+                    Presentation presentation = e.getPresentation();
+                    presentation.setText("Connect Repo");
+                    presentation.setDescription("Connect repo with codeSync");
                 }
             } catch (AssertionError | FileNotInModuleError error) {
                 e.getPresentation().setEnabled(false);
@@ -43,6 +51,10 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                 Presentation presentation = e.getPresentation();
                 presentation.setText("Disconnect Repo...");
                 presentation.setDescription("Disconnect repo.");
+            } else {
+                Presentation presentation = e.getPresentation();
+                presentation.setText("Connect Repo");
+                presentation.setDescription("Connect repo with codeSync");
             }
         } else {
             e.getPresentation().setEnabled(false);
