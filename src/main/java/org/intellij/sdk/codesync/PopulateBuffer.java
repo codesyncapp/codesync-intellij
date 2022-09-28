@@ -214,7 +214,13 @@ public class PopulateBuffer {
             }
             String repoAndBranchName = String.format("%s-%s", repoPath, branchName);
             OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath, branchName);
-            if (!configRepo.containsBranch(branchName) && !reposBeingSynced.contains(repoAndBranchName)) {
+
+            if (reposBeingSynced.contains(repoAndBranchName)) {
+                // branch is already being synced.
+                continue;
+            }
+
+            if (!configRepo.containsBranch(branchName)) {
                 Project project = CommonUtils.getCurrentProject(repoPath);
                 if (Paths.get(originalsRepoManager.getBaseRepoBranchDir()).toFile().exists()) {
                     String[] filePaths = FileUtils.listFiles(repoPath);
@@ -230,7 +236,7 @@ public class PopulateBuffer {
 
             ConfigRepoBranch configRepoBranch = configRepo.getRepoBranch(branchName);
 
-            if (!configRepoBranch.hasValidFiles() && !reposBeingSynced.contains(repoAndBranchName)) {
+            if (!configRepoBranch.hasValidFiles()) {
                 Project project = CommonUtils.getCurrentProject(repoPath);
 
                 String[] filePaths = FileUtils.listFiles(repoPath);
