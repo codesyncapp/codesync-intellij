@@ -18,10 +18,21 @@ public class ConfigRepo {
 
     public Map<String, ConfigRepoBranch> branches = new HashMap<>();
 
+    /*
+    This constructor is used to add a new repo to the config file. So, we need to populate defaults for each property.
+    */
     public ConfigRepo (String repoPath) {
         this.repoPath = repoPath;
+        this.isInSync = true;
+        this.isDisconnected = false;
+        this.isDeleted = false;
+        this.pauseNotification = false;
     }
 
+    /*
+    This constructor is used to create an instance from the contents of the config file.
+    So, all required values must be coming in the configRepoMap argument.
+    */
     public ConfigRepo (String repoPath, Map<String, Object> configRepoMap) throws InvalidConfigFileError {
         this.repoPath = repoPath;
 
