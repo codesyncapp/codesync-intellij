@@ -45,6 +45,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.intellij.sdk.codesync.Constants.*;
+import static org.intellij.sdk.codesync.Constants.Notification.REPO_SYNC_MISSING_ACCESS_TOKEN_MESSAGE;
 
 public class CodeSyncSetup {
     public static final Set<String> reposBeingSynced = new HashSet<>();
@@ -140,14 +141,18 @@ public class CodeSyncSetup {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
             ConfigRepo configRepo = configFile.getRepo(repoPath);
 
+            String branchName = Utils.GetGitBranch(repoPath);
+            boolean hasAccessToken = checkUserAccess(project, repoPath, repoName, branchName);
+            if (!hasAccessToken) {
+                NotificationManager.notifyWarning(REPO_SYNC_MISSING_ACCESS_TOKEN_MESSAGE);
+                return;
+            }
+
             if (configFile.isRepoDisconnected(repoPath) || !configRepo.isSuccessfullySyncedWithBranch()) {
-                String branchName = Utils.GetGitBranch(repoPath);
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CHECK_USER_ACCESS);
 
                 if (skipSyncPrompt) {
-                    if (checkUserAccess(project, repoPath, repoName, branchName)) {
-                        syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, isSyncingBranch);
-                    }
+                    syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, isSyncingBranch);
                     return;
                 }
 
@@ -166,10 +171,7 @@ public class CodeSyncSetup {
                     );
 
                     if (shouldSyncRepo) {
-                        boolean hasAccessToken = checkUserAccess(project, repoPath, repoName, branchName);
-                        if (hasAccessToken) {
-                            syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, false);
-                        }
+                        syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, false);
                     }
                 }
             } else if (!configFile.isRepoDisconnected(repoPath)) {
@@ -301,7 +303,6 @@ public class CodeSyncSetup {
             ));
             NotificationManager.notifyError("There was a problem with login, please try again later.", project);
         }
-
 
         return false;
     }

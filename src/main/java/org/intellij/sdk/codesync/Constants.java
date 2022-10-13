@@ -122,10 +122,12 @@ public final class Constants {
         public static String REPO_SYNC_IN_PROGRESS_MESSAGE = "Repo '%s' is being synced with CodeSync.";
         public static String REPO_IN_SYNC_MESSAGE = "Repo '%s' is synced with CodeSync.";
         public static String REPO_ALREADY_IN_SYNC_MESSAGE = "Repo '%s' is already being synced with CodeSync.";
+        public static String REPO_SYNC_MISSING_ACCESS_TOKEN_MESSAGE = "Could not sync repo because of missing access token. Please login using CodeSync menu and try again.";
 
         public static String REPO_UNSYNC_CONFIRMATION = "Are you sure to continue? You won't be able to revert this!";
         public static String REPO_UNSYNCED = "Repo disconnected successfully";
         public static String REPO_UNSYNC_FAILED = "Could not unsync the repo";
+
     }
 
     public static final class LogMessageType {
