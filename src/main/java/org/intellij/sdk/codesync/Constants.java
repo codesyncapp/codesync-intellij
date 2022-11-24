@@ -59,7 +59,7 @@ public final class Constants {
     public static String API_HEALTHCHECK = String.format("%s/healthcheck", CODESYNC_HOST);
     public static String CODESYNC_AUTHORIZE_URL = String.format("%s/authorize", CODESYNC_HOST);
     public static String CODESYNC_LOGOUT_URL = String.format("%s/auth-logout", CODESYNC_HOST);
-    public static String CODESYNC_UPDATE_REPO_URL = String.format("%s/repos", API_ENDPOINT);
+    public static String CODESYNC_REPO_URL = String.format("%s/repos", API_ENDPOINT);
 
     public static String WEBAPP_DASHBOARD_URL = String.format("%s/", WEB_APP_URL);
     public static String PLANS_URL = String.format("%s/plans", WEB_APP_URL);
@@ -88,6 +88,7 @@ public final class Constants {
     // Locks used by other IDEs alongside intellij.
     public static String DIFFS_DAEMON_LOCK_KEY = "send_diffs_intellij";
     public static String POPULATE_BUFFER_DAEMON_LOCK_KEY = "populate_buffer";
+    public static String PRICING_ALERT_LOCK_KEY = "pricing_alert";
 
     public static final class PlatformIdentifier {
         private PlatformIdentifier() {

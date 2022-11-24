@@ -48,12 +48,20 @@ public class CodeSyncLock {
     }
 
     public boolean acquireLock(String identifier) {
+        // Default expiry is 5 minutes.
+        Instant defaultExpiry = Instant.now().plus(5, ChronoUnit.MINUTES);
+        return acquireLock(identifier, defaultExpiry);
+    }
+
+    /*
+    Acquire lock with custom expiry.
+     */
+    public boolean acquireLock(String identifier, Instant expiry) {
         if (this.lock == null) {
             return false;
         } else if (this.lock.isActive() && !this.lock.compareIdentifier(identifier)) {
             return false;
-        }else {
-            Instant expiry = Instant.now().plus(5, ChronoUnit.MINUTES);
+        } else {
             return this.lockFile.publishNewLock(this.lock.getCategory(), Date.from(expiry), identifier);
         }
     }

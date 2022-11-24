@@ -5,6 +5,7 @@ import kotlin.Pair;
 import org.apache.http.client.methods.HttpGet;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.exceptions.*;
+import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.DiffFile;
 import static org.intellij.sdk.codesync.Constants.*;
@@ -19,6 +20,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.intellij.sdk.codesync.models.UserPlan;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
+import org.intellij.sdk.codesync.utils.PricingAlerts;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -212,19 +214,32 @@ public class CodeSyncClient {
     }
 
     public JSONObject uploadRepo(String accessToken, JSONObject payload) {
+        JSONResponse jsonResponse;
         try {
-            return ClientUtils.sendPost(API_INIT, payload, accessToken);
+            jsonResponse = ClientUtils.sendPost(API_INIT, payload, accessToken);
         } catch (RequestError | InvalidJsonError error) {
-            error.printStackTrace();
-
             CodeSyncLogger.critical(String.format("Error while repo init, %s", error.getMessage()));
             return null;
         }
 
+        try {
+            jsonResponse.raiseForStatus();
+            return jsonResponse.getJsonResponse();
+        } catch (StatusCodeError statusCodeError) {
+            if (statusCodeError.getStatusCode()  == 402) {
+                PricingAlerts.setPlanLimitReached();
+            } else {
+                PricingAlerts.resetPlanLimitReached();
+            }
+            // In case of error status code, repo upload should stop.
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("error", statusCodeError.getMessage());
+            return errorResponse;
+        }
     }
 
     public JSONObject updateRepo(String accessToken, int repoId, JSONObject payload) {
-        String url = String.format("%s/%s", CODESYNC_UPDATE_REPO_URL, repoId);
+        String url = String.format("%s/%s", CODESYNC_REPO_URL, repoId);
 
         try {
             return ClientUtils.sendPatch(url, payload, accessToken);
@@ -234,6 +249,16 @@ public class CodeSyncClient {
             CodeSyncLogger.critical(String.format("Error while repo init, %s", error.getMessage()));
             return null;
         }
+    }
 
+    public JSONObject getRepoPlanInfo(String accessToken, int repoId) {
+        String url = String.format("%s/%s/upgrade_plan", CODESYNC_REPO_URL, repoId);
+
+        try {
+            return ClientUtils.sendGet(url, accessToken);
+        } catch (RequestError | InvalidJsonError error) {
+            CodeSyncLogger.error(String.format("Error while getting plan upgrade information. %s", error.getMessage()));
+            return null;
+        }
     }
 }

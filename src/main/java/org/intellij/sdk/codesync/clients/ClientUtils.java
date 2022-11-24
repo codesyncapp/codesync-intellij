@@ -18,7 +18,7 @@ import java.io.UnsupportedEncodingException;
 
 
 public class ClientUtils {
-    public static JSONObject sendPost(String url, JSONObject payload, String accessToken) throws RequestError, InvalidJsonError {
+    public static JSONResponse sendPost(String url, JSONObject payload, String accessToken) throws RequestError, InvalidJsonError {
         HttpClient httpClient = HttpClientBuilder.create().build();
         HttpPost post = new HttpPost(url);
 
@@ -43,23 +43,10 @@ public class ClientUtils {
             throw new RequestError("Could not make a successful request to CodeSync server.");
         }
 
-        String responseContent;
-        try {
-            responseContent = EntityUtils.toString(response.getEntity());
-        } catch (IOException | org.apache.http.ParseException error) {
-            System.out.printf("Error processing response of the request. Error: %s%n", error.getMessage());
-            throw new InvalidJsonError("Error processing response of the request.");
-        }
-
-        try {
-            return (JSONObject) JSONValue.parseWithException(responseContent);
-        } catch (org.json.simple.parser.ParseException | ClassCastException error) {
-            System.out.printf("Error processing response of the request. Error: %s%n", error.getMessage());
-            throw new InvalidJsonError("Error processing response of the request.");
-        }
+        return JSONResponse.from(response);
     }
 
-    public static JSONObject sendPost(String url, JSONObject payload) throws RequestError, InvalidJsonError {
+    public static JSONResponse sendPost(String url, JSONObject payload) throws RequestError, InvalidJsonError {
         return sendPost(url, payload, null);
     }
 
