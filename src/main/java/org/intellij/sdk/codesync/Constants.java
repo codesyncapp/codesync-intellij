@@ -38,6 +38,10 @@ public final class Constants {
     public static String GIT_IGNORE = ".gitignore";
     public static String[] IGNORABLE_DIRECTORIES = new String[]{".git", "node_modules", ".DS_Store", ".idea"};
     public static String CURRENT_GIT_BRANCH_COMMAND = "git rev-parse --abbrev-ref HEAD";
+    public static Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
+    public static String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS z";
+    public static String DIFF_SOURCE = "intellij";
+    public static String GA4_PARAMS = String.format("utm_medium=plugin&utm_source=%s", DIFF_SOURCE);
 
     public static String MAGIC_STRING = "IntellijIdeaRulezzz";
     public static String DIR_CREATE_EVENT = "VfsEvent[create dir";
@@ -47,7 +51,7 @@ public final class Constants {
     public static String FILE_DELETE_EVENT = "VfsEvent[deleted: file";
     public static String FILE_RENAME_EVENT = "VfsEvent[property(name) changed";
 
-    public static String REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION = "/^\\!/";
+    public static String REGEX_REPLACE_LEADING_ESCAPED_EXCLAMATION = "/^\\!/";
     public static Integer DIFFS_PER_ITERATION = 50;
 
     public static String WEBSOCKET_ENDPOINT = configuration.getCodeSyncWebsocketURL();
@@ -55,20 +59,18 @@ public final class Constants {
     public static String API_ENDPOINT = String.format("%s/v1", CODESYNC_HOST);
     public static String API_INIT = String.format("%s/init", API_ENDPOINT);
     public static String API_USERS = String.format("%s/users", API_ENDPOINT);
+    public static String CODESYNC_REPO_URL = String.format("%s/repos", API_ENDPOINT);
     public static String FILES_API_ENDPOINT = String.format("%s/files", API_ENDPOINT);
+
     public static String API_HEALTHCHECK = String.format("%s/healthcheck", CODESYNC_HOST);
     public static String CODESYNC_AUTHORIZE_URL = String.format("%s/authorize", CODESYNC_HOST);
     public static String CODESYNC_LOGOUT_URL = String.format("%s/auth-logout", CODESYNC_HOST);
-    public static String CODESYNC_REPO_URL = String.format("%s/repos", API_ENDPOINT);
+    public static String CODESYNC_PRICING_URL = String.format("%s/pricing?%s", CODESYNC_HOST, GA4_PARAMS);
 
     public static String WEBAPP_DASHBOARD_URL = String.format("%s/", WEB_APP_URL);
     public static String PLANS_URL = String.format("%s/plans", WEB_APP_URL);
     public static String REPO_PLAYBACK_LINK = String.format("%s/repos", WEB_APP_URL) + "/%s/playback";
     public static String FILE_PLAYBACK_LINK = String.format("%s/files", WEB_APP_URL) + "/%s/history";
-
-    public static Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
-    public static String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS z";
-    public static String DIFF_SOURCE = "intellij";
 
     public static final String CLIENT_LOGS_GROUP_NAME = configuration.getLogGroupName();
     public static final String PLUGIN_USER = configuration.getPluginUser();
@@ -127,6 +129,11 @@ public final class Constants {
         public static String REPO_UNSYNC_CONFIRMATION = "Are you sure to continue? You won't be able to revert this!";
         public static String REPO_UNSYNCED = "Repo disconnected successfully";
         public static String REPO_UNSYNC_FAILED = "Could not unsync the repo";
+
+        // Pricing plan related notification messages
+        public static final String UPGRADE = "Upgrade";
+        public static final String UPGRADE_PRICING_PLAN = "Please upgrade your plan to continue using CodeSync.";
+        public static final String UPGRADE_ORG_PLAN = "Please upgrade your Organization's plan to continue using CodeSync.";
     }
 
     public static final class LogMessageType {
