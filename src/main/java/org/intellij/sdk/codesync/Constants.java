@@ -50,7 +50,7 @@ public final class Constants {
     public static String REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION = "/^\\!/";
     public static Integer DIFFS_PER_ITERATION = 50;
 
-    public static String WEBSOCKET_ENDPOINT = String.format("wss://%s/v2/websocket", CODESYNC_DOMAIN);
+    public static String WEBSOCKET_ENDPOINT = configuration.getCodeSyncWebsocketURL();
 
     public static String API_ENDPOINT = String.format("%s/v1", CODESYNC_HOST);
     public static String API_INIT = String.format("%s/init", API_ENDPOINT);

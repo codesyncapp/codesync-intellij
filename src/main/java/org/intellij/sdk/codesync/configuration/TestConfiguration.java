@@ -9,6 +9,7 @@ public class TestConfiguration implements Configuration {
     public String CODESYNC_DIR_NAME = ".codesync-test";
     public String CODESYNC_DOMAIN = "example.com";
     public String CODESYNC_HOST = "https://example.com";
+    public String CODESYNC_WEBSOCKET = String.format("ws://%s/v2/websocket", CODESYNC_DOMAIN);
     public String CODESYNC_APP = "https://web.example.com";
     public String WEB_APP_URL = "https://web.example.com";
 
@@ -56,6 +57,9 @@ public class TestConfiguration implements Configuration {
     public String getCodeSyncAppURL() {
         return CODESYNC_APP;
     }
+
+    @Override
+    public String getCodeSyncWebsocketURL() { return this.CODESYNC_WEBSOCKET; }
 
     @Override
     public String getCodeSyncWebAppURL() {

@@ -200,6 +200,9 @@ public class PopulateBuffer {
                 CodeSyncLogger.error(String.format("Access token not found for repo: %s, %s`.", repoPath, configRepo.email));
                 continue;
             }
+            // If repo path does not exist anymore, skip it
+            File _repoPath = new File(repoPath);
+            if (!_repoPath.exists()) continue;
 
             String branchName = Utils.GetGitBranch(repoPath);
             ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branchName);

@@ -5,6 +5,7 @@ public interface Configuration {
     public abstract String getCodeSyncDomain();
     public abstract String getCodeSyncHost();
     public abstract String getCodeSyncAppURL();
+    public abstract String getCodeSyncWebsocketURL();
     public abstract String getCodeSyncWebAppURL();
     public abstract String getLogGroupName();
     public abstract String getPluginUser();

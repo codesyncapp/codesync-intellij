@@ -9,6 +9,7 @@ public class ProdConfiguration implements Configuration {
     public String CODESYNC_DIR_NAME = ".codesync";
     public String CODESYNC_DOMAIN = "api.codesync.com";
     public String CODESYNC_HOST = "https://api.codesync.com";
+    public String CODESYNC_WEBSOCKET = String.format("wss://%s/v2/websocket", CODESYNC_DOMAIN);
     public String CODESYNC_APP = "https://www.codesync.com";
     public String WEB_APP_URL = "https://www.codesync.com";
 
@@ -56,6 +57,9 @@ public class ProdConfiguration implements Configuration {
     public String getCodeSyncAppURL() {
         return CODESYNC_APP;
     }
+
+    @Override
+    public String getCodeSyncWebsocketURL() { return this.CODESYNC_WEBSOCKET; }
 
     @Override
     public String getCodeSyncWebAppURL() {
