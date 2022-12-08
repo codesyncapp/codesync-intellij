@@ -154,7 +154,7 @@ public class CodeSyncSetup {
                 // This is kind of a hack, but for some reason this method is called more than once during user is
                 // shown a popup to confirm repo syncing. and during the popup is open we do not want to show
                 // the message "Notification.REPO_SYNC_IN_PROGRESS_MESSAGE" (from the else statement.)
-                // That is why why this boolean is placed here.
+                // That is why this boolean is placed here.
                 boolean shouldSyncRepo = false;
                 // Do not ask user to sync repo, if it is already in progress.
                 if (!reposBeingSynced.contains(repoPath)) {

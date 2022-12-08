@@ -13,20 +13,15 @@ import org.intellij.sdk.codesync.models.User;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.util.EntityUtils;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.intellij.sdk.codesync.models.UserPlan;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.PricingAlerts;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 import java.net.HttpURLConnection;
@@ -103,9 +98,7 @@ public class CodeSyncClient {
     }
 
     public Integer uploadFile(String accessToken, ConfigRepo configRepo, DiffFile diffFile, File originalsFile) throws FileInfoError, InvalidJsonError, RequestError {
-        HttpClient httpClient = HttpClientBuilder.create().build();
-        HttpPost post = new HttpPost(this.filesURL);
-        JSONObject data = new JSONObject();
+        JSONObject payload = new JSONObject();
         Map<String, Object> fileInfo;
         try {
             fileInfo = FileUtils.getFileInfo(originalsFile.getAbsolutePath());
@@ -113,49 +106,41 @@ public class CodeSyncClient {
             throw new FileInfoError(String.format("File Info could not be found for %s", diffFile.fileRelativePath));
         }
 
-        data.put("repo_id", configRepo.id);
-        data.put("branch", diffFile.branch);
-        data.put("is_binary", (Boolean) fileInfo.get("isBinary"));
-        data.put("size", (long) fileInfo.get("size"));
-        data.put("file_path", diffFile.fileRelativePath);
-        data.put("created_at", CommonUtils.formatDate(diffFile.createdAt));
-
-        StringEntity dataStr;
+        payload.put("repo_id", configRepo.id);
+        payload.put("branch", diffFile.branch);
+        payload.put("is_binary", (Boolean) fileInfo.get("isBinary"));
+        payload.put("size", (long) fileInfo.get("size"));
+        payload.put("file_path", diffFile.fileRelativePath);
+        payload.put("created_at", CommonUtils.formatDate(diffFile.createdAt));
+        JSONResponse jsonResponse;
         try {
-            dataStr = new StringEntity(data.toJSONString());
-        } catch (UnsupportedEncodingException error) {
-            throw new InvalidJsonError("Invalid JSON encoding error raised while uploading file to the server.");
-        }
-
-        post.setEntity(dataStr);
-        post.setHeader("Content-type", "application/json");
-        post.setHeader("Authorization", String.format("Basic %s", accessToken));
-
-        HttpResponse response;
-        try {
-            response = httpClient.execute(post);
-        } catch (IOException e) {
-            throw new RequestError(String.format("Error uploading file. Error: %s", e.getMessage()));
-        }
-
-        String responseContent;
-        try {
-            responseContent = EntityUtils.toString(response.getEntity());
-        } catch (IOException | org.apache.http.ParseException error) {
+            jsonResponse = ClientUtils.sendPost(this.filesURL, payload, accessToken);
+        } catch (RequestError | InvalidJsonError error) {
             throw new RequestError(String.format("Error processing response of the file upload  request. Error: %s", error.getMessage()));
+        }
+
+        try {
+            jsonResponse.raiseForStatus();
+        } catch (StatusCodeError statusCodeError) {
+            if (statusCodeError.getStatusCode()  == 402) {
+                PricingAlerts.setPlanLimitReached();
+            } else {
+                PricingAlerts.resetPlanLimitReached();
+            }
+
+            throw new RequestError(String.format("Error processing response of the file upload  request. Error: %s", statusCodeError.getMessage()));
         }
 
         Long fileId;
-        JSONObject jsonResponse;
-        try {
-            jsonResponse = (JSONObject) JSONValue.parseWithException(responseContent);
-            fileId = (Long) jsonResponse.get("id");
-        } catch (org.json.simple.parser.ParseException | ClassCastException error) {
-            throw new RequestError(String.format("Error processing response of the file upload  request. Error: %s", error.getMessage()));
+        JSONObject responseObject = jsonResponse.getJsonResponse();
+        if(responseObject.containsKey("error")) {
+            throw new RequestError((String) ((JSONObject)responseObject.get("error")).get("message"));
         }
 
-        if(jsonResponse.containsKey("error")) {
-            throw new RequestError((String) ((JSONObject)jsonResponse.get("error")).get("message"));
+        try {
+            fileId = (Long) responseObject.get("id");
+        } catch (ClassCastException error) {
+            throw new RequestError(String.format("Error processing response of the file upload  request. Error: %s", error.getMessage()));
         }
 
         if (fileId == null) {
@@ -167,7 +152,7 @@ public class CodeSyncClient {
 
         Map<String, Object> preSignedURLData;
         try {
-            preSignedURLData = (Map<String, Object>) jsonResponse.get("url");
+            preSignedURLData = (Map<String, Object>) responseObject.get("url");
 
             long fileSize =  (long) fileInfo.get("size");
             if (fileSize > 0) {
@@ -175,7 +160,7 @@ public class CodeSyncClient {
             }
         } catch (ClassCastException error) {
             System.out.println("Could not upload the file.");
-            // this would probably mean that `url` is empty and we can skip aws upload.
+            // this would probably mean that `url` is empty, and we can skip aws upload.
         }
 
         originalsFile.delete();
