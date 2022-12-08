@@ -9,6 +9,7 @@ public class DevConfiguration implements Configuration {
     public String CODESYNC_DIR_NAME = ".codesync-dev";
     public String CODESYNC_DOMAIN = "127.0.0.1:8000";
     public String CODESYNC_HOST = "http://127.0.0.1:8000";
+    public String CODESYNC_WEBSOCKET = String.format("ws://%s/v2/websocket", CODESYNC_DOMAIN);
     public String CODESYNC_APP = "http://localhost:3000";
     public String WEB_APP_URL = "http://localhost:3000";
 
@@ -56,6 +57,9 @@ public class DevConfiguration implements Configuration {
     public String getCodeSyncAppURL() {
         return CODESYNC_APP;
     }
+
+    @Override
+    public String getCodeSyncWebsocketURL() { return this.CODESYNC_WEBSOCKET; }
 
     @Override
     public String getCodeSyncWebAppURL() {

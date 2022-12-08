@@ -298,11 +298,12 @@ public class Utils {
         System.out.println(String.format("Event: %s", time));
         String filePath = Paths.get(file.getPath()).toString();
 
-        String branch = Utils.GetGitBranch(repoPath);
         if (repoPath == null) {
             CodeSyncLogger.error("Skipping the update event, repoPath is null.");
             return;
         }
+
+        String branch = Utils.GetGitBranch(repoPath);
 
         String relativeFilePath = filePath
                 .replace(repoPath, "")
