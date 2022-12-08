@@ -6,7 +6,7 @@ import org.json.simple.JSONObject;
 public class DevConfiguration implements Configuration {
     private static DevConfiguration configuration = null;
 
-    public String CODESYNC_DIR_NAME = ".codesync-local";
+    public String CODESYNC_DIR_NAME = ".codesync-dev";
     public String CODESYNC_DOMAIN = "127.0.0.1:8000";
     public String CODESYNC_HOST = "http://127.0.0.1:8000";
     public String CODESYNC_WEBSOCKET = String.format("ws://%s/v2/websocket", CODESYNC_DOMAIN);
