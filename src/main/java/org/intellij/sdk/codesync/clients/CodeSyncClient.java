@@ -122,7 +122,7 @@ public class CodeSyncClient {
         try {
             jsonResponse.raiseForStatus();
         } catch (StatusCodeError statusCodeError) {
-            if (statusCodeError.getStatusCode()  == 402) {
+            if (statusCodeError.getStatusCode()  == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
                 PricingAlerts.setPlanLimitReached();
             } else {
                 PricingAlerts.resetPlanLimitReached();
@@ -211,7 +211,7 @@ public class CodeSyncClient {
             jsonResponse.raiseForStatus();
             return jsonResponse.getJsonResponse();
         } catch (StatusCodeError statusCodeError) {
-            if (statusCodeError.getStatusCode()  == 402) {
+            if (statusCodeError.getStatusCode()  == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
                 PricingAlerts.setPlanLimitReached();
             } else {
                 PricingAlerts.resetPlanLimitReached();

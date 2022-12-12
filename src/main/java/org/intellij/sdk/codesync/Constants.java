@@ -156,4 +156,13 @@ public final class Constants {
         public static String POPULATE_BUFFER_LOCK = "populate_buffer";
         public static String HANDLE_BUFFER_LOCK = "handle_buffer";
     }
+
+    public static final class ErrorCodes {
+        private ErrorCodes() {
+            // restrict instantiation
+        }
+
+        public static int REPO_SIZE_LIMIT_REACHED = 402;
+        public static int DIFFS_LIMIT_REACHED = 402;
+    }
 }

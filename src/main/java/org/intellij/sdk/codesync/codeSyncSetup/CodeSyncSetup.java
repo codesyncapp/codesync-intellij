@@ -32,6 +32,7 @@ import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
+import org.intellij.sdk.codesync.utils.PricingAlerts;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
@@ -403,6 +404,12 @@ public class CodeSyncSetup {
         false otherwise.
     */
     public static boolean uploadRepo(String repoPath, String repoName, String[] filePaths, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean isSyncingBranch) {
+
+        // If pla limit is reached then do not process new files.
+        if (PricingAlerts.getPlanLimitReached()) {
+            return false;
+        }
+
         String branchName = Utils.GetGitBranch(repoPath);
 
         ConfigFile configFile;

@@ -2,7 +2,6 @@ package org.intellij.sdk.codesync.clients;
 
 import kotlin.Pair;
 import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.Constants.*;
 import org.intellij.sdk.codesync.files.DiffFile;
 import org.intellij.sdk.codesync.exceptions.*;
 
@@ -12,6 +11,7 @@ import java.util.ArrayList;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.PricingAlerts;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.JSONArray;
@@ -33,6 +33,13 @@ public class CodeSyncWebSocketClient {
     }
 
     public void connect (ConnectionHandler connectionHandler) {
+        // If plan limit is reached then do not connect to the server.
+        if (PricingAlerts.getPlanLimitReached()) {
+            this.isConnected = false;
+            connectionHandler.handleConnected(false);
+            return;
+        }
+
         if (!this.isConnected) {
             this.webSocketClientEndpoint = new WebSocketClientEndpoint(this.uri);
             this.authenticate(isAuthenticated -> {
