@@ -310,6 +310,11 @@ public class HandleBuffer {
             diffsToSend.add(new Pair<>(fileId, diffFile));
         }
 
+
+        if (diffsToSend.size() == 0) {
+            return;
+        }
+
         if (configFile.isRepoDisconnected(currentRepo)) {
             CodeSyncLogger.info("Repo is disconnected so, skipping the diffs.");
             return;
