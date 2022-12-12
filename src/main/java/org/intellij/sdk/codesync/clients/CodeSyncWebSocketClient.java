@@ -2,6 +2,7 @@ package org.intellij.sdk.codesync.clients;
 
 import kotlin.Pair;
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.Constants;
 import org.intellij.sdk.codesync.files.DiffFile;
 import org.intellij.sdk.codesync.exceptions.*;
 
@@ -178,7 +179,12 @@ public class CodeSyncWebSocketClient {
                 Long statusCode = (Long) response.get("status");
                 String diffFilePath = (String) response.get("diff_file_path");
                 if (statusCode != 200) {
-                    CodeSyncLogger.critical(String.format("Diff upload failed with error: %s.", response.get("error")));
+                    if (statusCode == Constants.ErrorCodes.DIFFS_LIMIT_REACHED) {
+                        CodeSyncLogger.error("Failed sending diff, Repo-Size Limit has been reached.");
+                        PricingAlerts.setPlanLimitReached();
+                    } else {
+                        CodeSyncLogger.critical(String.format("Diff upload failed with error: %s.", response.get("error")));
+                    }
                 }
                 dataTransmissionHandler.dataTransferStatusCallback(statusCode == 200, diffFilePath);
             } catch (org.json.simple.parser.ParseException error) {

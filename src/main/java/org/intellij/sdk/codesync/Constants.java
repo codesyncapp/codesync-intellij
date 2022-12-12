@@ -67,10 +67,10 @@ public final class Constants {
     public static String CODESYNC_LOGOUT_URL = String.format("%s/auth-logout", CODESYNC_HOST);
     public static String CODESYNC_PRICING_URL = String.format("%s/pricing?%s", CODESYNC_HOST, GA4_PARAMS);
 
-    public static String WEBAPP_DASHBOARD_URL = String.format("%s/", WEB_APP_URL);
-    public static String PLANS_URL = String.format("%s/plans", WEB_APP_URL);
-    public static String REPO_PLAYBACK_LINK = String.format("%s/repos", WEB_APP_URL) + "/%s/playback";
-    public static String FILE_PLAYBACK_LINK = String.format("%s/files", WEB_APP_URL) + "/%s/history";
+    public static String WEBAPP_DASHBOARD_URL = String.format("%s/?%s", WEB_APP_URL, GA4_PARAMS);
+    public static String PLANS_URL = String.format("%s/plans?%s", WEB_APP_URL, GA4_PARAMS);
+    public static String REPO_PLAYBACK_LINK = String.format("%s/repos", WEB_APP_URL) + "/%s/playback?" + GA4_PARAMS;
+    public static String FILE_PLAYBACK_LINK = String.format("%s/files", WEB_APP_URL) + "/%s/history?" + GA4_PARAMS;
 
     public static final String CLIENT_LOGS_GROUP_NAME = configuration.getLogGroupName();
     public static final String PLUGIN_USER = configuration.getPluginUser();
