@@ -373,7 +373,7 @@ public class HandleBuffer {
             return true;
         }
 
-        // If pla limit is reached then do not process new files.
+        // If plan limit is reached then do not process new files.
         if (PricingAlerts.getPlanLimitReached()) {
             return false;
         }

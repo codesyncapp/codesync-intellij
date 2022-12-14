@@ -8,12 +8,14 @@ import static org.intellij.sdk.codesync.Constants.LockFileType;
 import static org.intellij.sdk.codesync.Constants.*;
 
 public class PricingAlerts {
-    private static void acquirePricingLock() {
+    private static boolean acquirePricingLock() {
         CodeSyncLock pricingAlertLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, PRICING_ALERT_LOCK_KEY);
-        pricingAlertLock.acquireLock(PRICING_ALERT_LOCK_KEY);
+        return pricingAlertLock.acquireLock(PRICING_ALERT_LOCK_KEY);
     }
 
     public static void setPlanLimitReached() {
+        // We only want to show notification once every 5 minutes, I have implemented that using locks with an expiry of
+        // 5 minutes. So, skip the notification if lock is not acquired.
         acquirePricingLock();
         boolean shouldUpgrade = CodeSyncMessages.showYesNoMessage(
                 Notification.UPGRADE, Notification.UPGRADE_PRICING_PLAN, CommonUtils.getCurrentProject()
