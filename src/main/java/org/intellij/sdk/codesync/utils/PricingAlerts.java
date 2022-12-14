@@ -8,9 +8,9 @@ import static org.intellij.sdk.codesync.Constants.LockFileType;
 import static org.intellij.sdk.codesync.Constants.*;
 
 public class PricingAlerts {
-    private static boolean acquirePricingLock() {
+    private static void acquirePricingLock() {
         CodeSyncLock pricingAlertLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, PRICING_ALERT_LOCK_KEY);
-        return pricingAlertLock.acquireLock(PRICING_ALERT_LOCK_KEY);
+        pricingAlertLock.acquireLock(PRICING_ALERT_LOCK_KEY);
     }
 
     public static void setPlanLimitReached() {
