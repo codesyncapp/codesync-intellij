@@ -1,8 +1,10 @@
 package org.intellij.sdk.codesync.utils;
 
 import com.intellij.ide.BrowserUtil;
+import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.ui.messages.CodeSyncMessages;
+import org.json.simple.JSONObject;
 
 import static org.intellij.sdk.codesync.Constants.LockFileType;
 import static org.intellij.sdk.codesync.Constants.*;
@@ -25,8 +27,23 @@ public class PricingAlerts {
         }
     }
 
-    public static void setPlanLimitReached(int repoId) {
-        acquirePricingLock();
+    public static void setPlanLimitReached(String accessToken, int repoId) {
+        CodeSyncClient codeSyncClient = new CodeSyncClient();
+        JSONObject response = codeSyncClient.getRepoPlanInfo(accessToken, repoId);
+        if (response != null) {
+            acquirePricingLock();
+            boolean isOrgRepo = (boolean) response.get("isOrgRepo");
+            String pricingUrl = (String) response.get("pricingUrl");
+            String message = isOrgRepo ? Notification.UPGRADE_ORG_PLAN : Notification.UPGRADE_PRICING_PLAN;
+            boolean shouldUpgrade = CodeSyncMessages.showYesNoMessage(
+                    Notification.UPGRADE, message, CommonUtils.getCurrentProject()
+            );
+            if (shouldUpgrade) {
+                BrowserUtil.browse(pricingUrl);
+            }
+        } else {
+            setPlanLimitReached();
+        }
     }
 
     public static void resetPlanLimitReached() {

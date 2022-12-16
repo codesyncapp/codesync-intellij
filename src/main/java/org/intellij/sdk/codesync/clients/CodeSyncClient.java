@@ -123,7 +123,7 @@ public class CodeSyncClient {
             jsonResponse.raiseForStatus();
         } catch (StatusCodeError statusCodeError) {
             if (statusCodeError.getStatusCode()  == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
-                PricingAlerts.setPlanLimitReached();
+                PricingAlerts.setPlanLimitReached(accessToken, configRepo.id);
             } else {
                 PricingAlerts.resetPlanLimitReached();
             }
