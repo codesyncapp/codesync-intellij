@@ -32,8 +32,8 @@ public class PricingAlerts {
         JSONObject response = codeSyncClient.getRepoPlanInfo(accessToken, repoId);
         if (response != null) {
             acquirePricingLock();
-            boolean isOrgRepo = (boolean) response.get("isOrgRepo");
-            String pricingUrl = (String) response.get("pricingUrl");
+            boolean isOrgRepo = (boolean) response.get("is_org_repo");
+            String pricingUrl = (String) response.get("url");
             String message = isOrgRepo ? Notification.UPGRADE_ORG_PLAN : Notification.UPGRADE_PRICING_PLAN;
             boolean shouldUpgrade = CodeSyncMessages.showYesNoMessage(
                     Notification.UPGRADE, message, CommonUtils.getCurrentProject()
