@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -106,6 +107,23 @@ public class CommonUtils {
         } catch (ParseException pe) {
             return null;
         }
+    }
+
+    /*
+    Using instant because it handles time zone correctly.
+     */
+    @Nullable
+    public static Instant parseDateToInstant(String dateString) {
+        SimpleDateFormat pattern = new SimpleDateFormat(DATE_TIME_FORMAT);
+        try {
+            return new Date(pattern.parse(dateString).getTime()).toInstant();
+        } catch (ParseException pe) {
+            return null;
+        }
+    }
+
+    public static String formatDate(Instant instant) {
+        return formatDate(Date.from(instant), DATE_TIME_FORMAT);
     }
 
     public static String formatDate(Date date) {

@@ -46,22 +46,22 @@ public class LockFile extends CodeSyncYmlFile {
     Map<String, Lock> locks = new HashMap<>();
 
     public static class Lock {
-        Date expiry;
+        Instant expiry;
         String category, identifier;
 
         public Lock(String category, Map<String, Object> lockContents) {
             this.category = category;
-            this.expiry = CommonUtils.parseDate((String) lockContents.get("expiry"));
+            this.expiry = CommonUtils.parseDateToInstant((String) lockContents.get("expiry"));
             this.identifier = (String) lockContents.get("identifier");
         }
 
-        public Lock(String category, Date expiry, String identifier) {
+        public Lock(String category, Instant expiry, String identifier) {
             this.category = category;
             this.expiry = expiry;
             this.identifier = identifier;
         }
 
-        public Date getExpiry () {
+        public Instant getExpiry () {
             return this.expiry;
         }
 
@@ -70,7 +70,8 @@ public class LockFile extends CodeSyncYmlFile {
         }
 
         public boolean isActive () {
-            return this.expiry.getTime()/1000 >  Instant.now().getEpochSecond();
+            // return true if `this.expiry` is in the future.
+            return this.expiry.compareTo(Instant.now()) > 0 ;
         }
 
         /*
@@ -160,7 +161,7 @@ public class LockFile extends CodeSyncYmlFile {
     */
     public Lock getLock (String category) {
         Instant past = Instant.now().minus(1, ChronoUnit.MINUTES);
-        return this.locks.getOrDefault(category, new Lock(category, Date.from(past), null));
+        return this.locks.getOrDefault(category, new Lock(category, past, null));
     }
 
     /*
@@ -170,11 +171,11 @@ public class LockFile extends CodeSyncYmlFile {
         return this.locks.values().toArray(new Lock[0]);
     }
 
-    public void updateLock (String category, Date expiry, String identifier) {
+    public void updateLock (String category, Instant expiry, String identifier) {
         this.locks.put(category, new Lock(category, expiry, identifier));
     }
 
-    public boolean publishNewLock (String category, Date expiry, String identifier) {
+    public boolean publishNewLock (String category, Instant expiry, String identifier) {
         this.updateLock(category, expiry, identifier);
         try {
             this.writeYml();

@@ -18,57 +18,58 @@ public final class Constants {
     private static final String CODESYNC_APP = configuration.getCodeSyncAppURL();
     private static final String WEB_APP_URL = configuration.getCodeSyncWebAppURL();
 
-    public static String USER_HOME = System.getProperty("user.home");
-    public static String CODESYNC_ROOT = Paths.get(USER_HOME, CODESYNC_DIR_NAME).toString();
-    public static String DIFFS_REPO = Paths.get(CODESYNC_ROOT, ".diffs", ".intellij").toString();
+    public static final String USER_HOME = System.getProperty("user.home");
+    public static final String CODESYNC_ROOT = Paths.get(USER_HOME, CODESYNC_DIR_NAME).toString();
+    public static final String DIFFS_REPO = Paths.get(CODESYNC_ROOT, ".diffs", ".intellij").toString();
     public static final String LOCKS_FILE_DIR = Paths.get(CODESYNC_ROOT, ".locks").toString();
     public static final String PROJECT_LOCK_FILE = Paths.get(LOCKS_FILE_DIR, "project_locks.yml").toString();
     public static final String POPULATE_BUFFER_LOCK_FILE = Paths.get(LOCKS_FILE_DIR, "populate_buffer_locks.yml").toString();
     public static final String HANDLE_BUFFER_LOCK_FILE = Paths.get(LOCKS_FILE_DIR, "handle_buffer_locks.yml").toString();
-    public static String ORIGINALS_REPO = Paths.get(CODESYNC_ROOT, ".originals").toString();
-    public static String DELETED_REPO = Paths.get(CODESYNC_ROOT, ".deleted").toString();
-    public static String SHADOW_REPO = Paths.get(CODESYNC_ROOT, ".shadow").toString();
-    public static String CONFIG_PATH = Paths.get(CODESYNC_ROOT, "config.yml").toString();
-    public static String USER_FILE_PATH = Paths.get(CODESYNC_ROOT, "user.yml").toString();
-    public static String SEQUENCE_TOKEN_FILE_PATH = Paths.get(CODESYNC_ROOT, "sequence_token.yml").toString();
+    public static final String ORIGINALS_REPO = Paths.get(CODESYNC_ROOT, ".originals").toString();
+    public static final String DELETED_REPO = Paths.get(CODESYNC_ROOT, ".deleted").toString();
+    public static final String SHADOW_REPO = Paths.get(CODESYNC_ROOT, ".shadow").toString();
+    public static final String CONFIG_PATH = Paths.get(CODESYNC_ROOT, "config.yml").toString();
+    public static final String USER_FILE_PATH = Paths.get(CODESYNC_ROOT, "user.yml").toString();
+    public static final String SEQUENCE_TOKEN_FILE_PATH = Paths.get(CODESYNC_ROOT, "sequence_token.yml").toString();
+    public static final String DEFAULT_BRANCH = "default";
+    public static final String GIT_REPO = ".git";
+    public static final String SYNC_IGNORE = ".syncignore";
+    public static final String GIT_IGNORE = ".gitignore";
+    public static final String[] IGNORABLE_DIRECTORIES = new String[]{".git", "node_modules", ".DS_Store", ".idea"};
+    public static final String CURRENT_GIT_BRANCH_COMMAND = "git rev-parse --abbrev-ref HEAD";
+    public static final Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
+    public static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS z";
+    public static final String DIFF_SOURCE = "intellij";
+    public static final String GA4_PARAMS = String.format("utm_medium=plugin&utm_source=%s", DIFF_SOURCE);
 
-    public static String DEFAULT_BRANCH = "default";
-    public static String GIT_REPO = ".git";
-    public static String SYNC_IGNORE = ".syncignore";
-    public static String GIT_IGNORE = ".gitignore";
-    public static String[] IGNORABLE_DIRECTORIES = new String[]{".git", "node_modules", ".DS_Store", ".idea"};
-    public static String CURRENT_GIT_BRANCH_COMMAND = "git rev-parse --abbrev-ref HEAD";
+    public static final String MAGIC_STRING = "IntellijIdeaRulezzz";
+    public static final String DIR_CREATE_EVENT = "VfsEvent[create dir";
+    public static final String EMPTY_DIR_CREATE_EVENT = "VfsEvent[create (empty) dir";
+    public static final String FILE_COPY_EVENT = "VfsEvent[copy file";
+    public static final String FILE_CREATE_EVENT = "VfsEvent[create file";
+    public static final String FILE_DELETE_EVENT = "VfsEvent[deleted: file";
+    public static final String FILE_RENAME_EVENT = "VfsEvent[property(name) changed";
 
-    public static String MAGIC_STRING = "IntellijIdeaRulezzz";
-    public static String DIR_CREATE_EVENT = "VfsEvent[create dir";
-    public static String EMPTY_DIR_CREATE_EVENT = "VfsEvent[create (empty) dir";
-    public static String FILE_COPY_EVENT = "VfsEvent[copy file";
-    public static String FILE_CREATE_EVENT = "VfsEvent[create file";
-    public static String FILE_DELETE_EVENT = "VfsEvent[deleted: file";
-    public static String FILE_RENAME_EVENT = "VfsEvent[property(name) changed";
+    public static final String REGEX_REPLACE_LEADING_ESCAPED_EXCLAMATION = "/^\\!/";
+    public static final Integer DIFFS_PER_ITERATION = 50;
 
-    public static String REGEX_REPLACE_LEADING_EXCAPED_EXCLAMATION = "/^\\!/";
-    public static Integer DIFFS_PER_ITERATION = 50;
+    public static final String WEBSOCKET_ENDPOINT = configuration.getCodeSyncWebsocketURL();
 
-    public static String WEBSOCKET_ENDPOINT = configuration.getCodeSyncWebsocketURL();
+    public static final String API_ENDPOINT = String.format("%s/v1", CODESYNC_HOST);
+    public static final String API_INIT = String.format("%s/init", API_ENDPOINT);
+    public static final String API_USERS = String.format("%s/users", API_ENDPOINT);
+    public static final String CODESYNC_REPO_URL = String.format("%s/repos", API_ENDPOINT);
+    public static final String FILES_API_ENDPOINT = String.format("%s/files", API_ENDPOINT);
 
-    public static String API_ENDPOINT = String.format("%s/v1", CODESYNC_HOST);
-    public static String API_INIT = String.format("%s/init", API_ENDPOINT);
-    public static String API_USERS = String.format("%s/users", API_ENDPOINT);
-    public static String FILES_API_ENDPOINT = String.format("%s/files", API_ENDPOINT);
-    public static String API_HEALTHCHECK = String.format("%s/healthcheck", CODESYNC_HOST);
-    public static String CODESYNC_AUTHORIZE_URL = String.format("%s/authorize", CODESYNC_HOST);
-    public static String CODESYNC_LOGOUT_URL = String.format("%s/auth-logout", CODESYNC_HOST);
-    public static String CODESYNC_UPDATE_REPO_URL = String.format("%s/repos", API_ENDPOINT);
+    public static final String API_HEALTHCHECK = String.format("%s/healthcheck", CODESYNC_HOST);
+    public static final String CODESYNC_AUTHORIZE_URL = String.format("%s/authorize", CODESYNC_HOST);
+    public static final String CODESYNC_LOGOUT_URL = String.format("%s/auth-logout", CODESYNC_HOST);
+    public static final String CODESYNC_PRICING_URL = String.format("%s/pricing?%s", CODESYNC_HOST, GA4_PARAMS);
 
-    public static String WEBAPP_DASHBOARD_URL = String.format("%s/", WEB_APP_URL);
-    public static String PLANS_URL = String.format("%s/plans", WEB_APP_URL);
-    public static String REPO_PLAYBACK_LINK = String.format("%s/repos", WEB_APP_URL) + "/%s/playback";
-    public static String FILE_PLAYBACK_LINK = String.format("%s/files", WEB_APP_URL) + "/%s/history";
-
-    public static Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
-    public static String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS z";
-    public static String DIFF_SOURCE = "intellij";
+    public static final String WEBAPP_DASHBOARD_URL = String.format("%s/?%s", WEB_APP_URL, GA4_PARAMS);
+    public static final String PLANS_URL = String.format("%s/plans?%s", WEB_APP_URL, GA4_PARAMS);
+    public static final String REPO_PLAYBACK_LINK = String.format("%s/repos", WEB_APP_URL) + "/%s/playback?" + GA4_PARAMS;
+    public static final String FILE_PLAYBACK_LINK = String.format("%s/files", WEB_APP_URL) + "/%s/history?" + GA4_PARAMS;
 
     public static final String CLIENT_LOGS_GROUP_NAME = configuration.getLogGroupName();
     public static final String PLUGIN_USER = configuration.getPluginUser();
@@ -76,28 +77,29 @@ public final class Constants {
     public static final String PLUGIN_USER_ACCESS_KEY = configuration.getPluginUserAccessKey();
     public static final String PLUGIN_USER_SECRET_KEY = configuration.getPluginUserSecretKey();
 
-    public static String CONNECTION_ERROR_MESSAGE = "Error => Server is not available. Please try again in a moment";
+    public static final String CONNECTION_ERROR_MESSAGE = "Error => Server is not available. Please try again in a moment";
 
-    public static Integer FILE_SIZE_AS_COPY = 100;  // 100 bytes;
-    public static double SEQUENCE_MATCHER_RATIO = 0.8; // 80% match ratio.
+    public static final Integer FILE_SIZE_AS_COPY = 100;  // 100 bytes;
+    public static final double SEQUENCE_MATCHER_RATIO = 0.8; // 80% match ratio.
 
-    public static Integer DIFF_SIZE_LIMIT = 16 * 1000 * 1000;
+    public static final Integer DIFF_SIZE_LIMIT = 16 * 1000 * 1000;
 
-    public static String SYNC_IGNORE_COMMENT = "# CodeSync won't sync the files in the .syncignore. It follows same format as .gitignore.";
+    public static final String SYNC_IGNORE_COMMENT = "# CodeSync won't sync the files in the .syncignore. It follows same format as .gitignore.";
 
     // Locks used by other IDEs alongside intellij.
-    public static String DIFFS_DAEMON_LOCK_KEY = "send_diffs_intellij";
-    public static String POPULATE_BUFFER_DAEMON_LOCK_KEY = "populate_buffer";
+    public static final String DIFFS_DAEMON_LOCK_KEY = "send_diffs_intellij";
+    public static final String POPULATE_BUFFER_DAEMON_LOCK_KEY = "populate_buffer";
+    public static final String PRICING_ALERT_LOCK_KEY = "pricing_alert";
 
     public static final class PlatformIdentifier {
         private PlatformIdentifier() {
             // restrict instantiation
         }
 
-        public static String WINDOWS = "windows";
-        public static String MAC_OS = "mac";
-        public static String UNIX = "aix";
-        public static String SOLARIS = "sunos";
+        public static final String WINDOWS = "windows";
+        public static final String MAC_OS = "mac";
+        public static final String UNIX = "aix";
+        public static final String SOLARIS = "sunos";
     }
 
     public static final class Notification {
@@ -105,38 +107,43 @@ public final class Constants {
             // restrict instantiation
         }
 
-        public static String YES = "Yes";
-        public static String NO = "No";
-        public static String SERVICE_NOT_AVAILABLE = "CodeSync Service is unavailable. Please try again in a moment.";
-        public static String UPGRADE_PLAN = String.format("Upgrade your plan: %s", PLANS_URL);
-        public static String PUBLIC_OR_PRIVATE = "Do you want to make the repo public? (You can change this later.)";
+        public static final String YES = "Yes";
+        public static final String NO = "No";
+        public static final String SERVICE_NOT_AVAILABLE = "CodeSync Service is unavailable. Please try again in a moment.";
+        public static final String UPGRADE_PLAN = String.format("Upgrade your plan: %s", PLANS_URL);
+        public static final String PUBLIC_OR_PRIVATE = "Do you want to make the repo public? (You can change this later.)";
 
-        public static String INIT_SUCCESS_MESSAGE = "Repo initialized successfully, your code will now be synced with CodeSync.";
-        public static String INIT_ERROR_MESSAGE = "Repo initialization errored out, please try again later. If problem persists then contact support.";
-        public static String INIT_FAILURE_MESSAGE = "Repo could not be initialized successfully, please try again later. If problem persists then contact support.";
+        public static final String INIT_SUCCESS_MESSAGE = "Repo initialized successfully, your code will now be synced with CodeSync.";
+        public static final String INIT_ERROR_MESSAGE = "Repo initialization errored out, please try again later. If problem persists then contact support.";
+        public static final String INIT_FAILURE_MESSAGE = "Repo could not be initialized successfully, please try again later. If problem persists then contact support.";
 
         public static final String BRANCH_INIT_SUCCESS_MESSAGE = "Branch '%s' initialized successfully, your new branch will now be synced with CodeSync.";
         public static final String BRANCH_INIT_ERROR_MESSAGE = "Branch '%s' initialization errored out, please try again later. If problem persists then contact support.";
         public static final String BRANCH_INIT_FAILURE_MESSAGE = "Branch '%s' could not be initialized successfully, please try again later. If problem persists then contact support.";
 
-        public static String REPO_SYNC_IN_PROGRESS_MESSAGE = "Repo '%s' is being synced with CodeSync.";
-        public static String REPO_IN_SYNC_MESSAGE = "Repo '%s' is synced with CodeSync.";
-        public static String REPO_ALREADY_IN_SYNC_MESSAGE = "Repo '%s' is already being synced with CodeSync.";
+        public static final String REPO_SYNC_IN_PROGRESS_MESSAGE = "Repo '%s' is being synced with CodeSync.";
+        public static final String REPO_IN_SYNC_MESSAGE = "Repo '%s' is synced with CodeSync.";
+        public static final String REPO_ALREADY_IN_SYNC_MESSAGE = "Repo '%s' is already being synced with CodeSync.";
 
-        public static String REPO_UNSYNC_CONFIRMATION = "Are you sure to continue? You won't be able to revert this!";
-        public static String REPO_UNSYNCED = "Repo disconnected successfully";
-        public static String REPO_UNSYNC_FAILED = "Could not unsync the repo";
+        public static final String REPO_UNSYNC_CONFIRMATION = "Are you sure to continue? You won't be able to revert this!";
+        public static final String REPO_UNSYNCED = "Repo disconnected successfully";
+        public static final String REPO_UNSYNC_FAILED = "Could not unsync the repo";
+
+        // Pricing plan related notification messages
+        public static final String UPGRADE = "Upgrade";
+        public static final String UPGRADE_PRICING_PLAN = "Please upgrade your plan to continue using CodeSync.";
+        public static final String UPGRADE_ORG_PLAN = "Please upgrade your Organization's plan to continue using CodeSync.";
     }
 
     public static final class LogMessageType {
         private LogMessageType() {
             // restrict instantiation
         }
-        public static String CRITICAL = "CRITICAL";
-        public static String ERROR = "ERROR";
-        public static String WARNING = "WARNING";
-        public static String INFO = "INFO";
-        public static String DEBUG = "DEBUG";
+        public static final String CRITICAL = "CRITICAL";
+        public static final String ERROR = "ERROR";
+        public static final String WARNING = "WARNING";
+        public static final String INFO = "INFO";
+        public static final String DEBUG = "DEBUG";
     }
 
     public static final class LockFileType {
@@ -144,8 +151,17 @@ public final class Constants {
             // restrict instantiation
         }
 
-        public static String PROJECT_LOCK = "project";
-        public static String POPULATE_BUFFER_LOCK = "populate_buffer";
-        public static String HANDLE_BUFFER_LOCK = "handle_buffer";
+        public static final String PROJECT_LOCK = "project";
+        public static final String POPULATE_BUFFER_LOCK = "populate_buffer";
+        public static final String HANDLE_BUFFER_LOCK = "handle_buffer";
+    }
+
+    public static final class ErrorCodes {
+        private ErrorCodes() {
+            // restrict instantiation
+        }
+
+        public static final int REPO_SIZE_LIMIT_REACHED = 402;
+        public static final int DIFFS_LIMIT_REACHED = 402;
     }
 }

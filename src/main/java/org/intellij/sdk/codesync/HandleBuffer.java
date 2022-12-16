@@ -12,6 +12,7 @@ import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
+import org.intellij.sdk.codesync.utils.PricingAlerts;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -135,7 +136,7 @@ public class HandleBuffer {
             return;
         }
 
-        // Get the list of diffs and shuffle, shuffling is ned to make sure all repos get a chance for processing.
+        // Get the list of diffs and shuffle, shuffling is need to make sure all repos get a chance for processing.
         DiffFile[] diffFiles = getDiffFiles(DIFFS_REPO, ".yml", configFile);
         List<DiffFile> diffFilesList = Arrays.asList(diffFiles);
         Collections.shuffle(diffFilesList);
@@ -309,6 +310,11 @@ public class HandleBuffer {
             diffsToSend.add(new Pair<>(fileId, diffFile));
         }
 
+
+        if (diffsToSend.size() == 0) {
+            return;
+        }
+
         if (configFile.isRepoDisconnected(currentRepo)) {
             CodeSyncLogger.info("Repo is disconnected so, skipping the diffs.");
             return;
@@ -365,6 +371,11 @@ public class HandleBuffer {
 
             // We can not process this file yet, so we need to remove the diff and mark this a successful upload.
             return true;
+        }
+
+        // If plan limit is reached then do not process new files.
+        if (PricingAlerts.getPlanLimitReached()) {
+            return false;
         }
 
         System.out.printf("Uploading new file: %s .\n", diffFile.fileRelativePath);

@@ -48,13 +48,21 @@ public class CodeSyncLock {
     }
 
     public boolean acquireLock(String identifier) {
+        // Default expiry is 5 minutes.
+        Instant defaultExpiry = Instant.now().plus(5, ChronoUnit.MINUTES);
+        return acquireLock(identifier, defaultExpiry);
+    }
+
+    /*
+    Acquire lock with custom expiry.
+     */
+    public boolean acquireLock(String identifier, Instant expiry) {
         if (this.lock == null) {
             return false;
-        } else if (this.lock.isActive() && !this.lock.compareIdentifier(identifier)) {
+        } else if (this.lock.isActive() && this.lock.compareIdentifier(identifier)) {
             return false;
-        }else {
-            Instant expiry = Instant.now().plus(5, ChronoUnit.MINUTES);
-            return this.lockFile.publishNewLock(this.lock.getCategory(), Date.from(expiry), identifier);
+        } else {
+            return this.lockFile.publishNewLock(this.lock.getCategory(), expiry, identifier);
         }
     }
 
@@ -69,7 +77,7 @@ public class CodeSyncLock {
                if (lock.compareIdentifier(identifier)) {
                    Instant past = Instant.now().minus(1, ChronoUnit.MINUTES);
 
-                   lockFile.publishNewLock(lock.getCategory(), Date.from(past), identifier);
+                   lockFile.publishNewLock(lock.getCategory(), past, identifier);
                }
            }
         }
@@ -82,7 +90,7 @@ public class CodeSyncLock {
         if (this.lock.compareIdentifier(identifier)) {
             Instant past = Instant.now().minus(1, ChronoUnit.MINUTES);
 
-            this.lockFile.publishNewLock(this.lock.getCategory(), Date.from(past), identifier);
+            this.lockFile.publishNewLock(this.lock.getCategory(), past, identifier);
         }
     }
 }

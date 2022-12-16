@@ -32,6 +32,7 @@ import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
+import org.intellij.sdk.codesync.utils.PricingAlerts;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
@@ -154,7 +155,7 @@ public class CodeSyncSetup {
                 // This is kind of a hack, but for some reason this method is called more than once during user is
                 // shown a popup to confirm repo syncing. and during the popup is open we do not want to show
                 // the message "Notification.REPO_SYNC_IN_PROGRESS_MESSAGE" (from the else statement.)
-                // That is why why this boolean is placed here.
+                // That is why this boolean is placed here.
                 boolean shouldSyncRepo = false;
                 // Do not ask user to sync repo, if it is already in progress.
                 if (!reposBeingSynced.contains(repoPath)) {
@@ -403,6 +404,12 @@ public class CodeSyncSetup {
         false otherwise.
     */
     public static boolean uploadRepo(String repoPath, String repoName, String[] filePaths, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean isSyncingBranch) {
+
+        // If pla limit is reached then do not process new files.
+        if (PricingAlerts.getPlanLimitReached()) {
+            return false;
+        }
+
         String branchName = Utils.GetGitBranch(repoPath);
 
         ConfigFile configFile;
