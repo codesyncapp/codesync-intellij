@@ -55,7 +55,7 @@ public class HandleBuffer {
 
         if (!configFile.hasRepo(diffFile.repoPath)) {
             CodeSyncLogger.warning(String.format(
-                    "Repo %s is not in config.yml.", diffFile.repoPath
+                "Repo %s is not in config.yml.", diffFile.repoPath
             ));
             diffFile.delete();
             return true;
@@ -63,7 +63,7 @@ public class HandleBuffer {
 
         if (configFile.isRepoDisconnected(diffFile.repoPath)) {
             CodeSyncLogger.info(String.format(
-                    "Repo %s is disconnected.", diffFile.repoPath
+                "Repo %s is disconnected.", diffFile.repoPath
             ));
             diffFile.delete();
             return true;
@@ -72,12 +72,28 @@ public class HandleBuffer {
         ConfigRepo configRepo = configFile.getRepo(diffFile.repoPath);
 
         if (!configRepo.containsBranch(diffFile.branch)) {
-            CodeSyncLogger.warning(
-                String.format(
-                    "Branch: %s is not synced for Repo %s.", diffFile.branch, diffFile.repoPath
-                ),
-                configRepo.email
-            );
+            if (FileUtils.isStaleFile(diffFile.originalDiffFile)){
+                if (PricingAlerts.getPlanLimitReached()){
+                    CodeSyncLogger.error(
+                        String.format(
+                            "Keeping diff file: branch '%s' is not synced for repo '%s'.",
+                            diffFile.branch,
+                            diffFile.repoPath
+                        ),
+                        configRepo.email
+                    );
+                } else {
+                    CodeSyncLogger.error(
+                        String.format(
+                            "Removing diff file: branch '%s' is not synced for repo '%s'.",
+                            diffFile.branch,
+                            diffFile.repoPath
+                        ),
+                        configRepo.email
+                    );
+                    diffFile.delete();
+                }
+            }
             return true;
         }
 
@@ -203,8 +219,16 @@ public class HandleBuffer {
                 diffReposToIgnore.remove(diffFile.repoPath);
             }
 
-            if (!configRepo.branches.containsKey(diffFile.branch)) {
-                CodeSyncLogger.warning(String.format("Branch: `%s` is not synced for Repo `%s`.\n", diffFile.branch, diffFile.repoPath));
+            if (!configRepo.containsBranch(diffFile.branch)) {
+                // this should never happen as we are already skipping/deleting diff files that satisfy above conditions
+                // inside `getDiffFiles`. Adding a log here to make sure that this is the case.
+                CodeSyncLogger.warning(
+                    String.format("" +
+                        "[HandleBuffer] Branch: `%s` is not synced for Repo `%s`.\n",
+                        diffFile.branch,
+                        diffFile.repoPath
+                    )
+                );
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                 continue;
             }

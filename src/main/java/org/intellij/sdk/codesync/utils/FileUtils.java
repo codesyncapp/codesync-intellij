@@ -17,6 +17,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -87,7 +89,7 @@ public class FileUtils
     /*
     List absolute file paths of all the files in a directory.
 
-    This is recursively list all the files containing in the given directory and all its sub-directories.
+    This is recursively list all the files containing in the given directory and all its subdirectories.
     */
     public static String[] listFiles(String directory) {
         String[] filePaths = {};
@@ -171,6 +173,20 @@ public class FileUtils
         return fileInfo;
     }
 
+    /*
+    Get the creation time attribute of the given file as an instance of `Instant` class.
+    */
+    public static Instant getFileCreationDate(File file) throws FileInfoError {
+        BasicFileAttributes basicFileAttributes = null;
+        try {
+            basicFileAttributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+        } catch (IOException error) {
+            throw new FileInfoError(error.getMessage());
+        }
+
+        return Instant.ofEpochMilli(basicFileAttributes.creationTime().toMillis());
+    }
+
     public static boolean shouldIgnoreFile(String relPath, String repoPath) {
         if (relPath.startsWith("/") || isIgnorableFile(relPath)) {  return true; }
         try {
@@ -220,5 +236,21 @@ public class FileUtils
 
     public static String normalizeFilePath(VirtualFile virtualFile) {
         return normalizeFilePath(virtualFile.getPath());
+    }
+
+    /*
+    Checks the and returns true if dangling file is older than 5 days.
+    */
+    public static boolean isStaleFile(File file) {
+        Instant creationTime;
+        try {
+            creationTime = getFileCreationDate(file);
+        } catch (FileInfoError e) {
+            // Could not get the file details so skipping file removal.
+            return false;
+        }
+        // Check if the file is 5 days older than the current time
+        Instant currentTime = Instant.now();
+        return creationTime.isBefore(currentTime.minus(5, ChronoUnit.DAYS));
     }
 }
