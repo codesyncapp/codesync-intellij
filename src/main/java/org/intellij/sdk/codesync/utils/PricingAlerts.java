@@ -51,6 +51,9 @@ public class PricingAlerts {
         pricingAlertLock.releaseLock(PRICING_ALERT_LOCK_KEY);
     }
 
+    /*
+    Return `true` if plan limit is reached for the current user, `false` otherwise.
+    */
     public static boolean getPlanLimitReached() {
         CodeSyncLock pricingAlertLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, PRICING_ALERT_LOCK_KEY);
 

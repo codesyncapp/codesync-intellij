@@ -381,7 +381,7 @@ public class PopulateBuffer {
                         Date fileModifiedTime = CommonUtils.parseDate((String) fileInfo.get("modifiedTime"));
                         Date shadowFileModifiedTime = CommonUtils.parseDate((String) shadowFileInfo.get("modifiedTime"));
 
-                        // If shadow file was modified after the the file was written to disk, then, skip the change.
+                        // If shadow file was modified after the file was written to disk, then, skip the change.
                         if (
                                 shadowFileModifiedTime != null &&
                                 fileModifiedTime != null &&
