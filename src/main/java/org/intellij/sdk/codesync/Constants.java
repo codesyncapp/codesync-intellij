@@ -133,6 +133,9 @@ public final class Constants {
         public static final String UPGRADE = "Upgrade";
         public static final String UPGRADE_PRICING_PLAN = "Please upgrade your plan to continue using CodeSync.";
         public static final String UPGRADE_ORG_PLAN = "Please upgrade your Organization's plan to continue using CodeSync.";
+        public static final String TRIAL_PROMPT_MESSAGE = "You are eligible for a free trial, you can start the trial by clicking on the correct button below.";
+        public static final String TRY_PRO_FOR_FREE = "Try Pro plan for free";
+        public static final String TRY_TEAM_FOR_FREE = "Try Team plan for free";
     }
 
     public static final class LogMessageType {

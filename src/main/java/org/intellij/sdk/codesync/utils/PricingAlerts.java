@@ -33,6 +33,7 @@ public class PricingAlerts {
         if (response != null) {
             acquirePricingLock();
             boolean isOrgRepo = (boolean) response.get("is_org_repo");
+            boolean canAvailTrial = (boolean) response.get("can_avail_trial");
             String pricingUrl = (String) response.get("url");
             String message = isOrgRepo ? Notification.UPGRADE_ORG_PLAN : Notification.UPGRADE_PRICING_PLAN;
             boolean shouldUpgrade = CodeSyncMessages.showYesNoMessage(
