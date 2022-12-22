@@ -15,6 +15,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.intellij.sdk.codesync.models.UserPlan;
+import org.intellij.sdk.codesync.state.PluginState;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.PricingAlerts;
@@ -123,7 +125,12 @@ public class CodeSyncClient {
             jsonResponse.raiseForStatus();
         } catch (StatusCodeError statusCodeError) {
             if (statusCodeError.getStatusCode()  == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
-                PricingAlerts.setPlanLimitReached(accessToken, configRepo.id);
+                PluginState pluginState = StateUtils.getState(configRepo.repoPath);
+                PricingAlerts.setPlanLimitReached(
+                    accessToken,
+                    configRepo.id,
+                    pluginState != null ? pluginState.project: null
+                );
             } else {
                 PricingAlerts.resetPlanLimitReached();
             }
