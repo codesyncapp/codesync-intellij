@@ -1,9 +1,11 @@
 package org.intellij.sdk.codesync.ui.dialogs;
 
 import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.intellij.sdk.codesync.Constants.Notification;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +32,17 @@ public class PricingAlertDialog extends DialogWrapper {
         }
 
         setTitle(this.title);
-        init();
+    }
+
+    public void show() {
+        CommonUtils.invokeAndWait(
+            () -> {
+                init();
+                super.show();
+                return OK_EXIT_CODE;
+            },
+            ModalityState.defaultModalityState()
+        );
     }
 
     public PricingAlertDialog(Boolean isOrgRepo, Boolean canAvailTrial, String pricingURL){
@@ -76,7 +88,7 @@ public class PricingAlertDialog extends DialogWrapper {
         }
 
         return new Action[]{
-            new DialogWrapperAction("Upgrade") {
+            new DialogWrapperAction(Notification.UPGRADE) {
                 @Override
                 protected void doAction(ActionEvent e) {
                     // handle button 1 click here
@@ -90,4 +102,5 @@ public class PricingAlertDialog extends DialogWrapper {
             new DialogWrapperExitAction("Cancel", CANCEL_EXIT_CODE)
         };
     }
+
 }
