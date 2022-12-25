@@ -130,12 +130,12 @@ public final class Constants {
         public static final String REPO_UNSYNC_FAILED = "Could not unsync the repo";
 
         // Pricing plan related notification messages
-        public static final String UPGRADE = "Upgrade";
-        public static final String UPGRADE_PRICING_PLAN = "Please upgrade your plan to continue using CodeSync.";
-        public static final String UPGRADE_ORG_PLAN = "Please upgrade your Organization's plan to continue using CodeSync.";
-        public static final String TRIAL_PROMPT_MESSAGE = "You are eligible for a free trial, you can start the trial by clicking on the correct button below.";
-        public static final String TRY_PRO_FOR_FREE = "Try Pro plan for free";
-        public static final String TRY_TEAM_FOR_FREE = "Try Team plan for free";
+        public static final String UPGRADE = "CodeSync | Free tier limit reached";
+        public static final String PRICING_LIMIT_REACHED_MESSAGE = "We hope you've found CodeSync useful! You've hit the limit of the Free tier.";
+        public static final String UPGRADE_PRICING_PLAN = "To continue, please sign up for Pro.";
+        public static final String UPGRADE_ORG_PRICING_PLAN = "To continue, please sign your organization up for the Team plan.";
+        public static final String TRY_PRO_FOR_FREE = "To continue, please sign up for a 30-day free trial of Pro.";
+        public static final String TRY_ORG_PRO_FOR_FREE = "To continue, please sign your organization up for a 30-day free trial of the Team plan.";
     }
 
     public static final class LogMessageType {

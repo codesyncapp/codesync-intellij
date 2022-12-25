@@ -16,19 +16,22 @@ import java.awt.event.ActionEvent;
 
 
 public class PricingAlertDialog extends DialogWrapper {
-    String pricingURL, primaryMessage, secondaryMessage = "";
-    Boolean isOrgRepo, canAvailTrial;
-    String title = Notification.UPGRADE;
+    String primaryMessage = Notification.PRICING_LIMIT_REACHED_MESSAGE,
+        title = Notification.UPGRADE,
+        cancelButtonText = "Maybe later"
+    ;
+    String upgradeButtonText, secondaryMessage, pricingURL;
 
     public PricingAlertDialog(Boolean isOrgRepo, Boolean canAvailTrial, String pricingURL, Project project){
-        super(project, true); // use current window as parent
-        this.isOrgRepo = isOrgRepo;
-        this.canAvailTrial = canAvailTrial;
+        super(project, true);
         this.pricingURL = pricingURL;
 
-        this.primaryMessage = isOrgRepo ? Notification.UPGRADE_ORG_PLAN : Notification.UPGRADE_PRICING_PLAN;
         if (canAvailTrial) {
-            this.secondaryMessage = Notification.TRIAL_PROMPT_MESSAGE;
+            upgradeButtonText = "Try Pro for free";
+            secondaryMessage = isOrgRepo ? Notification.TRY_ORG_PRO_FOR_FREE: Notification.TRY_PRO_FOR_FREE;
+        } else {
+            upgradeButtonText = "Upgrade to Pro";
+            secondaryMessage = isOrgRepo ? Notification.UPGRADE_ORG_PRICING_PLAN: Notification.UPGRADE_PRICING_PLAN;
         }
 
         setTitle(this.title);
@@ -55,7 +58,7 @@ public class PricingAlertDialog extends DialogWrapper {
         JPanel dialogPanel = new JPanel(new BorderLayout());
 
         String htmlMessage = String.format(
-            "<html><p>%s<p><br/><p>%s</p></html>", this.primaryMessage, this.secondaryMessage
+            "<html><p>%s<p><br/><p>%s</p><br/></html>", this.primaryMessage, this.secondaryMessage
         );
         JXLabel label = new JXLabel(htmlMessage);
         label.setLineWrap(true);
@@ -70,36 +73,17 @@ public class PricingAlertDialog extends DialogWrapper {
 
     @Override
     protected Action @NotNull [] createActions() {
-        Action tryForFreeAction = new AbstractAction(
-            isOrgRepo ? Notification.TRY_TEAM_FOR_FREE : Notification.TRY_PRO_FOR_FREE
-        ) {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                redirectToUpgrade();
-                if (isEnabled()) {
-                    close(OK_EXIT_CODE);
-                }
-            }
-        };
-
-        // We should disable this button if user is not eligible for a free trial.
-        if (!this.canAvailTrial) {
-            tryForFreeAction.setEnabled(false);
-        }
-
         return new Action[]{
-            new DialogWrapperAction(Notification.UPGRADE) {
+            new AbstractAction(upgradeButtonText) {
                 @Override
-                protected void doAction(ActionEvent e) {
-                    // handle button 1 click here
+                public void actionPerformed(ActionEvent e) {
+                    redirectToUpgrade();
                     if (isEnabled()) {
-                        redirectToUpgrade();
                         close(OK_EXIT_CODE);
                     }
                 }
             },
-            tryForFreeAction,
-            new DialogWrapperExitAction("Cancel", CANCEL_EXIT_CODE)
+            new DialogWrapperExitAction(cancelButtonText, CANCEL_EXIT_CODE)
         };
     }
 
