@@ -1,9 +1,9 @@
 package org.intellij.sdk.codesync.utils;
 
-import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.project.Project;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
-import org.intellij.sdk.codesync.ui.messages.CodeSyncMessages;
+import org.intellij.sdk.codesync.ui.dialogs.PricingAlertDialog;
 import org.json.simple.JSONObject;
 
 import static org.intellij.sdk.codesync.Constants.LockFileType;
@@ -14,35 +14,34 @@ public class PricingAlerts {
         CodeSyncLock pricingAlertLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, PRICING_ALERT_LOCK_KEY);
         pricingAlertLock.acquireLock(PRICING_ALERT_LOCK_KEY);
     }
-
     public static void setPlanLimitReached() {
+        setPlanLimitReached((Project) null);
+    }
+    public static void setPlanLimitReached(Project project) {
         // We only want to show notification once every 5 minutes, I have implemented that using locks with an expiry of
         // 5 minutes. So, skip the notification if lock is not acquired.
         acquirePricingLock();
-        boolean shouldUpgrade = CodeSyncMessages.showYesNoMessage(
-                Notification.UPGRADE, Notification.UPGRADE_PRICING_PLAN, CommonUtils.getCurrentProject()
-        );
-        if (shouldUpgrade) {
-            BrowserUtil.browse(CODESYNC_PRICING_URL);
-        }
+
+        PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(false, false, CODESYNC_PRICING_URL, project);
+        pricingAlertDialog.show();
     }
 
     public static void setPlanLimitReached(String accessToken, int repoId) {
+        setPlanLimitReached(accessToken, repoId, (Project) null);
+    }
+    public static void setPlanLimitReached(String accessToken, int repoId, Project project) {
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         JSONObject response = codeSyncClient.getRepoPlanInfo(accessToken, repoId);
         if (response != null) {
             acquirePricingLock();
             boolean isOrgRepo = (boolean) response.get("is_org_repo");
+            boolean canAvailTrial = (boolean) response.get("can_avail_trial");
             String pricingUrl = (String) response.get("url");
-            String message = isOrgRepo ? Notification.UPGRADE_ORG_PLAN : Notification.UPGRADE_PRICING_PLAN;
-            boolean shouldUpgrade = CodeSyncMessages.showYesNoMessage(
-                    Notification.UPGRADE, message, CommonUtils.getCurrentProject()
-            );
-            if (shouldUpgrade) {
-                BrowserUtil.browse(pricingUrl);
-            }
+
+            PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(isOrgRepo, canAvailTrial, pricingUrl, project);
+            pricingAlertDialog.show();
         } else {
-            setPlanLimitReached();
+            setPlanLimitReached(project);
         }
     }
 
