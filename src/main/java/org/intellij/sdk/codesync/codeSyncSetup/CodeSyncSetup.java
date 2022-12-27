@@ -405,7 +405,7 @@ public class CodeSyncSetup {
     */
     public static boolean uploadRepo(String repoPath, String repoName, String[] filePaths, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean isSyncingBranch) {
 
-        // If pla limit is reached then do not process new files.
+        // If plan limit is reached then do not process new repos.
         if (PricingAlerts.getPlanLimitReached()) {
             return false;
         }
@@ -538,14 +538,24 @@ public class CodeSyncSetup {
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.PROCESS_RESPONSE);
         JSONObject response = codeSyncClient.uploadRepo(accessToken, payload);
 
-        if (response.containsKey("error")) {
+        if (response == null || response.containsKey("error")) {
             // Show error message.
             if (!isSyncingBranch) {
                 NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+                try {
+                    configFile.publishRepoRemoval(repoPath);
+                } catch (InvalidConfigFileError e) {
+                    CodeSyncLogger.debug("Error processing config file after repo init failed");
+                }
             } else {
                 NotificationManager.notifyInformation(
                         String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
                 );
+                try {
+                    configFile.publishBranchRemoval(configRepo, repoPath);
+                } catch (InvalidConfigFileError e) {
+                    CodeSyncLogger.debug("Error processing config file after repo init failed");
+                }
             }
             return false;
         }

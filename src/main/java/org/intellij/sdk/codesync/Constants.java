@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync;
 
+import com.intellij.openapi.application.ApplicationInfo;
 import org.intellij.sdk.codesync.configuration.Configuration;
 import org.intellij.sdk.codesync.configuration.ConfigurationFactory;
 
@@ -39,8 +40,9 @@ public final class Constants {
     public static final String CURRENT_GIT_BRANCH_COMMAND = "git rev-parse --abbrev-ref HEAD";
     public static final Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
     public static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS z";
+    public static final String IDE_NAME = ApplicationInfo.getInstance().getVersionName();
     public static final String DIFF_SOURCE = "intellij";
-    public static final String GA4_PARAMS = String.format("utm_medium=plugin&utm_source=%s", DIFF_SOURCE);
+    public static final String GA4_PARAMS = String.format("utm_medium=plugin&utm_source=%s&utm_source_platform=%s", DIFF_SOURCE, IDE_NAME);
 
     public static final String MAGIC_STRING = "IntellijIdeaRulezzz";
     public static final String DIR_CREATE_EVENT = "VfsEvent[create dir";

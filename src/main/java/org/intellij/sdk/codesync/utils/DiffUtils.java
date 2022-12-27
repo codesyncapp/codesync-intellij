@@ -1,7 +1,6 @@
 package org.intellij.sdk.codesync.utils;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.Constants.*;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -12,7 +11,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.intellij.sdk.codesync.Constants.DIFFS_REPO;
+import static org.intellij.sdk.codesync.Constants.*;
 
 public class DiffUtils {
     public static void writeDiffToYml(
@@ -32,8 +31,6 @@ public class DiffUtils {
             String repoPath, String branchName, String relPath, String diff, Boolean isNewFile,
             Boolean isDeleted, Boolean isRename, Boolean isDirRename, String createdAt
     ) {
-        String DIFF_SOURCE = "intellij";
-
         // Create YAML dump
         Map<String, Object> data = new HashMap<>();
         data.put("repo_path", repoPath);

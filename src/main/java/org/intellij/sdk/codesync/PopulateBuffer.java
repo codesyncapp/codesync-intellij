@@ -41,10 +41,10 @@ import java.util.stream.Collectors;
     Changes that will be detected are
     1. new file creation events.
         If we find a file that is present in the project directory and is not present in shadow repo or
-        the config file and is not a rename (We will detect this in step 2) then file must be newly created.
+        the config file and is not a file rename (We will detect this in step 2) then file must be newly created.
     2. file rename events
         If we find a new file whose content match with some file in the shadow repo,
-        then file is probably a rename of that shadow file.
+        then file is probably a file rename of that shadow file.
     3. file change events
         This is the simplest to handle, if the project file and shadow file do not have the same
         content then it means file was updated.
@@ -447,13 +447,13 @@ public class PopulateBuffer {
             if (!diff.isEmpty() || isNewFile) {
                 Map<String, Object> diffContentMap = new HashMap<>();
                 Map<String, Object> fileInfo = this.fileInfoMap.get(relativeFilePath);
-                Date date = CommonUtils.parseDate((String) fileInfo.get("modifiedTime"));
+                Date createdAt = CommonUtils.parseDate((String) fileInfo.get("creationTime"));
 
                 diffContentMap.put("diff", diff);
                 diffContentMap.put("is_rename", isRename);
                 diffContentMap.put("is_new_file", isNewFile);
                 diffContentMap.put("is_binary", isBinary);
-                diffContentMap.put("created_at", CommonUtils.formatDate(date, DATE_TIME_FORMAT));
+                diffContentMap.put("created_at", CommonUtils.formatDate(createdAt, DATE_TIME_FORMAT));
 
                 diffs.put(relativeFilePath, diffContentMap);
             }

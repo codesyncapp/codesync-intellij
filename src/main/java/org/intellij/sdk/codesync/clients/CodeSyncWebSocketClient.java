@@ -17,6 +17,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.JSONArray;
 
+import static org.intellij.sdk.codesync.Constants.IDE_NAME;
+
 
 public class CodeSyncWebSocketClient {
     URI uri;
@@ -27,7 +29,7 @@ public class CodeSyncWebSocketClient {
     public CodeSyncWebSocketClient(String token, String uri) {
         try {
             this.token = token;
-            this.uri = new URIBuilder(uri).addParameter("token", token).build();
+            this.uri = new URIBuilder(uri).addParameter("token", token).addParameter("source", IDE_NAME).build();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
