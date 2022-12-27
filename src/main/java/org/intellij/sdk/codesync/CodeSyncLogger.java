@@ -51,6 +51,7 @@ public class CodeSyncLogger {
             JSONObject msg = new JSONObject();
             msg.put("msg", message);
             msg.put("source", DIFF_SOURCE);
+            msg.put("ide_name", IDE_NAME);
             msg.put("version", version);
             msg.put("type", type);
             msg.put("platform", CommonUtils.getOS());

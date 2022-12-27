@@ -95,10 +95,23 @@ public class ConfigFile extends CodeSyncYmlFile {
     public void updateRepo(String repoPath, ConfigRepo newRepo) {
         this.repos.put(repoPath, newRepo);
     }
+    public void deleteRepo(String repoPath) {
+        this.repos.remove(repoPath);
+    }
 
     public void publishRepoUpdate (ConfigRepo updatedRepo) throws InvalidConfigFileError {
         this.reloadFromFile();
         this.updateRepo(updatedRepo.repoPath, updatedRepo);
+        try {
+            this.writeYml();
+        } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
+            throw new InvalidConfigFileError(e.getMessage());
+        }
+    }
+
+    public void publishRepoRemoval (String repoPath) throws InvalidConfigFileError {
+        this.reloadFromFile();
+        this.deleteRepo(repoPath);
         try {
             this.writeYml();
         } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
@@ -116,9 +129,9 @@ public class ConfigFile extends CodeSyncYmlFile {
         }
     }
 
-    public void publishFileRemoval (ConfigRepo updatedRepo, ConfigRepoBranch updatedBranch) throws InvalidConfigFileError {
+    public void publishBranchRemoval (ConfigRepo configRepo, String branchName) throws InvalidConfigFileError {
         this.reloadFromFile();
-        this.getRepo(updatedRepo.repoPath).deleteRepoBranch(updatedBranch.branchName);
+        this.getRepo(configRepo.repoPath).deleteRepoBranch(branchName);
         try {
             this.writeYml();
         } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
