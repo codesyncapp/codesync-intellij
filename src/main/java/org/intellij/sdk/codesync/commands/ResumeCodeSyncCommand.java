@@ -3,7 +3,6 @@ package org.intellij.sdk.codesync.commands;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
 import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.Constants.*;
 import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.exceptions.InvalidAccessTokenError;
@@ -16,22 +15,25 @@ resumes the execution of code sync setup flow.
 This command is useful in cases where code sync setup needs to be resumed after successful authentication.
 */
 public class ResumeCodeSyncCommand implements Command {
-    private final String branchName, repoPath, repoName;
+    private final String repoPath, repoName;
     private boolean skipIfAuthError = false;
+    private final boolean skipSyncPrompt, isSyncingBranch;
     private final Project project;
 
-    public ResumeCodeSyncCommand(Project project, String repoPath, String repoName, String branchName) {
+    public ResumeCodeSyncCommand(Project project, String repoPath, String repoName, boolean skipSyncPrompt, boolean isSyncingBranch) {
         this.project = project;
-        this.branchName = branchName;
         this.repoPath = repoPath;
         this.repoName = repoName;
+        this.skipSyncPrompt = skipSyncPrompt;
+        this.isSyncingBranch = isSyncingBranch;
     }
 
-    public ResumeCodeSyncCommand(Project project, String repoPath, String repoName, String branchName, boolean skipIfAuthError) {
+    public ResumeCodeSyncCommand(Project project, String repoPath, String repoName, boolean skipSyncPrompt, boolean isSyncingBranch, boolean skipIfAuthError) {
         this.project = project;
-        this.branchName = branchName;
         this.repoPath = repoPath;
         this.repoName = repoName;
+        this.skipSyncPrompt = skipSyncPrompt;
+        this.isSyncingBranch = isSyncingBranch;
         this.skipIfAuthError = skipIfAuthError;
     }
 
@@ -40,12 +42,9 @@ public class ResumeCodeSyncCommand implements Command {
 
         try {
             if (accessToken != null && CodeSyncSetup.validateAccessToken(accessToken)) {
+                CodeSyncLogger.debug("[INTELLIJ_AUTH]: Repo sync resumed after login.");
 
-                CodeSyncLogger.debug(
-                        "[INTELLIJ_AUTH]: Repo sync resumed after login.."
-                );
-
-                CodeSyncSetup.syncRepoAsync(project, this.repoPath, this.repoName, branchName);
+                CodeSyncSetup.setupCodeSyncRepoAsync(project, this.repoPath, this.repoName, this.skipSyncPrompt, this.isSyncingBranch);
             }
         } catch (InvalidAccessTokenError error) {
             if (this.skipIfAuthError) {
@@ -57,28 +56,25 @@ public class ResumeCodeSyncCommand implements Command {
             // For some reason user authentication did not result in a valid token,
             // we should retry with authentication.
             try {
-
                 CodeSyncLogger.debug(
-                        "[INTELLIJ_AUTH]: User about to be redirected again to the login page because of invalid access token."
+                    "[INTELLIJ_AUTH]: User about to be redirected again to the login page because of invalid access token."
                 );
 
                 CodeSyncAuthServer codeSyncAuthServer = CodeSyncAuthServer.getInstance();
                 BrowserUtil.browse(codeSyncAuthServer.getAuthorizationUrl());
                 CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(
-                        project, this.repoPath, this.repoName, this.branchName, true
+                    project, this.repoPath, this.repoName, this.skipSyncPrompt, this.isSyncingBranch, true
                 ));
                 CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
 
                 CodeSyncLogger.debug(
                         "[INTELLIJ_AUTH]: User redirected again to the login page because of invalid access token."
                 );
-
             } catch (Exception e) {
                 CodeSyncLogger.critical(String.format(
                         "[RESUME_CODESYNC_COMMAND] could not instantiate codesync auth server. Error: %s",
                         e.getMessage()
                 ));
-
             }
         }
     }

@@ -41,11 +41,13 @@ public class Authenticator extends HttpServlet {
         response.getWriter().print("<body><h1 class=\"\" style=\"text-align: center;\" >You are logged in, you can close this window now.</h1></body>\n");
     }
 
-    public void createUser(String accessToken, String idToken){
+    /*
+    Create user from the access token and id-token and return a boolean showing the status.
+    return `true` if everything was a success, `false` otherwise.
+     */
+    public boolean createUser(String accessToken, String idToken){
         Map<String, Claim> claims;
-        CodeSyncLogger.debug(
-                "[INTELLIJ_AUTH]: User successfully authenticated, now saving auth token."
-        );
+        CodeSyncLogger.debug("[INTELLIJ_AUTH]: User successfully authenticated, now saving auth token.");
 
         try {
             DecodedJWT jwt = JWT.decode(idToken);
@@ -54,7 +56,7 @@ public class Authenticator extends HttpServlet {
             CodeSyncLogger.critical(
                     String.format("[INTELLIJ_AUTH_ERROR]: Error while decoding jwt. Token: '%s'", idToken)
             );
-            return;
+            return false;
         }
         JSONObject payload = new JSONObject();
         payload.putAll(claims);
@@ -66,14 +68,14 @@ public class Authenticator extends HttpServlet {
             CodeSyncLogger.critical(
                     String.format("[INTELLIJ_AUTH_ERROR]: Error while creating the user. access token: '%s'", accessToken)
             );
-            return;
+            return false;
         }
 
         if (jsonResponse.containsKey("error")) {
             CodeSyncLogger.critical(
                     String.format("[INTELLIJ_AUTH_ERROR]: Error while creating the user. server error: '%s'", jsonResponse.get("error"))
             );
-            return;
+            return false;
         }
         UserFile userFile;
         try {
@@ -84,25 +86,25 @@ public class Authenticator extends HttpServlet {
                     userFile = new UserFile(USER_FILE_PATH);
                 } catch (FileNotFoundException | InvalidYmlFileError error) {
                     CodeSyncLogger.error(
-                            String.format("[INTELLIJ_AUTH_ERROR]: Error opening auth file. Error: %s", error.getMessage())
+                        String.format("[INTELLIJ_AUTH_ERROR]: Error opening auth file. Error: %s", error.getMessage())
                     );
                     // Could not open user file.
-                    return;
+                    return false;
                 }
             } else {
                 // Could not create user file.
-                return;
+                return false;
             }
             CodeSyncLogger.error(
-                    String.format("[INTELLIJ_AUTH_ERROR]: auth file not found. Error: %s", e.getMessage())
+                String.format("[INTELLIJ_AUTH_ERROR]: auth file not found. Error: %s", e.getMessage())
             );
         } catch (InvalidYmlFileError error) {
             error.printStackTrace();
             CodeSyncLogger.critical(
-                    String.format("[INTELLIJ_AUTH_ERROR]: Invalid auth file. Error: %s", error.getMessage())
+                String.format("[INTELLIJ_AUTH_ERROR]: Invalid auth file. Error: %s", error.getMessage())
             );
             // Could not read user file.
-            return;
+            return false;
         }
         String userEmail = claims.get("email").asString();
         userFile.setActiveUser(userEmail, accessToken);
@@ -113,12 +115,12 @@ public class Authenticator extends HttpServlet {
             userFile.writeYml();
         } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
             CodeSyncLogger.error(
-                    String.format("[INTELLIJ_AUTH_ERROR]: Could not write to auth file. Error: %s", e.getMessage())
+                String.format("[INTELLIJ_AUTH_ERROR]: Could not write to auth file. Error: %s", e.getMessage())
             );
+            return false;
         }
 
-        CodeSyncLogger.debug(
-                "[INTELLIJ_AUTH]: User completed login flow."
-        );
+        CodeSyncLogger.debug("[INTELLIJ_AUTH]: User completed login flow.");
+        return true;
     }
 }
