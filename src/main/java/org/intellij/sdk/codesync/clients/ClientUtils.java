@@ -1,131 +1,145 @@
 package org.intellij.sdk.codesync.clients;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
 import org.intellij.sdk.codesync.exceptions.RequestError;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 
 public class ClientUtils {
-    public static JSONResponse sendPost(String url, JSONObject payload, String accessToken) throws RequestError, InvalidJsonError {
-        HttpClient httpClient = HttpClientBuilder.create().build();
-        HttpPost post = new HttpPost(url);
+    /*
+    We will be using default timeout of 120 seconds for the following operations.
+        1. `setSocketTimeout` will set timeout for http request.
+        2. `setSocketTimeout` will set timeout for http connection.
+        3. `setConnectionRequestTimeout` will set timeout for http connection request made to the request pool.
+    */
+    private static RequestConfig getRequestConfig () {
+        return RequestConfig.custom()
+            .setSocketTimeout(120 * 1000)
+            .setConnectTimeout(120 * 1000)
+            .setConnectionRequestTimeout(120 * 1000)
+            .build();
+    }
+    private static HttpClientBuilder getHttpClientBuilder() {
+        RequestConfig requestConfig = getRequestConfig();
+        return HttpClientBuilder.create().setDefaultRequestConfig(requestConfig);
+    }
 
-        StringEntity dataStr;
+    private static StringEntity getStringEntityFromJSONObject(JSONObject payload) throws InvalidJsonError {
         try {
-            dataStr = new StringEntity(payload.toJSONString());
+            return new StringEntity(payload.toJSONString());
         } catch (UnsupportedEncodingException error) {
-            System.out.println("Invalid JSON encoding error while authenticating the user.");
             throw new InvalidJsonError("Invalid JSON encoding error while authenticating the user.");
         }
+    }
 
-        post.setEntity(dataStr);
-        post.addHeader("content-type", "application/json");
+    private static HttpGet getHttpGet(String url, String accessToken) {
+        HttpGet httpGet = new HttpGet(url);
+
+        // Make sure to mark all requests with content type "application/json".
+        httpGet.addHeader("content-type", "application/json");
+
         if (accessToken != null) {
-            post.addHeader("Authorization", String.format("Basic %s", accessToken));
-        }
-        HttpResponse response;
-
-        try {
-            response = httpClient.execute(post);
-        } catch (IOException e) {
-            throw new RequestError("Could not make a successful request to CodeSync server.");
+            httpGet.addHeader("Authorization", String.format("Basic %s", accessToken));
         }
 
-        return JSONResponse.from(response);
+        return httpGet;
+    }
+
+    private static HttpPost getHttpPost(String url, JSONObject JSONPayload, String accessToken) throws InvalidJsonError {
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.setEntity(getStringEntityFromJSONObject(JSONPayload));
+
+        // Make sure to mark all requests with content type "application/json".
+        httpPost.addHeader("content-type", "application/json");
+
+        if (accessToken != null) {
+            httpPost.addHeader("Authorization", String.format("Basic %s", accessToken));
+        }
+
+        return httpPost;
+    }
+
+    private static HttpPatch getHttpPatch(String url, JSONObject JSONPayload, String accessToken) throws InvalidJsonError {
+        HttpPatch httpPatch = new HttpPatch(url);
+        httpPatch.setEntity(getStringEntityFromJSONObject(JSONPayload));
+
+        // Make sure to mark all requests with content type "application/json".
+        httpPatch.addHeader("content-type", "application/json");
+
+        if (accessToken != null) {
+            httpPatch.addHeader("Authorization", String.format("Basic %s", accessToken));
+        }
+
+        return httpPatch;
+    }
+
+    public static JSONResponse sendGet(String url, String accessToken) throws RequestError, InvalidJsonError {
+        try (CloseableHttpClient httpClient = getHttpClientBuilder().build()) {
+            // Build HTTP POST request instance.
+            HttpGet httpGet = getHttpGet(url, accessToken);
+
+            try (CloseableHttpResponse httpResponse = httpClient.execute(httpGet)) {
+                return JSONResponse.from(httpResponse);
+            } catch (IOException error) {
+                throw new RequestError("Could not make a successful request to CodeSync server.");
+            }
+        } catch (IOException error) {
+            throw new RequestError(
+                String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
+            );
+        }
+    }
+
+    public static JSONResponse sendGet(String url) throws RequestError, InvalidJsonError {
+        return sendGet(url, null);
+    }
+
+    public static JSONResponse sendPost(String url, JSONObject payload, String accessToken) throws RequestError, InvalidJsonError {
+        try (CloseableHttpClient httpClient = getHttpClientBuilder().build()) {
+            // Build HTTP POST request instance.
+            HttpPost httpPost = getHttpPost(url, payload, accessToken);
+
+            try (CloseableHttpResponse httpResponse = httpClient.execute(httpPost)) {
+                return JSONResponse.from(httpResponse);
+            } catch (IOException error) {
+                throw new RequestError("Could not make a successful request to CodeSync server.");
+            }
+        } catch (IOException error) {
+            throw new RequestError(
+                String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
+            );
+        }
     }
 
     public static JSONResponse sendPost(String url, JSONObject payload) throws RequestError, InvalidJsonError {
         return sendPost(url, payload, null);
     }
 
-    public static JSONObject sendGet(String url, String accessToken) throws RequestError, InvalidJsonError {
-        HttpClient httpClient = HttpClientBuilder.create().build();
-        HttpGet get = new HttpGet(url);
+    public static JSONResponse sendPatch(String url, JSONObject payload, String accessToken) throws RequestError, InvalidJsonError {
+        try (CloseableHttpClient httpClient = getHttpClientBuilder().build()) {
+            // Build HTTP POST request instance.
+            HttpPatch httpPatch = getHttpPatch(url, payload, accessToken);
 
-        get.addHeader("content-type", "application/json");
-
-        if (accessToken != null) {
-            get.addHeader("Authorization", String.format("Basic %s", accessToken));
-        }
-
-        HttpResponse response;
-        try {
-            response = httpClient.execute(get);
-        } catch (IOException e) {
-            throw new RequestError("Could not make a successful request to CodeSync server.");
-        }
-
-        String responseContent;
-        try {
-            responseContent = EntityUtils.toString(response.getEntity());
-        } catch (IOException | org.apache.http.ParseException error) {
-            System.out.printf("Error processing response of access token request. Error: %s%n", error.getMessage());
-            throw new InvalidJsonError("Error processing response of access token request.");
-        }
-
-        try {
-            return (JSONObject) JSONValue.parseWithException(responseContent);
-        } catch (org.json.simple.parser.ParseException | ClassCastException error) {
-            System.out.printf("Error processing response of the request. Error: %s%n", error.getMessage());
-            throw new InvalidJsonError("Error processing response of the request.");
+            try (CloseableHttpResponse httpResponse = httpClient.execute(httpPatch)) {
+                return JSONResponse.from(httpResponse);
+            } catch (IOException error) {
+                throw new RequestError("Could not make a successful request to CodeSync server.");
+            }
+        } catch (IOException error) {
+            throw new RequestError(
+                String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
+            );
         }
     }
-
-    public static JSONObject sendGet(String url) throws RequestError, InvalidJsonError {
-        return sendGet(url, null);
-    }
-
-    public static JSONObject sendPatch(String url, JSONObject payload, String accessToken) throws RequestError, InvalidJsonError {
-        HttpClient httpClient = HttpClientBuilder.create().build();
-        HttpPatch patch = new HttpPatch(url);
-
-        StringEntity dataStr;
-        try {
-            dataStr = new StringEntity(payload.toJSONString());
-        } catch (UnsupportedEncodingException error) {
-            System.out.println("Invalid JSON encoding error while authenticating the user.");
-            throw new InvalidJsonError("Invalid JSON encoding error while authenticating the user.");
-        }
-
-        patch.setEntity(dataStr);
-        patch.addHeader("content-type", "application/json");
-        if (accessToken != null) {
-            patch.addHeader("Authorization", String.format("Basic %s", accessToken));
-        }
-        HttpResponse response;
-
-        try {
-            response = httpClient.execute(patch);
-        } catch (IOException e) {
-            throw new RequestError("Could not make a successful request to CodeSync server.");
-        }
-
-        String responseContent;
-        try {
-            responseContent = EntityUtils.toString(response.getEntity());
-        } catch (IOException | org.apache.http.ParseException error) {
-            System.out.printf("Error processing response of the request. Error: %s%n", error.getMessage());
-            throw new InvalidJsonError("Error processing response of the request.");
-        }
-
-        try {
-            return (JSONObject) JSONValue.parseWithException(responseContent);
-        } catch (org.json.simple.parser.ParseException | ClassCastException error) {
-            System.out.printf("Error processing response of the request. Error: %s%n", error.getMessage());
-            throw new InvalidJsonError("Error processing response of the request.");
-        }
-    }
-
 }

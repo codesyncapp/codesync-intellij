@@ -41,6 +41,7 @@ public class DiffUtils {
         }
         if (isNewFile) {
             data.put("is_new_file", true);
+            data.put("added_at", CommonUtils.getCurrentDatetime());
         }
         if (isDeleted) {
             data.put("is_deleted", true);

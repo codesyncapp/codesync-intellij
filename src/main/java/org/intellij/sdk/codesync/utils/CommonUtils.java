@@ -174,10 +174,7 @@ public class CommonUtils {
     }
 
     public static String getCurrentDatetime()  {
-        Date currentTime = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_TIME_FORMAT);
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return sdf.format(currentTime);
+        return formatDate(new Date());
     }
 
     public static Project getCurrentProject(String repoPath) {

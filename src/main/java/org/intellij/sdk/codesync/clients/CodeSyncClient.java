@@ -56,10 +56,21 @@ public class CodeSyncClient {
     public Pair<Boolean, User> getUser(String accessToken) throws RequestError {
         JSONObject response;
         try {
-            response = ClientUtils.sendGet(API_USERS, accessToken);
+            JSONResponse jsonResponse = ClientUtils.sendGet(API_USERS, accessToken);
+            jsonResponse.raiseForStatus();
+            response = jsonResponse.getJsonResponse();
         } catch (RequestError | InvalidJsonError error) {
-            CodeSyncLogger.error("Could not make a successful request to CodeSync server.");
+            CodeSyncLogger.error(
+                String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
+            );
             throw new RequestError("Could not make a successful request to CodeSync server.");
+        } catch (StatusCodeError error) {
+            CodeSyncLogger.error(
+                String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
+            );
+            throw new RequestError(
+                String.format("Could not make a successful request to CodeSync server. %s", error.getMessage())
+            );
         }
 
         // If server returned an error then token is not valid.
@@ -114,6 +125,10 @@ public class CodeSyncClient {
         payload.put("size", (long) fileInfo.get("size"));
         payload.put("file_path", diffFile.fileRelativePath);
         payload.put("created_at", CommonUtils.formatDate(diffFile.createdAt));
+
+        if (diffFile.addedAt != null) {
+            payload.put("added_at", CommonUtils.formatDate(diffFile.addedAt));
+        }
         JSONResponse jsonResponse;
         try {
             jsonResponse = ClientUtils.sendPost(this.filesURL, payload, accessToken);
@@ -232,14 +247,16 @@ public class CodeSyncClient {
 
     public JSONObject updateRepo(String accessToken, int repoId, JSONObject payload) {
         String url = String.format("%s/%s", CODESYNC_REPO_URL, repoId);
-
         try {
-            return ClientUtils.sendPatch(url, payload, accessToken);
-        } catch (RequestError | InvalidJsonError error) {
-            error.printStackTrace();
+            JSONResponse jsonResponse = ClientUtils.sendPatch(url, payload, accessToken);
+            jsonResponse.raiseForStatus();
+            return jsonResponse.getJsonResponse();
+        } catch (RequestError | InvalidJsonError | StatusCodeError error) {
+            CodeSyncLogger.critical(String.format("Error while repo update, %s", error.getMessage()));
 
-            CodeSyncLogger.critical(String.format("Error while repo init, %s", error.getMessage()));
-            return null;
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("error", error.getMessage());
+            return errorResponse;
         }
     }
 
@@ -247,8 +264,10 @@ public class CodeSyncClient {
         String url = String.format("%s/%s/upgrade_plan", CODESYNC_REPO_URL, repoId);
 
         try {
-            return ClientUtils.sendGet(url, accessToken);
-        } catch (RequestError | InvalidJsonError error) {
+            JSONResponse jsonResponse = ClientUtils.sendGet(url, accessToken);
+            jsonResponse.raiseForStatus();
+            return jsonResponse.getJsonResponse();
+        } catch (RequestError | InvalidJsonError | StatusCodeError error) {
             CodeSyncLogger.error(String.format("Error while getting plan upgrade information. %s", error.getMessage()));
             return null;
         }

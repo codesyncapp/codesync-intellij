@@ -18,7 +18,7 @@ import static org.intellij.sdk.codesync.Constants.DIFF_SIZE_LIMIT;
 
 public class DiffFile {
     public String diff, branch, fileRelativePath, repoPath, newRelativePath, oldRelativePath, newPath, oldPath, newAbsolutePath, oldAbsolutePath;
-    public Date createdAt;
+    public Date createdAt, addedAt; // `addedAt` means the date file sync started. Only useful in case of new file diff.
     public Boolean isBinary, isDeleted, isNewFile, isRename, isDirRename;
     public File originalDiffFile;
 
@@ -47,6 +47,10 @@ public class DiffFile {
         this.isNewFile = CommonUtils.getBoolValue(obj, "is_new_file", false);
         this.isRename = CommonUtils.getBoolValue(obj, "is_rename", false);
         this.isDirRename = CommonUtils.getBoolValue(obj, "is_dir_rename", false);
+
+        if (this.isNewFile) {
+            this.addedAt =  CommonUtils.parseDate((String) obj.get("added_at"));
+        }
 
         if (this.isDirRename) {
             try {
