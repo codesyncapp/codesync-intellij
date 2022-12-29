@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync.clients;
 
+import io.netty.channel.ConnectTimeoutException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -14,6 +15,7 @@ import org.json.simple.JSONObject;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.SocketTimeoutException;
 
 
 public class ClientUtils {
@@ -86,11 +88,13 @@ public class ClientUtils {
 
     public static JSONResponse sendGet(String url, String accessToken) throws RequestError, InvalidJsonError {
         try (CloseableHttpClient httpClient = getHttpClientBuilder().build()) {
-            // Build HTTP POST request instance.
+            // Build HTTP GET request instance.
             HttpGet httpGet = getHttpGet(url, accessToken);
 
             try (CloseableHttpResponse httpResponse = httpClient.execute(httpGet)) {
                 return JSONResponse.from(httpResponse);
+            } catch (SocketTimeoutException | ConnectTimeoutException error) {
+                throw new RequestError("Request to CodeSync server timed out.");
             } catch (IOException error) {
                 throw new RequestError("Could not make a successful request to CodeSync server.");
             }
@@ -112,6 +116,8 @@ public class ClientUtils {
 
             try (CloseableHttpResponse httpResponse = httpClient.execute(httpPost)) {
                 return JSONResponse.from(httpResponse);
+            } catch (SocketTimeoutException | ConnectTimeoutException error) {
+                throw new RequestError("Request to CodeSync server timed out.");
             } catch (IOException error) {
                 throw new RequestError("Could not make a successful request to CodeSync server.");
             }
@@ -128,11 +134,13 @@ public class ClientUtils {
 
     public static JSONResponse sendPatch(String url, JSONObject payload, String accessToken) throws RequestError, InvalidJsonError {
         try (CloseableHttpClient httpClient = getHttpClientBuilder().build()) {
-            // Build HTTP POST request instance.
+            // Build HTTP PATCH request instance.
             HttpPatch httpPatch = getHttpPatch(url, payload, accessToken);
 
             try (CloseableHttpResponse httpResponse = httpClient.execute(httpPatch)) {
                 return JSONResponse.from(httpResponse);
+            } catch (SocketTimeoutException | ConnectTimeoutException error) {
+                throw new RequestError("Request to CodeSync server timed out.");
             } catch (IOException error) {
                 throw new RequestError("Could not make a successful request to CodeSync server.");
             }
