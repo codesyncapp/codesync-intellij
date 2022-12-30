@@ -47,6 +47,9 @@ public class CodeSyncLock {
         }
     }
 
+    /*
+    Acquire lock and return `true` if lock was acquired with success or `false` of lock could not be acquired.
+    */
     public boolean acquireLock(String identifier) {
         // Default expiry is 5 minutes.
         Instant defaultExpiry = Instant.now().plus(5, ChronoUnit.MINUTES);
@@ -63,6 +66,19 @@ public class CodeSyncLock {
             return false;
         } else {
             return this.lockFile.publishNewLock(this.lock.getCategory(), expiry, identifier);
+        }
+    }
+
+    /*
+    Return `true` if lock was acquired with success or `false` of lock could not be acquired.
+    */
+    public boolean isLockAcquired(String identifier) {
+        if (this.lock == null) {
+            return false;
+        } else {
+            // If lock is active and has the same identifier as the argument then lock is acquired,
+            // and we should return true.
+            return this.lock.isActive() && this.lock.compareIdentifier(identifier);
         }
     }
 

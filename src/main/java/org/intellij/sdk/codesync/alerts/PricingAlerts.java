@@ -56,7 +56,7 @@ public class PricingAlerts {
     public static boolean getPlanLimitReached() {
         CodeSyncLock pricingAlertLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, PRICING_ALERT_LOCK_KEY);
 
-        // If we are able to acquire the lock then it means price limit is not reached.
-        return !pricingAlertLock.acquireLock(PRICING_ALERT_LOCK_KEY);
+        // If lock is acquired then it means price limit is reached.
+        return pricingAlertLock.isLockAcquired(PRICING_ALERT_LOCK_KEY);
     }
 }

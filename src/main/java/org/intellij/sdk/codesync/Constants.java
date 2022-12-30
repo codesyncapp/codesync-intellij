@@ -5,6 +5,7 @@ import org.intellij.sdk.codesync.configuration.Configuration;
 import org.intellij.sdk.codesync.configuration.ConfigurationFactory;
 
 import java.nio.file.Paths;
+import java.time.ZoneId;
 
 public final class Constants {
     public static final Configuration configuration = ConfigurationFactory.getConfiguration();
@@ -39,7 +40,10 @@ public final class Constants {
     public static final String[] IGNORABLE_DIRECTORIES = new String[]{".git", "node_modules", ".DS_Store", ".idea"};
     public static final String CURRENT_GIT_BRANCH_COMMAND = "git rev-parse --abbrev-ref HEAD";
     public static final Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
+
+    public static final String DEFAULT_TIMEZONE = ZoneId.systemDefault().getId();
     public static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS z";
+    public static final String DATE_TIME_FORMAT_WITHOUT_TIMEZONE = "yyyy-MM-dd HH:mm:ss.SSS";
     public static final String IDE_NAME = ApplicationInfo.getInstance().getVersionName();
     public static final String DIFF_SOURCE = "intellij";
     public static final String GA4_PARAMS = String.format("utm_medium=plugin&utm_source=%s&utm_source_platform=%s", DIFF_SOURCE, IDE_NAME);
@@ -62,6 +66,7 @@ public final class Constants {
     public static final String API_USERS = String.format("%s/users", API_ENDPOINT);
     public static final String CODESYNC_REPO_URL = String.format("%s/repos", API_ENDPOINT);
     public static final String FILES_API_ENDPOINT = String.format("%s/files", API_ENDPOINT);
+    public static final String TEAM_ACTIVITY_ENDPOINT = String.format("%s/team_activity?tz=%s", API_ENDPOINT, DEFAULT_TIMEZONE);
 
     public static final String API_HEALTHCHECK = String.format("%s/healthcheck", CODESYNC_HOST);
     public static final String CODESYNC_AUTHORIZE_URL = String.format("%s/authorize", CODESYNC_HOST);
@@ -92,6 +97,7 @@ public final class Constants {
     public static final String DIFFS_DAEMON_LOCK_KEY = "send_diffs_intellij";
     public static final String POPULATE_BUFFER_DAEMON_LOCK_KEY = "populate_buffer";
     public static final String PRICING_ALERT_LOCK_KEY = "pricing_alert";
+    public static final String TEAM_ACTIVITY_ALERT_LOCK_KEY = "team_activity_alert";
 
     public static final class PlatformIdentifier {
         private PlatformIdentifier() {
@@ -140,6 +146,12 @@ public final class Constants {
         public static final String UPGRADE_ORG_PRICING_PLAN = "To continue, please sign your organization up for the Team plan.";
         public static final String TRY_PRO_FOR_FREE = "To continue, please sign up for a 30-day free trial of Pro.";
         public static final String TRY_ORG_PRO_FOR_FREE = "To continue, please sign your organization up for a 30-day free trial of the Team plan.";
+
+        // Team alert related notification messages
+        public static final String TEAM_ACTIVITY_ALERT_HEADER_MESSAGE = "CodeSync | Check your team's activity!";
+        public static final String TEAM_ACTIVITY_ALERT_MESSAGE = "Hey, check your team's activity!";
+        public static final String TEAM_ACTIVITY_ALERT_SECONDARY_MESSAGE =
+            "If you are available right now then you can either skip for today or review later by clicking the correct button below.";
     }
 
     public static final class LogMessageType {

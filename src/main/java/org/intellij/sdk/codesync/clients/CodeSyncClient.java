@@ -266,4 +266,15 @@ public class CodeSyncClient {
             return null;
         }
     }
+
+    public JSONObject getTeamActivity(String accessToken) {
+        try {
+            JSONResponse jsonResponse = ClientUtils.sendGet(TEAM_ACTIVITY_ENDPOINT, accessToken);
+            jsonResponse.raiseForStatus();
+            return jsonResponse.getJsonResponse();
+        } catch (RequestError | InvalidJsonError | StatusCodeError error) {
+            CodeSyncLogger.error(String.format("Error while getting team activity data. %s", error.getMessage()));
+            return null;
+        }
+    }
 }
