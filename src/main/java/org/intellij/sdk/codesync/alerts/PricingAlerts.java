@@ -1,4 +1,4 @@
-package org.intellij.sdk.codesync.utils;
+package org.intellij.sdk.codesync.alerts;
 
 import com.intellij.openapi.project.Project;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;

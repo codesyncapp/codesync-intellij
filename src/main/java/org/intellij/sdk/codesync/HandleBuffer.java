@@ -12,7 +12,7 @@ import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
-import org.intellij.sdk.codesync.utils.PricingAlerts;
+import org.intellij.sdk.codesync.alerts.PricingAlerts;
 
 import java.io.*;
 import java.nio.file.Path;

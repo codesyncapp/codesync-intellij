@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.intellij.sdk.codesync.utils.CommonUtils;
-import org.intellij.sdk.codesync.utils.PricingAlerts;
+import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.JSONArray;

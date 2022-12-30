@@ -2,7 +2,6 @@ package org.intellij.sdk.codesync.clients;
 
 import kotlin.Pair;
 
-import org.apache.http.client.methods.HttpGet;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
@@ -11,15 +10,12 @@ import org.intellij.sdk.codesync.files.DiffFile;
 import static org.intellij.sdk.codesync.Constants.*;
 import org.intellij.sdk.codesync.models.User;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.intellij.sdk.codesync.models.UserPlan;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
-import org.intellij.sdk.codesync.utils.PricingAlerts;
+import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.json.simple.JSONObject;
 
 import java.io.File;
@@ -38,12 +34,10 @@ public class CodeSyncClient {
     }
 
     public Boolean isServerUp() {
-        HttpClient httpClient = HttpClientBuilder.create().build();
-        HttpGet healthCheck = new HttpGet(API_HEALTHCHECK);
         try {
-            HttpResponse response = httpClient.execute(healthCheck);
-            return response.getStatusLine().getStatusCode() == 200;
-        } catch (IOException e) {
+            JSONResponse jsonResponse = ClientUtils.sendGet(API_HEALTHCHECK);
+            return jsonResponse.getStatusCode() == 200;
+        } catch (InvalidJsonError | RequestError error) {
             return false;
         }
     }
