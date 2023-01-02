@@ -18,6 +18,7 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.serviceContainer.AlreadyDisposedException;
+import org.intellij.sdk.codesync.alerts.TeamActivityAlerts;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
@@ -63,6 +64,9 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
 
     // Schedule buffer handler.
     HandleBuffer.scheduleBufferHandler(project);
+
+    // Start alerts daemon
+    TeamActivityAlerts.startTeamActivityAlertDaemon(project);
 
     CodeSyncLock codeSyncProjectLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, project.getBasePath());
     boolean shouldContinue = codeSyncProjectLock.acquireLock(project.getName());

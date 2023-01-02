@@ -14,9 +14,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import static org.intellij.sdk.codesync.Constants.TEAM_ACTIVITY_ALERT_LOCK_KEY;
-import static org.intellij.sdk.codesync.Constants.WEBAPP_DASHBOARD_URL;
+import static org.intellij.sdk.codesync.Constants.*;
 
 public class TeamActivityAlerts {
     private static void acquireTeamActivityLock(Instant expiry) {
@@ -93,4 +94,24 @@ public class TeamActivityAlerts {
             teamActivityAlertDialog.show();
         }
     }
+
+    public static void startTeamActivityAlertDaemon(Project project) {
+        Timer timer = new Timer(true);
+        teamActivityDaemon(timer, project);
+    }
+
+    private static void teamActivityDaemon(final Timer timer, Project project) {
+        timer.schedule(new TimerTask() {
+            public void run() {
+                try {
+                    showTeamActivityAlert(project);
+                } catch (Exception e) {
+                    System.out.printf("Error Running the team activity alert daemon. Error: %s%n", e.getMessage());
+                }
+
+                teamActivityDaemon(timer, project);
+            }
+        }, DELAY_BETWEEN_BUFFER_TASKS);
+    }
+
 }
