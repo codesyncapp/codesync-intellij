@@ -32,7 +32,7 @@ import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
-import org.intellij.sdk.codesync.utils.PricingAlerts;
+import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
@@ -144,11 +144,14 @@ public class CodeSyncSetup {
             if (configFile.isRepoDisconnected(repoPath) || !configRepo.isSuccessfullySyncedWithBranch()) {
                 String branchName = Utils.GetGitBranch(repoPath);
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CHECK_USER_ACCESS);
+                boolean hasAccessToken = checkUserAccess(project, repoPath, repoName, branchName, skipSyncPrompt, isSyncingBranch);
+                if (!hasAccessToken) {
+                    NotificationManager.notifyInformation(Notification.LOGIN_REQUIRED_FOR_SYNC_MESSAGE, project);
+                    return;
+                }
 
                 if (skipSyncPrompt) {
-                    if (checkUserAccess(project, repoPath, repoName, branchName)) {
-                        syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, isSyncingBranch);
-                    }
+                    syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, isSyncingBranch);
                     return;
                 }
 
@@ -167,10 +170,7 @@ public class CodeSyncSetup {
                     );
 
                     if (shouldSyncRepo) {
-                        boolean hasAccessToken = checkUserAccess(project, repoPath, repoName, branchName);
-                        if (hasAccessToken) {
-                            syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, false);
-                        }
+                        syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, false);
                     }
                 }
             } else if (!configFile.isRepoDisconnected(repoPath)) {
@@ -247,7 +247,7 @@ public class CodeSyncSetup {
 
     This will also trigger the authentication flow if user does not have access token setup.
      */
-    public static boolean checkUserAccess(Project project, String repoPath, String repoName, String branchName) {
+    public static boolean checkUserAccess(Project project, String repoPath, String repoName, String branchName, boolean skipSyncPrompt, boolean isSyncingBranch) {
         String accessToken;
         try {
             UserFile userFile = new UserFile(USER_FILE_PATH);
@@ -288,7 +288,7 @@ public class CodeSyncSetup {
         CodeSyncAuthServer server;
         try {
             server =  CodeSyncAuthServer.getInstance();
-            CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(project, repoPath, repoName, branchName));
+            CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(project, repoPath, repoName, skipSyncPrompt, isSyncingBranch));
             CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
             BrowserUtil.browse(server.getAuthorizationUrl());
 
@@ -303,32 +303,7 @@ public class CodeSyncSetup {
             NotificationManager.notifyError("There was a problem with login, please try again later.", project);
         }
 
-
         return false;
-    }
-
-    /*
-    Start an async task to sync repo.
-     */
-    public static void syncRepoAsync(Project project, String repoPath, String repoName, String branchName) {
-        if (CommonUtils.isWindows()){
-            // For some reason people at intelli-j thought it would be a good idea to confuse users by using
-            // forward slashes in paths instead of windows path separator.
-            repoPath = repoPath.replaceAll("/", "\\\\");
-        }
-
-        String finalRepoPath = repoPath;
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
-            public void run(@NotNull ProgressIndicator progressIndicator) {
-                CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
-
-                // Set the progress bar percentage and text
-                codeSyncProgressIndicator.setMileStone(InitRepoMilestones.START);
-                syncRepo(finalRepoPath, repoName, branchName, project, codeSyncProgressIndicator, false);
-
-                // Finished
-                codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
-            }});
     }
 
     public static void syncRepo(String repoPath, String repoName, String branchName, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean isSyncingBranch) {
@@ -404,7 +379,6 @@ public class CodeSyncSetup {
         false otherwise.
     */
     public static boolean uploadRepo(String repoPath, String repoName, String[] filePaths, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean isSyncingBranch) {
-
         // If plan limit is reached then do not process new repos.
         if (PricingAlerts.getPlanLimitReached()) {
             return false;

@@ -21,16 +21,22 @@ public class RepoPlaybackAction extends BaseModuleAction {
 
     @Override
     public void update(AnActionEvent e) {
+        Project project = e.getProject();
+        if (project ==  null) {
+            e.getPresentation().setEnabled(false);
+            return;
+        }
+
         // Check if any of the modules inside this project are synced with codesync or not.
         // We will show repo playback button if even a single repo is synced.
-        VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(e.getProject());
+        VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
         if (contentRoots.length > 1) {
             // If more than one module are present in the project then a file must be open to show repo playback
             // this is needed because without the file we can not determine the correct repo to show.
             try {
                 VirtualFile virtualFile = e.getRequiredData(CommonDataKeys.PSI_FILE).getVirtualFile();
                 e.getPresentation().setEnabled(
-                    this.isRepoInSync(virtualFile, e.getProject())
+                    this.isRepoInSync(virtualFile, project)
                 );
             } catch (AssertionError | FileNotInModuleError error) {
                 e.getPresentation().setEnabled(false);
@@ -57,7 +63,7 @@ public class RepoPlaybackAction extends BaseModuleAction {
         }
         String repoPath, repoName;
 
-        VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(e.getProject());
+        VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
         if (contentRoots.length > 1) {
             // If more than one module are present in the project then a file must be open to show repo playback
             // this is needed because without the file we can not determine the correct repo to show.

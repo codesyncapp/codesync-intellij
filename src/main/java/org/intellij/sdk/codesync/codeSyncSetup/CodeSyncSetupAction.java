@@ -25,14 +25,15 @@ public class CodeSyncSetupAction extends BaseModuleAction {
         Project project = e.getProject();
         if (project ==  null) {
             e.getPresentation().setEnabled(false);
+            return;
         }
-        VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(e.getProject());
+        VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
         if (contentRoots.length > 1) {
             // If more than one module are present in the project then a file must be open to show repo setup action
             // this is needed because without the file we can not determine the correct repo sync.
             try {
                 VirtualFile virtualFile = e.getRequiredData(CommonDataKeys.PSI_FILE).getVirtualFile();
-                if (this.isRepoInSync(virtualFile, e.getProject())) {
+                if (this.isRepoInSync(virtualFile, project)) {
                     Presentation presentation = e.getPresentation();
                     presentation.setText("Disconnect Repo...");
                     presentation.setDescription("Disconnect repo...");
@@ -65,9 +66,16 @@ public class CodeSyncSetupAction extends BaseModuleAction {
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getProject();
 
+        if(project == null) {
+            NotificationManager.notifyError("An error occurred trying to perform repo playback action.");
+            CodeSyncLogger.error("An error occurred trying to perform repo playback action. e.getProject() is null.");
+
+            return;
+        }
+
         // Check if any of the modules inside this project are synced with codesync or not.
         // We will show repo playback button if even a single repo is synced.
-        VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(e.getProject());
+        VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
         if (contentRoots.length > 1) {
             // If more than one module are present in the project then a file must be open to show repo setup action
             // this is needed because without the file we can not determine the correct repo sync.
@@ -76,7 +84,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                 String repoPath = ProjectUtils.getRepoPath(virtualFile, project);
                 String repoName = ProjectUtils.getRepoName(virtualFile, project);
 
-                if (this.isRepoInSync(virtualFile, e.getProject())) {
+                if (this.isRepoInSync(virtualFile, project)) {
                     try {
                         CodeSyncSetup.disconnectRepo(project, repoPath, repoName);
                     } catch (BaseException | BaseNetworkException error) {

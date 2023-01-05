@@ -26,11 +26,17 @@ import static org.intellij.sdk.codesync.Constants.FILE_PLAYBACK_LINK;
 public class FilePlaybackAction extends BaseModuleAction {
     @Override
     public void update(AnActionEvent e) {
+        Project project = e.getProject();
+        if (project ==  null) {
+            e.getPresentation().setEnabled(false);
+            return;
+        }
+
         // Only enable file playback button when some file is opened in the editor.
         try {
             VirtualFile virtualFile = e.getRequiredData(CommonDataKeys.PSI_FILE).getVirtualFile();
             e.getPresentation().setEnabled(
-                this.isRepoInSync(virtualFile, e.getProject())
+                this.isRepoInSync(virtualFile, project)
             );
         } catch (AssertionError | FileNotInModuleError error) {
             e.getPresentation().setEnabled(false);

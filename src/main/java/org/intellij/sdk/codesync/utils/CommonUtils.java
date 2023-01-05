@@ -100,8 +100,8 @@ public class CommonUtils {
     }
 
     @Nullable
-    public static Date parseDate(String dateString) {
-        SimpleDateFormat pattern = new SimpleDateFormat(DATE_TIME_FORMAT);
+    public static Date parseDate(String dateString, String format) {
+        SimpleDateFormat pattern = new SimpleDateFormat(format);
         try {
             return new Date(pattern.parse(dateString).getTime());
         } catch (ParseException pe) {
@@ -109,17 +109,26 @@ public class CommonUtils {
         }
     }
 
+    @Nullable
+    public static Date parseDate(String dateString) {
+        return parseDate(dateString, DATE_TIME_FORMAT);
+    }
+
     /*
     Using instant because it handles time zone correctly.
      */
     @Nullable
-    public static Instant parseDateToInstant(String dateString) {
-        SimpleDateFormat pattern = new SimpleDateFormat(DATE_TIME_FORMAT);
-        try {
-            return new Date(pattern.parse(dateString).getTime()).toInstant();
-        } catch (ParseException pe) {
-            return null;
+    public static Instant parseDateToInstant(String dateString, String format) {
+        Date date = parseDate(dateString, format);
+        if (date != null) {
+            return date.toInstant();
         }
+        return null;
+    }
+
+    @Nullable
+    public static Instant parseDateToInstant(String dateString) {
+        return parseDateToInstant(dateString, DATE_TIME_FORMAT);
     }
 
     public static String formatDate(Instant instant) {
@@ -174,10 +183,7 @@ public class CommonUtils {
     }
 
     public static String getCurrentDatetime()  {
-        Date currentTime = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_TIME_FORMAT);
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return sdf.format(currentTime);
+        return formatDate(new Date());
     }
 
     public static Project getCurrentProject(String repoPath) {

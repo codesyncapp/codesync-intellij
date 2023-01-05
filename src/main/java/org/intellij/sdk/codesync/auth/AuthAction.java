@@ -4,6 +4,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.project.Project;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.commands.ClearReposToIgnoreCache;
@@ -22,6 +23,12 @@ import static org.intellij.sdk.codesync.Constants.*;
 public class AuthAction extends AnAction {
     @Override
     public void update(@NotNull AnActionEvent e) {
+        Project project = e.getProject();
+        if (project ==  null) {
+            e.getPresentation().setEnabled(false);
+            return;
+        }
+
         PluginState pluginState = StateUtils.getGlobalState();
         Presentation presentation = e.getPresentation();
         if (pluginState.isAuthenticated) {
@@ -37,6 +44,14 @@ public class AuthAction extends AnAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
+        Project project = e.getProject();
+        if (project == null) {
+            NotificationManager.notifyError("An error occurred trying to perform authentication action.");
+            CodeSyncLogger.warning("An error occurred trying to perform authentication action. e.getProject() is null.");
+
+            return;
+        }
+
         PluginState pluginState = StateUtils.getGlobalState();
 
         CodeSyncAuthServer server;
@@ -49,7 +64,7 @@ public class AuthAction extends AnAction {
                     userFile = new UserFile(USER_FILE_PATH);
                 } catch (FileNotFoundException error) {
                     NotificationManager.notifyError(
-                            "An error occurred trying to logout the user, please tyr again later.", e.getProject()
+                            "An error occurred trying to logout the user, please tyr again later.", project
                     );
                     CodeSyncLogger.error(
                             String.format("[INTELLIJ_AUTH_ERROR]: auth file not found. Error: %s", error.getMessage())
@@ -58,7 +73,7 @@ public class AuthAction extends AnAction {
                 } catch (InvalidYmlFileError error) {
                     error.printStackTrace();
                     NotificationManager.notifyError(
-                            "An error occurred trying to logout the user, please tyr again later.", e.getProject()
+                            "An error occurred trying to logout the user, please tyr again later.", project
                     );
                     CodeSyncLogger.critical(
                             String.format("[INTELLIJ_AUTH_ERROR]: Invalid auth file. Error: %s", error.getMessage()),
@@ -75,7 +90,7 @@ public class AuthAction extends AnAction {
                     userFile.writeYml();
                 } catch (FileNotFoundException | InvalidYmlFileError error) {
                     NotificationManager.notifyError(
-                            "An error occurred trying to logout the user, please tyr again later.", e.getProject()
+                            "An error occurred trying to logout the user, please tyr again later.", project
                     );
                     CodeSyncLogger.error(
                             String.format("[INTELLIJ_AUTH_ERROR]: Could write to auth file. Error: %s", error.getMessage())
@@ -83,17 +98,17 @@ public class AuthAction extends AnAction {
                     return;
                 }
                 // Reload the state now.
-                StateUtils.reloadState(e.getProject());
+                StateUtils.reloadState(project);
 
                 NotificationManager.notifyInformation(
-                        "You have been logged out successfully.", e.getProject()
+                        "You have been logged out successfully.", project
                 );
             } else {
                 CodeSyncLogger.debug(
                         "[INTELLIJ_AUTH]: User initiated login flow."
                 );
                 BrowserUtil.browse(targetURL);
-                CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(e.getProject()));
+                CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
             }
 
         } catch (Exception exc) {

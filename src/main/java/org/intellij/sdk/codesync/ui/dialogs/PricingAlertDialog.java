@@ -58,7 +58,7 @@ public class PricingAlertDialog extends DialogWrapper {
         JPanel dialogPanel = new JPanel(new BorderLayout());
 
         String htmlMessage = String.format(
-            "<html><p>%s</p><p>%s</p><br/></html>", this.primaryMessage, this.secondaryMessage
+            "<html><p>%s</p><br/><p>%s</p><br/></html>", this.primaryMessage, this.secondaryMessage
         );
         JXLabel label = new JXLabel(htmlMessage);
         label.setLineWrap(true);
