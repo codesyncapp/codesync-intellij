@@ -14,6 +14,8 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 
 public class ActivityAlertDialog extends DialogWrapper {
@@ -41,6 +43,14 @@ public class ActivityAlertDialog extends DialogWrapper {
         }
 
         setTitle(this.title);
+        getWindow().addWindowListener(
+            new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    remindLaterAction();
+                }
+            }
+        );
     }
 
     public ActivityAlertDialog(String teamActivityURL, boolean isTeamActivity){
