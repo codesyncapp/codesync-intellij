@@ -5,7 +5,7 @@ import org.intellij.sdk.codesync.Constants;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.files.UserFile;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
-import org.intellij.sdk.codesync.ui.dialogs.TeamActivityAlertDialog;
+import org.intellij.sdk.codesync.ui.dialogs.ActivityAlertDialog;
 import org.intellij.sdk.codesync.utils.DataUtils;
 import org.json.simple.JSONObject;
 
@@ -15,13 +15,13 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 
-import static org.intellij.sdk.codesync.Constants.TEAM_ACTIVITY_ALERT_LOCK_KEY;
+import static org.intellij.sdk.codesync.Constants.ACTIVITY_ALERT_LOCK_KEY;
 import static org.intellij.sdk.codesync.Constants.WEBAPP_DASHBOARD_URL;
 
-public class TeamActivityAlerts {
-    private static void acquireTeamActivityLock(Instant expiry) {
-        CodeSyncLock pricingAlertLock = new CodeSyncLock(Constants.LockFileType.PROJECT_LOCK, TEAM_ACTIVITY_ALERT_LOCK_KEY);
-        pricingAlertLock.acquireLock(TEAM_ACTIVITY_ALERT_LOCK_KEY, expiry);
+public class ActivityAlerts {
+    private static void acquireActivityLock(Instant expiry) {
+        CodeSyncLock activityAlertLock = new CodeSyncLock(Constants.LockFileType.PROJECT_LOCK, ACTIVITY_ALERT_LOCK_KEY);
+        activityAlertLock.acquireLock(ACTIVITY_ALERT_LOCK_KEY, expiry);
     }
 
     /*
@@ -54,14 +54,14 @@ public class TeamActivityAlerts {
     }
 
     /*
-    Return `true` if user should be shown a team activity alert, `false` otherwise.
+    Return `true` if user should be shown an activity alert, `false` otherwise.
     */
-    public static boolean canShowTeamActivityAlert() {
-        CodeSyncLock pricingAlertLock = new CodeSyncLock(Constants.LockFileType.PROJECT_LOCK, TEAM_ACTIVITY_ALERT_LOCK_KEY);
+    public static boolean canShowActivityAlert() {
+        CodeSyncLock activityAlertLock = new CodeSyncLock(Constants.LockFileType.PROJECT_LOCK, ACTIVITY_ALERT_LOCK_KEY);
 
-        // If lock is acquired, then we should not show team activity alert.
+        // If lock is acquired, then we should not show activity alert.
         // We would only show alerts once the lock expires.
-        return !pricingAlertLock.isLockAcquired(TEAM_ACTIVITY_ALERT_LOCK_KEY);
+        return !activityAlertLock.isLockAcquired(ACTIVITY_ALERT_LOCK_KEY);
     }
 
     /*
@@ -69,7 +69,7 @@ public class TeamActivityAlerts {
     */
     public static void remindLater() {
         Instant fifteenMinutesInFuture = Instant.now().plus(15, ChronoUnit.MINUTES);
-        acquireTeamActivityLock(fifteenMinutesInFuture);
+        acquireActivityLock(fifteenMinutesInFuture);
     }
 
     /*
@@ -77,11 +77,11 @@ public class TeamActivityAlerts {
      */
     public static void skipToday() {
         Instant reminderInstant = getTomorrowAlertInstant();
-        acquireTeamActivityLock(reminderInstant);
+        acquireActivityLock(reminderInstant);
     }
 
-    public static void showTeamActivityAlert(Project project) {
-        if (!canShowTeamActivityAlert()) {
+    public static void showActivityAlert(Project project) {
+        if (!canShowActivityAlert()) {
             return;
         }
 
@@ -89,8 +89,13 @@ public class TeamActivityAlerts {
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         JSONObject jsonResponse = codeSyncClient.getTeamActivity(accessToken);
         if (hasActivityInTheLastDay(jsonResponse)) {
-            TeamActivityAlertDialog teamActivityAlertDialog = new TeamActivityAlertDialog(WEBAPP_DASHBOARD_URL, project);
-            teamActivityAlertDialog.show();
+            boolean isTeamActivity = jsonResponse.containsKey("is_team_activity") &&
+                (boolean) jsonResponse.get("is_team_activity");
+
+            ActivityAlertDialog activityAlertDialog = new ActivityAlertDialog(
+                WEBAPP_DASHBOARD_URL, isTeamActivity, project
+            );
+            activityAlertDialog.show();
         }
     }
 }

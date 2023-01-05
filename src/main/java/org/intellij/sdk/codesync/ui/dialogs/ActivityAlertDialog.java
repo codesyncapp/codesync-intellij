@@ -5,7 +5,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.intellij.sdk.codesync.Constants.Notification;
-import org.intellij.sdk.codesync.alerts.TeamActivityAlerts;
+import org.intellij.sdk.codesync.alerts.ActivityAlerts;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -16,24 +16,35 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 
 
-public class TeamActivityAlertDialog extends DialogWrapper {
-    String primaryMessage = Notification.TEAM_ACTIVITY_ALERT_MESSAGE,
-        secondaryMessage = Notification.TEAM_ACTIVITY_ALERT_SECONDARY_MESSAGE,
-        title = Notification.TEAM_ACTIVITY_ALERT_HEADER_MESSAGE,
-        reviewButtonText = "View team activity",
+public class ActivityAlertDialog extends DialogWrapper {
+    String primaryMessage, secondaryMessage, title, reviewButtonText,
         reviewLaterButtonText = "Remind me later",
         cancelButtonText = "Skip for today"
     ;
     String teamActivityURL;
 
-    public TeamActivityAlertDialog(String teamActivityURL, Project project){
+    public ActivityAlertDialog(String teamActivityURL, boolean isTeamActivity, Project project){
         super(project, true);
         this.teamActivityURL = teamActivityURL;
+
+        if (isTeamActivity) {
+            this.title = Notification.TEAM_ACTIVITY_ALERT_HEADER_MESSAGE;
+            this.primaryMessage = Notification.TEAM_ACTIVITY_ALERT_MESSAGE;
+            this.secondaryMessage = Notification.TEAM_ACTIVITY_ALERT_SECONDARY_MESSAGE;
+
+            this.reviewButtonText = "View team activity";
+        } else {
+            this.title = Notification.ACTIVITY_ALERT_HEADER_MESSAGE;
+            this.primaryMessage = Notification.ACTIVITY_ALERT_MESSAGE;
+            this.secondaryMessage = Notification.ACTIVITY_ALERT_SECONDARY_MESSAGE;
+            this.reviewButtonText = "View activity";
+        }
+
         setTitle(this.title);
     }
 
-    public TeamActivityAlertDialog(String teamActivityURL){
-        this(teamActivityURL, null);
+    public ActivityAlertDialog(String teamActivityURL, boolean isTeamActivity){
+        this(teamActivityURL, isTeamActivity, null);
     }
 
     public void show() {
@@ -67,13 +78,13 @@ public class TeamActivityAlertDialog extends DialogWrapper {
     protected void redirectToTeamActivity() {
         BrowserUtil.browse(this.teamActivityURL);
         // User has already been redirected to the activity page, we can now skip subsequent alerts.
-        TeamActivityAlerts.skipToday();
+        ActivityAlerts.skipToday();
     }
     protected void remindLaterAction() {
-        TeamActivityAlerts.remindLater();
+        ActivityAlerts.remindLater();
     }
     protected void skipForTodayAction() {
-        TeamActivityAlerts.skipToday();
+        ActivityAlerts.skipToday();
     }
 
     @Override

@@ -45,7 +45,7 @@ public class AuthAction extends AnAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getProject();
-        if(project == null) {
+        if (project == null) {
             NotificationManager.notifyError("An error occurred trying to perform authentication action.");
             CodeSyncLogger.warning("An error occurred trying to perform authentication action. e.getProject() is null.");
 

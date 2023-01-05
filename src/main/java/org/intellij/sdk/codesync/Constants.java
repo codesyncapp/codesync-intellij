@@ -97,7 +97,7 @@ public final class Constants {
     public static final String DIFFS_DAEMON_LOCK_KEY = "send_diffs_intellij";
     public static final String POPULATE_BUFFER_DAEMON_LOCK_KEY = "populate_buffer";
     public static final String PRICING_ALERT_LOCK_KEY = "pricing_alert";
-    public static final String TEAM_ACTIVITY_ALERT_LOCK_KEY = "team_activity_alert";
+    public static final String ACTIVITY_ALERT_LOCK_KEY = "activity_alerts";
 
     public static final class PlatformIdentifier {
         private PlatformIdentifier() {
@@ -148,10 +148,14 @@ public final class Constants {
         public static final String TRY_ORG_PRO_FOR_FREE = "To continue, please sign your organization up for a 30-day free trial of the Team plan.";
 
         // Team alert related notification messages
+        public static final String ACTIVITY_ALERT_HEADER_MESSAGE = "CodeSync | Check your activity!";
+        public static final String ACTIVITY_ALERT_MESSAGE = "Hope you had a great day! Shall we review today's code playback?";
+        public static final String ACTIVITY_ALERT_SECONDARY_MESSAGE =
+            "If you are not available right now then you can either skip for today or review later by clicking the correct button below.";
         public static final String TEAM_ACTIVITY_ALERT_HEADER_MESSAGE = "CodeSync | Check your team's activity!";
-        public static final String TEAM_ACTIVITY_ALERT_MESSAGE = "Hey, check your team's activity!";
+        public static final String TEAM_ACTIVITY_ALERT_MESSAGE = "Hope you had a great day! It's time to get in sync with your team's code.";
         public static final String TEAM_ACTIVITY_ALERT_SECONDARY_MESSAGE =
-            "If you are available right now then you can either skip for today or review later by clicking the correct button below.";
+            "If you are not available right now then you can either skip for today or review later by clicking the correct button below.";
     }
 
     public static final class LogMessageType {
