@@ -5,6 +5,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.intellij.sdk.codesync.Constants.Notification;
+import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -67,7 +68,12 @@ public class PricingAlertDialog extends DialogWrapper {
         return dialogPanel;
     }
 
+    /*
+    Redirect the user to upgrade page and clear the locks.
+    User may upgrade his plan and come back to try again. in such case, we do not want to show the same dialog again.
+     */
     protected void redirectToUpgrade() {
+        PricingAlerts.resetPlanLimitReached();
         BrowserUtil.browse(this.pricingURL);
     }
 
