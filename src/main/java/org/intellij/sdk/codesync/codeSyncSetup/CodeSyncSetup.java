@@ -193,7 +193,7 @@ public class CodeSyncSetup {
         }
         String[] systemFilePaths = {
                 CONFIG_PATH, USER_FILE_PATH, SEQUENCE_TOKEN_FILE_PATH, PROJECT_LOCK_FILE, HANDLE_BUFFER_LOCK_FILE,
-                POPULATE_BUFFER_LOCK_FILE
+                POPULATE_BUFFER_LOCK_FILE, ALERTS_FILE_PATH
         };
         for (String systemFilePath: systemFilePaths) {
             File systemFile = new File(systemFilePath);

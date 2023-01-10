@@ -8,7 +8,6 @@ import org.intellij.sdk.codesync.utils.CommonUtils;
 import java.io.*;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
