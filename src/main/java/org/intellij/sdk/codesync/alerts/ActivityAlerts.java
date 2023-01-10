@@ -7,6 +7,7 @@ import org.intellij.sdk.codesync.files.UserFile;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.ui.dialogs.ActivityAlertDialog;
 import org.intellij.sdk.codesync.utils.DataUtils;
+import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.json.simple.JSONObject;
 
 import java.time.Instant;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -101,22 +103,6 @@ public class ActivityAlerts {
     }
 
     public static void startActivityAlertDaemon(Project project) {
-        Timer timer = new Timer(true);
-        activityDaemon(timer, project);
+        ProjectUtils.startDaemonProcess(() -> showActivityAlert(project));
     }
-
-    private static void activityDaemon(final Timer timer, Project project) {
-        timer.schedule(new TimerTask() {
-            public void run() {
-                try {
-                    showActivityAlert(project);
-                } catch (Exception e) {
-                    System.out.printf("Error Running the activity alert daemon. Error: %s%n", e.getMessage());
-                }
-
-                activityDaemon(timer, project);
-            }
-        }, DELAY_BETWEEN_BUFFER_TASKS);
-    }
-
 }

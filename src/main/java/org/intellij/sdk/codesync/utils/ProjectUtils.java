@@ -11,18 +11,34 @@ import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.channels.OverlappingFileLockException;
-import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import static org.intellij.sdk.codesync.Constants.*;
+import static org.intellij.sdk.codesync.Constants.DELAY_BETWEEN_BUFFER_TASKS_IN_SECONDS;
 
 public class ProjectUtils {
+
+    /*
+    Start a daemon to run the given task. Use delay parameters defined in constants.
+     */
+    public static void startDaemonProcess(Runnable task) {
+        startDaemonProcess(
+            task, DELAY_BETWEEN_BUFFER_TASKS_IN_SECONDS, DELAY_BETWEEN_BUFFER_TASKS_IN_SECONDS, TimeUnit.SECONDS
+        );
+    }
+
+    /*
+    Start a daemon process with the given parameters.
+
+    This method expects a Runnable task, initial delay, delay between tasks and the time unit for the delay values.
+     */
+    public static void startDaemonProcess(Runnable task, long initialDelay, long delayBetweenTasks, TimeUnit delayUnit) {
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        executor.scheduleWithFixedDelay(task, initialDelay, delayBetweenTasks, delayUnit);
+    }
+
     public static String getRepoPath(VirtualFile virtualFile, Project project) throws FileNotInModuleError {
         ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
         VirtualFile moduleContentRoot = projectFileIndex.getContentRootForFile(virtualFile);
