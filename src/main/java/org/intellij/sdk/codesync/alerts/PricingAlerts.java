@@ -2,9 +2,13 @@ package org.intellij.sdk.codesync.alerts;
 
 import com.intellij.openapi.project.Project;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
+import org.intellij.sdk.codesync.files.AlertsFile;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.ui.dialogs.PricingAlertDialog;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.json.simple.JSONObject;
+
+import java.time.Instant;
 
 import static org.intellij.sdk.codesync.Constants.LockFileType;
 import static org.intellij.sdk.codesync.Constants.*;
@@ -40,6 +44,7 @@ public class PricingAlerts {
 
             PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(isOrgRepo, canAvailTrial, pricingUrl, project);
             pricingAlertDialog.show();
+            AlertsFile.updateUpgradePlanActivity(CommonUtils.getTodayInstant());
         } else {
             setPlanLimitReached(project);
         }

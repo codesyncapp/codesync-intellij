@@ -13,6 +13,7 @@ import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.alerts.PricingAlerts;
+import org.intellij.sdk.codesync.utils.ProjectUtils;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -115,24 +116,8 @@ public class HandleBuffer {
         return new DiffFile[0];
     }
 
-    private static void bufferHandler(final Timer timer, Project project) {
-        timer.schedule(new TimerTask() {
-            public void run() {
-                try {
-                    HandleBuffer.handleBuffer(project);
-                } catch (Exception e) {
-                    System.out.println("handleBuffer with error:");
-                    e.printStackTrace();
-                }
-
-                bufferHandler(timer, project);
-            }
-        }, DELAY_BETWEEN_BUFFER_TASKS);
-    }
-
     public static void scheduleBufferHandler(Project project) {
-        Timer timer = new Timer(true);
-        bufferHandler(timer, project);
+        ProjectUtils.startDaemonProcess(() -> HandleBuffer.handleBuffer(project));
     }
 
     public static void handleBuffer(Project project) {

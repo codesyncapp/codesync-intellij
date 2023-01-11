@@ -32,6 +32,7 @@ public final class Constants {
     public static final String SHADOW_REPO = Paths.get(CODESYNC_ROOT, ".shadow").toString();
     public static final String CONFIG_PATH = Paths.get(CODESYNC_ROOT, "config.yml").toString();
     public static final String USER_FILE_PATH = Paths.get(CODESYNC_ROOT, "user.yml").toString();
+    public static final String ALERTS_FILE_PATH = Paths.get(CODESYNC_ROOT, "alerts.yml").toString();
     public static final String SEQUENCE_TOKEN_FILE_PATH = Paths.get(CODESYNC_ROOT, "sequence_token.yml").toString();
     public static final String DEFAULT_BRANCH = "default";
     public static final String GIT_REPO = ".git";
@@ -40,9 +41,11 @@ public final class Constants {
     public static final String[] IGNORABLE_DIRECTORIES = new String[]{".git", "node_modules", ".DS_Store", ".idea"};
     public static final String CURRENT_GIT_BRANCH_COMMAND = "git rev-parse --abbrev-ref HEAD";
     public static final Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
+    public static final Integer DELAY_BETWEEN_BUFFER_TASKS_IN_SECONDS = 6;
 
     public static final String DEFAULT_TIMEZONE = ZoneId.systemDefault().getId();
     public static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS z";
+    public static final String DATE_FORMAT = "yyyy-MM-dd";
     public static final String DATE_TIME_FORMAT_WITHOUT_TIMEZONE = "yyyy-MM-dd HH:mm:ss.SSS";
     public static final String IDE_NAME = ApplicationInfo.getInstance().getVersionName();
     public static final String DIFF_SOURCE = "intellij";

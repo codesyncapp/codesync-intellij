@@ -67,6 +67,10 @@ public class PricingAlertDialog extends DialogWrapper {
         return dialogPanel;
     }
 
+    /*
+    Redirect the user to upgrade page and clear the locks.
+    User may upgrade his plan and come back to try again. in such case, we do not want to show the same dialog again.
+     */
     protected void redirectToUpgrade() {
         BrowserUtil.browse(this.pricingURL);
     }

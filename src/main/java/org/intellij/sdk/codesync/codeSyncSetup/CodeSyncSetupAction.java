@@ -8,6 +8,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.actions.BaseModuleAction;
+import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.intellij.sdk.codesync.exceptions.base.BaseException;
 import org.intellij.sdk.codesync.exceptions.base.BaseNetworkException;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
@@ -95,7 +96,12 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                         );
                     }
                 } else {
-                    CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, true, false);
+                    if (PricingAlerts.getPlanLimitReached()) {
+                        // Show Pricing alert dialog.
+                        PricingAlerts.setPlanLimitReached(project);
+                    } else {
+                        CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, true, false);
+                    }
                 }
             } catch (AssertionError | FileNotInModuleError error) {
                 NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
@@ -122,7 +128,12 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                     );
                 }
             } else {
-                CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, true, false);
+                if (PricingAlerts.getPlanLimitReached()) {
+                    // Show Pricing alert dialog.
+                    PricingAlerts.setPlanLimitReached(project);
+                } else {
+                    CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, true, false);
+                }
             }
         } else {
             NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);

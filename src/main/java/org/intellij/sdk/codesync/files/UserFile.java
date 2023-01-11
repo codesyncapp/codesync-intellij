@@ -124,6 +124,21 @@ public class UserFile extends CodeSyncYmlFile {
         return null;
     }
 
+   /*
+    Get email of the default user or null.
+     */
+    public static String getEmail() {
+        UserFile userFile;
+        try {
+            userFile = new UserFile(USER_FILE_PATH);
+        } catch (FileNotFoundException | InvalidYmlFileError e) {
+            return null;
+        }
+
+        UserFile.User user =  userFile.getActiveUser();
+        return user != null ? user.getUserEmail(): null;
+    }
+
     /*
     Get access token for the first user in the file or null.
 

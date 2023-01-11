@@ -19,6 +19,7 @@ import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.DiffUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
+import org.intellij.sdk.codesync.utils.ProjectUtils;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -120,23 +121,8 @@ public class PopulateBuffer {
         }
     }
 
-    private static void populateBufferDaemon(final Timer timer, Project project) {
-        timer.schedule(new TimerTask() {
-            public void run() {
-                try {
-                    populateBuffer(project);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                populateBufferDaemon(timer, project);
-            }
-        }, DELAY_BETWEEN_BUFFER_TASKS);
-    }
-
     public static void startPopulateBufferDaemon(Project project) {
-        Timer timer = new Timer(true);
-        populateBufferDaemon(timer, project);
+        ProjectUtils.startDaemonProcess(() -> populateBuffer(project));
     }
 
     public static void populateBuffer(Project project) {
