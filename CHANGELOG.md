@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.18.0] - 2022-01-11
+- Fixes and improvements in the plugin.
+- Show login prompt before repo-sync prompt.
+- Added handling and guards agains null values of Project instance in different places inside the code base. This will help avoid null pointer exceptions.
+- Explicitly set API timeout to 120 seconds for requests, also refactored client related code to add better error handling and make it cleaner.
+- Included `added_at` parameter for new files so that correct time is used if user creates a file during the time period when user's plan has expired.
+- Added daily reminder alert for team activity review.
+- Started using ScheduledExecutorService instead of Timer to schedule async processes.
+- In case user has exhausted his plan limit we should show dialog in user tries to connect a new repo using actions.
+-  Added alerts.yml file for syncing with VSCode.
+
 ## [3.17.1] - 2022-12-27
 - Improved pricing alert dialog box.
 - Improved error handling during repo init flow.
