@@ -119,8 +119,16 @@ public class AlertsFile extends CodeSyncYmlFile{
         }
         Map<String, String> alertDetails = new HashMap<>();
         String newCheckedAt = null;
+        Map<String, Object> teamActivity = null;
+        if (alertsFile.contentsMap.containsKey("team_activity")) {
+            teamActivity = (Map<String, Object>)  alertsFile.contentsMap.get("team_activity");
+        }
+        if (teamActivity == null) {
+            teamActivity = new HashMap<>();
+        }
 
         if (checkedAt == null) {
+
             if (alertsFile.contentsMap.containsKey(userEmail)) {
                 newCheckedAt = (String) alertsFile.contentsMap.get("checked_at");
             }
@@ -131,7 +139,8 @@ public class AlertsFile extends CodeSyncYmlFile{
         alertDetails.put("checked_for", CommonUtils.formatDate(Date.from(checkedFor), DATE_FORMAT));
         alertDetails.put("shown_at", CommonUtils.formatDate(Date.from(shownAt), DATE_TIME_FORMAT_WITHOUT_TIMEZONE));
 
-        alertsFile.contentsMap.put(userEmail, alertDetails);
+        teamActivity.put(userEmail, alertDetails);
+        alertsFile.contentsMap.put("team_activity", teamActivity);
 
         try {
             alertsFile.writeYml();
