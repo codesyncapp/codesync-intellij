@@ -66,6 +66,13 @@ public class ActivityAlerts {
         }
 
         String accessToken = UserFile.getAccessToken();
+        String email = UserFile.getEmail();
+
+        // If team activity is already shown other IDE then no need to proceed.
+        if (AlertsFile.isTeamActivityAlreadyShown(email)) {
+            return;
+        }
+
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         JSONObject jsonResponse = codeSyncClient.getTeamActivity(accessToken);
         if (hasActivityInTheLastDay(jsonResponse)) {
@@ -76,18 +83,13 @@ public class ActivityAlerts {
                 WEBAPP_DASHBOARD_URL, isTeamActivity, project
             );
             boolean hasUserChecked = activityAlertDialog.showAndGet();
-            if (isTeamActivity) {
-                String email = UserFile.getEmail();
-                if (email != null) {
-                    AlertsFile.updateTeamActivity(
-                        email,
-                        hasUserChecked ? CommonUtils.getTodayInstant(): null,
-                        CommonUtils.getYesterdayInstant(),
-                        CommonUtils.getTodayInstant()
-                    );
-                }
-            } else {
-                AlertsFile.updateUserActivity(CommonUtils.getTodayInstant());
+            if (email != null) {
+                AlertsFile.updateTeamActivity(
+                    email,
+                    hasUserChecked ? CommonUtils.getTodayInstant(): null,
+                    CommonUtils.getYesterdayInstant(),
+                    CommonUtils.getTodayInstant()
+                );
             }
         }
     }

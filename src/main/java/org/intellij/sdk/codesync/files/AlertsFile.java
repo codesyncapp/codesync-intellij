@@ -112,6 +112,41 @@ public class AlertsFile extends CodeSyncYmlFile{
             alertsFile.removeFileContents();
         }
     }
+
+    public static boolean isTeamActivityAlreadyShown(String userEmail) {
+        AlertsFile alertsFile = getInstance();
+        if (alertsFile == null) {
+            return false;
+        }
+        Map<String, Object> teamActivity = null;
+        if (alertsFile.contentsMap.containsKey("team_activity")) {
+            teamActivity = (Map<String, Object>)  alertsFile.contentsMap.get("team_activity");
+        }
+
+        if (teamActivity == null) {
+            return false;
+        }
+
+        Map<String, String> userActivityDetails = (Map<String, String>) teamActivity.get(userEmail);
+
+        if (userActivityDetails == null) {
+            return false;
+        }
+
+        Instant lasShownInstant = CommonUtils.parseDateToInstant(
+            userActivityDetails.get("shown_at"),
+            DATE_TIME_FORMAT_WITHOUT_TIMEZONE
+        );
+
+        if (lasShownInstant != null) {
+            Instant yesterday = CommonUtils.getYesterdayInstant();
+            Instant today = CommonUtils.getTodayInstant();
+            return lasShownInstant.isAfter(yesterday) && lasShownInstant.isBefore(today);
+        }
+
+        return false;
+    }
+
     public static void updateTeamActivity(String userEmail, Instant checkedAt, Instant checkedFor, Instant shownAt) {
         AlertsFile alertsFile = getInstance();
         if (alertsFile == null) {
