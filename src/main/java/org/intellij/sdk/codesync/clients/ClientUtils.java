@@ -41,7 +41,9 @@ public class ClientUtils {
         try {
             return new StringEntity(payload.toJSONString());
         } catch (UnsupportedEncodingException error) {
-            throw new InvalidJsonError("Invalid JSON encoding error while authenticating the user.");
+            throw new InvalidJsonError(
+                String.format("Invalid JSON encoding error while authenticating the user. Error: %s", error.getMessage())
+            );
         }
     }
 

@@ -159,7 +159,9 @@ public class UserFile extends CodeSyncYmlFile {
 
             }
         } catch (ClassCastException e){
-            throw new InvalidYmlFileError(String.format("User yml file \"%s\" is not valid.", this.getYmlFile().getPath()));
+            throw new InvalidYmlFileError(
+                String.format("User yml file \"%s\" is not valid. Error: %s", this.getYmlFile().getPath(), e.getMessage())
+            );
         }
     }
 

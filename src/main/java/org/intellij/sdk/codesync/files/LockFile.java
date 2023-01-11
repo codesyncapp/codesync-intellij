@@ -122,7 +122,6 @@ public class LockFile extends CodeSyncYmlFile {
         try {
             return super.readYml();
         } catch (InvalidYmlFileError e) {
-            e.printStackTrace();
             return new HashMap<>();
         }
     }
@@ -152,7 +151,11 @@ public class LockFile extends CodeSyncYmlFile {
                 }
             }
         } catch (ClassCastException e){
-            throw new InvalidYmlFileError(String.format("Lock yml file \"%s\" is not valid.", this.getYmlFile().getPath()));
+            throw new InvalidYmlFileError(
+                String.format(
+                    "Lock yml file \"%s\" is not valid. Error: %s", this.getYmlFile().getPath(), e.getMessage()
+                )
+            );
         }
     }
 

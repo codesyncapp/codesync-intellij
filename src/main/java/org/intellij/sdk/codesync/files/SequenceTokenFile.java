@@ -89,7 +89,13 @@ public class SequenceTokenFile extends CodeSyncYmlFile {
 
             }
         } catch (ClassCastException e){
-            throw new InvalidYmlFileError(String.format("Sequence token yml file \"%s\" is not valid.", this.getYmlFile().getPath()));
+            throw new InvalidYmlFileError(
+                String.format(
+                    "Sequence token yml file \"%s\" is not valid. Error: %s",
+                    this.getYmlFile().getPath(),
+                    e.getMessage()
+                )
+            );
         }
     }
 

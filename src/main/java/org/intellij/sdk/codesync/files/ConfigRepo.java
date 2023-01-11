@@ -36,7 +36,7 @@ public class ConfigRepo {
             this.email = (String) configRepoMap.get("email");
             this.id = (Integer) configRepoMap.get("id");
         } catch (ClassCastException e){
-            throw new InvalidConfigFileError("Config file is not valid.");
+            throw new InvalidConfigFileError(String.format("Config file is not valid. Error: %s", e.getMessage()));
         }
 
         this.isInSync = CommonUtils.getBoolValue(configRepoMap, "is_in_sync", true);
