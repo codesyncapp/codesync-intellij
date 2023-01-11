@@ -110,7 +110,7 @@ public class CodeSyncClient {
         try {
             fileInfo = FileUtils.getFileInfo(originalsFile.getAbsolutePath());
         } catch (FileInfoError error) {
-            throw new FileInfoError(String.format("File Info could not be found for %s", diffFile.fileRelativePath));
+            throw new FileInfoError(String.format("File Info could not be found for %s. Error: %s", diffFile.fileRelativePath, error.getMessage()));
         }
 
         payload.put("repo_id", configRepo.id);

@@ -32,7 +32,7 @@ public class ConfigFile extends CodeSyncYmlFile {
         try {
             this.loadYmlContent();
         } catch (InvalidConfigFileError e){
-            throw new InvalidConfigFileError("Config file is not valid.");
+            throw new InvalidConfigFileError(String.format("Config file is not valid. Error: %s", e.getMessage()));
         }
     }
 
@@ -73,10 +73,9 @@ public class ConfigFile extends CodeSyncYmlFile {
                 if (repo.getValue() != null){
                     this.repos.put(repo.getKey(), new ConfigRepo(repo.getKey(), repo.getValue()));
                 }
-
             }
         } catch (ClassCastException e){
-            throw new InvalidConfigFileError("Config file is not valid.");
+            throw new InvalidConfigFileError(String.format("Config file is not valid. Error: %s", e.getMessage()));
         }
     }
 

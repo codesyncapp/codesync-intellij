@@ -144,7 +144,7 @@ public class CodeSyncWebSocketClient {
     public void sendDiffs(ArrayList<Pair<Integer, DiffFile>> diffsToSend, DataTransmissionHandler dataTransmissionHandler) throws WebSocketConnectionError {
         if (!this.isConnected) {
             throw new WebSocketConnectionError(
-                String.format("Failed to connect to the websocket endpoint at '%s'.}", this.uri.toString())
+                String.format("Failed to connect to the websocket endpoint at '%s'.", this.uri.toString())
             );
         }
         JSONArray diffs = new JSONArray();

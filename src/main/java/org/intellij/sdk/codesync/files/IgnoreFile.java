@@ -52,11 +52,13 @@ public class IgnoreFile {
             return;
         }
 
-        throw new FileNotFoundError(String.format(
+        throw new FileNotFoundError(
+            String.format(
                 "None of the ignore files '%s' exists in %s.",
                 String.join(",", new String[]{IgnoreFileType.SYNCIGNORE.getFileName(), IgnoreFileType.GITIGNORE.getFileName()}),
                 repoPath
-        ));
+            )
+        );
     }
 
     /*

@@ -32,14 +32,18 @@ public class JSONResponse {
             responseContent = EntityUtils.toString(response.getEntity());
         } catch (IOException | org.apache.http.ParseException error) {
             System.out.printf("Error processing response of the request. Error: %s%n", error.getMessage());
-            throw new InvalidJsonError("Error processing response of the request.");
+            throw new InvalidJsonError(
+                String.format("Error processing response of the request. Error: %s", error.getMessage())
+            );
         }
 
         try {
             jsonResponse = (JSONObject) JSONValue.parseWithException(responseContent);
         } catch (org.json.simple.parser.ParseException | ClassCastException error) {
             System.out.printf("Error processing response of the request. Error: %s%n", error.getMessage());
-            throw new InvalidJsonError("Error processing response of the request.");
+            throw new InvalidJsonError(
+                String.format("Error processing response of the request. Error: %s", error.getMessage())
+            );
         }
 
         return new JSONResponse(responseStatusLine.getStatusCode(), jsonResponse);

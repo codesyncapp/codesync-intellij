@@ -29,7 +29,7 @@ public class ProjectUtils {
 
         if (moduleContentRoot == null) {
             throw new FileNotInModuleError(String.format(
-                    "File '%s' does not belong to the project '%s' index.", virtualFile.getPath(), project.getName()
+                "File '%s' does not belong to the project '%s' index.", virtualFile.getPath(), project.getName()
             ));
         }
 
@@ -42,7 +42,7 @@ public class ProjectUtils {
 
         if (moduleContentRoot == null) {
             throw new FileNotInModuleError(String.format(
-                    "File '%s' does not belong to the project '%s' index.", virtualFile.getPath(), project.getName()
+                "File '%s' does not belong to the project '%s' index.", virtualFile.getPath(), project.getName()
             ));
         }
 

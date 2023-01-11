@@ -74,20 +74,20 @@ public class CodeSyncSetup {
                 userFile = new UserFile(USER_FILE_PATH);
             } catch (FileNotFoundException | InvalidYmlFileError e) {
                 throw new UserFileError(
-                        String.format(
-                                "Repo '%s' could not be disconnected because there was an error trying to read user file.",
-                                repoName
-                        )
+                    String.format(
+                        "Repo '%s' could not be disconnected because there was an error trying to read user file. Error: %s",
+                        repoName, e.getMessage()
+                    )
                 );
             }
             ConfigRepo configRepo = configFile.getRepo(repoPath);
             UserFile.User user = userFile.getUser(configRepo.email);
             if (user == null) {
                 throw new UserFileError(
-                        String.format(
-                                "Repo '%s' could not be disconnected because user data is missing from user file.",
-                                repoName
-                        )
+                    String.format(
+                        "Repo '%s' could not be disconnected because user data is missing from user file.",
+                        repoName
+                    )
                 );
             }
             String accessToken = user.getAccessToken();
@@ -95,10 +95,10 @@ public class CodeSyncSetup {
 
             if (!codeSyncClient.isServerUp()) {
                 throw new ServerConnectionError(
-                        String.format(
-                                "Repo '%s' could not be disconnected because we could not connect to the codesync servers.",
-                                repoName
-                        )
+                    String.format(
+                        "Repo '%s' could not be disconnected because we could not connect to the codesync servers.",
+                        repoName
+                    )
                 );
             }
             JSONObject payload = new JSONObject();
@@ -106,11 +106,11 @@ public class CodeSyncSetup {
             JSONObject response = codeSyncClient.updateRepo(accessToken, configRepo.id, payload);
             if (response.containsKey("error")) {
                 throw new RepoUpdateError(
-                        String.format(
-                                "Repo '%s' could not be disconnected server returned an error response. Error: %s",
-                                repoName,
-                                response.get("error")
-                        )
+                    String.format(
+                        "Repo '%s' could not be disconnected server returned an error response. Error: %s",
+                        repoName,
+                        response.get("error")
+                    )
                 );
             }
 
