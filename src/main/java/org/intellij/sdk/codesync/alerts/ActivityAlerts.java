@@ -16,13 +16,14 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
 public class ActivityAlerts {
     private static void acquireActivityLock(Instant expiry) {
         CodeSyncLock activityAlertLock = new CodeSyncLock(Constants.LockFileType.PROJECT_LOCK, ACTIVITY_ALERT_LOCK_KEY);
-        activityAlertLock.acquireLock(ACTIVITY_ALERT_LOCK_KEY, expiry);
+        activityAlertLock.acquireLock(expiry);
     }
 
     private static boolean hasActivityInTheLastDay(JSONObject jsonResponse) {
@@ -41,7 +42,7 @@ public class ActivityAlerts {
 
         // If lock is acquired, then we should not show activity alert.
         // We would only show alerts once the lock expires.
-        return !activityAlertLock.isLockAcquired(ACTIVITY_ALERT_LOCK_KEY);
+        return !activityAlertLock.isLockAcquired();
     }
 
     /*
@@ -68,8 +69,9 @@ public class ActivityAlerts {
         String accessToken = UserFile.getAccessToken();
         String email = UserFile.getEmail();
 
-        // If team activity is already shown other IDE then no need to proceed.
+        // If team activity is already shown in other IDE then no need to proceed.
         if (AlertsFile.isTeamActivityAlreadyShown(email)) {
+            skipToday();
             return;
         }
 
@@ -83,10 +85,10 @@ public class ActivityAlerts {
                 WEBAPP_DASHBOARD_URL, isTeamActivity, project
             );
             boolean hasUserChecked = activityAlertDialog.showAndGet();
-            if (email != null) {
+            if (email != null && hasUserChecked) {
                 AlertsFile.updateTeamActivity(
                     email,
-                    hasUserChecked ? CommonUtils.getTodayInstant(): null,
+                    CommonUtils.getTodayInstant(),
                     CommonUtils.getYesterdayInstant(),
                     CommonUtils.getTodayInstant()
                 );
@@ -94,7 +96,19 @@ public class ActivityAlerts {
         }
     }
 
+    /*
+    Schedule activity alert daemon, a new daemon will be registered if there is none already running.
+    */
     public static void startActivityAlertDaemon(Project project) {
-        ProjectUtils.startDaemonProcess(() -> showActivityAlert(project));
+        boolean canStartDaemon = ProjectUtils.canStartDaemon(
+            LockFileType.PROJECT_LOCK,
+            ACTIVITY_ALERT_DAEMON_LOCK_KEY,
+            project.getName()
+        );
+
+        if (canStartDaemon) {
+            // Start the daemon.
+            ProjectUtils.startDaemonProcess(() -> showActivityAlert(project));
+        }
     }
 }

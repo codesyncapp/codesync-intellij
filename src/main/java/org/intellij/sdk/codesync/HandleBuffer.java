@@ -116,19 +116,25 @@ public class HandleBuffer {
         return new DiffFile[0];
     }
 
+    /*
+    Schedule buffer handler, a new daemon will be registered if there is none already running.
+    */
     public static void scheduleBufferHandler(Project project) {
-        ProjectUtils.startDaemonProcess(() -> HandleBuffer.handleBuffer(project));
+        boolean canStartDaemon = ProjectUtils.canStartDaemon(
+            LockFileType.HANDLE_BUFFER_LOCK,
+            DIFFS_DAEMON_LOCK_KEY,
+            project.getName()
+        );
+
+        if (canStartDaemon) {
+            // Start the daemon.
+            ProjectUtils.startDaemonProcess(HandleBuffer::handleBuffer);
+        }
     }
 
-    public static void handleBuffer(Project project) {
-        CodeSyncLock codeSyncLock = new CodeSyncLock(LockFileType.HANDLE_BUFFER_LOCK, DIFFS_DAEMON_LOCK_KEY);
-        if (!codeSyncLock.acquireLock(project.getName())) {
-            return;
-        }
-
+    public static void handleBuffer() {
         ConfigFile configFile;
         HashSet<String> newFiles = new HashSet<>();
-        System.out.println("handleBuffer called:");
 
         try {
             configFile = new ConfigFile(CONFIG_PATH);
@@ -137,7 +143,7 @@ public class HandleBuffer {
             return;
         }
 
-        // Get the list of diffs and shuffle, shuffling is need to make sure all repos get a chance for processing.
+        // Get the list of diffs and shuffle, shuffling is needed to make sure all repos get a chance for processing.
         DiffFile[] diffFiles = getDiffFiles(DIFFS_REPO, ".yml", configFile);
         List<DiffFile> diffFilesList = Arrays.asList(diffFiles);
         Collections.shuffle(diffFilesList);

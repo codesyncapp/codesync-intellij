@@ -28,6 +28,8 @@ import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,22 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return;
     }
+
+    CodeSyncLock codeSyncProjectLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, project.getBasePath());
+
+    // This code is executed multiple times when a project window is opened,
+    // causing the callbacks to be registered many times, this lock would prevent the
+    // listeners from being registered multiple times.
+    if (codeSyncProjectLock.isLockAcquired(project.getName())) {
+      System.out.println("Skipping the callback registration.");
+      return;
+    }
+
+    // Acquire the lock now.
+    // Keep a very low expiry to make sure, if user switches between projects then lock does not cause issues.
+    Instant expiry = Instant.now().plus(5, ChronoUnit.SECONDS);
+    codeSyncProjectLock.acquireLock(project.getName(), expiry);
+
     // Create system directories required by the plugin.
     createSystemDirectories();
 
@@ -67,17 +85,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
 
     // Start alerts daemon
     ActivityAlerts.startActivityAlertDaemon(project);
-
-    CodeSyncLock codeSyncProjectLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, project.getBasePath());
-    boolean shouldContinue = codeSyncProjectLock.acquireLock(project.getName());
-
-    // This code is executed multiple times when a project window is opened,
-    // causing the callbacks to be registered many times, this lock would prevent the
-    // listeners from being registered multiple times.
-    if (!shouldContinue) {
-      System.out.println("Skipping the callback registration.");
-      return;
-    }
 
     StartupManagerEx.getInstance(project).runWhenProjectIsInitialized(() -> {
       if (project.isDisposed()) return;
@@ -179,6 +186,8 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
   public void disposeProjectListeners(Project project) {
     // Release all the locks acquired by this project.
     CodeSyncLock.releaseAllLocks(LockFileType.PROJECT_LOCK, project.getName());
+    CodeSyncLock.releaseAllLocks(LockFileType.HANDLE_BUFFER_LOCK, project.getName());
+    CodeSyncLock.releaseAllLocks(LockFileType.POPULATE_BUFFER_LOCK, project.getName());
 
     DocumentListener changesHandler = changeHandlers.get(project.getBasePath()).getSecond();
     if (changesHandler != null) {

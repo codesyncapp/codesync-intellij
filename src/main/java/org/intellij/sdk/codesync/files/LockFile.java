@@ -26,16 +26,18 @@ ideally should not be any more than 5 minutes in the future.
 Presence of a key with some expiry in the future will indicate that the lock is active for that category. A missing
 entry or entry with expiry in the past would mean lock is not active.
 
+Note: owner is useful if some lock is meant to be shared by different projects, e.g. if we want to
+run a process once per opened project but want to limit the frequency using lock expiry.
 ```
    populate_buffer:
         expiry: <time-stamp-indicating-lock-expiry>
-        identifier: <name-of-the-project-holding-the-lock>
+        owner: <name-of-the-project-holding-the-lock>
    send_diffs_intellij:
         expiry: <time-stamp-indicating-lock-expiry>
-        identifier: <name-of-the-project-holding-the-lock>
+        owner: <name-of-the-project-holding-the-lock>
    send_diffs_vscode:
         expiry: <time-stamp-indicating-lock-expiry>
-        identifier: <name-of-the-project-holding-the-lock>
+        owner: <name-of-the-project-holding-the-lock>
 ```
  */
 public class LockFile extends CodeSyncYmlFile {
@@ -46,18 +48,18 @@ public class LockFile extends CodeSyncYmlFile {
 
     public static class Lock {
         Instant expiry;
-        String category, identifier;
+        String category, owner;
 
         public Lock(String category, Map<String, Object> lockContents) {
             this.category = category;
             this.expiry = CommonUtils.parseDateToInstant((String) lockContents.get("expiry"));
-            this.identifier = (String) lockContents.get("identifier");
+            this.owner = (String) lockContents.get("owner");
         }
 
-        public Lock(String category, Instant expiry, String identifier) {
+        public Lock(String category, Instant expiry, String owner) {
             this.category = category;
             this.expiry = expiry;
-            this.identifier = identifier;
+            this.owner = owner;
         }
 
         public Instant getExpiry () {
@@ -74,16 +76,19 @@ public class LockFile extends CodeSyncYmlFile {
         }
 
         /*
-        Compares the lock identifier with the one in the arguments, returns true if both are same and false otherwise.
+        Compares the lock owner with the one in the arguments, returns true if both are same and false otherwise.
          */
-        public boolean compareIdentifier(String identifier) {
-            return identifier.compareTo(this.identifier) == 0;
+        public boolean hasOwner(String owner) {
+            if (this.owner == null && owner == null) {
+                return true;
+            }
+            return this.owner != null && owner.compareTo(this.owner) == 0;
         }
 
         public Map<String, Object> getYMLAsHashMap() {
             Map<String, Object> lock = new HashMap<>();
             lock.put("expiry", CommonUtils.formatDate(this.expiry));
-            lock.put("identifier", this.identifier);
+            lock.put("owner", this.owner);
 
             return lock;
         }
@@ -173,12 +178,12 @@ public class LockFile extends CodeSyncYmlFile {
         return this.locks.values().toArray(new Lock[0]);
     }
 
-    public void updateLock (String category, Instant expiry, String identifier) {
-        this.locks.put(category, new Lock(category, expiry, identifier));
+    public void updateLock (String category, Instant expiry, String owner) {
+        this.locks.put(category, new Lock(category, expiry, owner));
     }
 
-    public boolean publishNewLock (String category, Instant expiry, String identifier) {
-        this.updateLock(category, expiry, identifier);
+    public boolean publishNewLock (String category, Instant expiry, String owner) {
+        this.updateLock(category, expiry, owner);
         try {
             this.writeYml();
             return true;
@@ -186,7 +191,7 @@ public class LockFile extends CodeSyncYmlFile {
             return false;
         } catch (InvalidYmlFileError e) {
             // In case of invalid yml, empty the file.
-            removeFileContents();
+            removeFileContents(this.getYmlFile());
             return false;
         }
     }

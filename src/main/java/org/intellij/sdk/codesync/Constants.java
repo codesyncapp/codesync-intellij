@@ -99,6 +99,7 @@ public final class Constants {
     // Locks used by other IDEs alongside intellij.
     public static final String DIFFS_DAEMON_LOCK_KEY = "send_diffs_intellij";
     public static final String POPULATE_BUFFER_DAEMON_LOCK_KEY = "populate_buffer";
+    public static final String ACTIVITY_ALERT_DAEMON_LOCK_KEY = "activity_alerts_daemon";
     public static final String PRICING_ALERT_LOCK_KEY = "pricing_alert";
     public static final String ACTIVITY_ALERT_LOCK_KEY = "activity_alerts";
 
