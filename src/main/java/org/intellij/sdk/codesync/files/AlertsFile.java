@@ -85,7 +85,7 @@ public class AlertsFile extends CodeSyncYmlFile{
                     error.getMessage()
                 )
             );
-            alertsFile.removeFileContents();
+            removeFileContents(alertsFile.getYmlFile());
         }
     }
 
@@ -109,7 +109,7 @@ public class AlertsFile extends CodeSyncYmlFile{
                     error.getMessage()
                 )
             );
-            alertsFile.removeFileContents();
+            removeFileContents(alertsFile.getYmlFile());
         }
     }
 
@@ -188,7 +188,7 @@ public class AlertsFile extends CodeSyncYmlFile{
                     error.getMessage()
                 )
             );
-            alertsFile.removeFileContents();
+            removeFileContents(alertsFile.getYmlFile());
         }
     }
 }

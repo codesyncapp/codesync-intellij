@@ -8,15 +8,13 @@ import org.intellij.sdk.codesync.ui.dialogs.PricingAlertDialog;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.json.simple.JSONObject;
 
-import java.time.Instant;
-
 import static org.intellij.sdk.codesync.Constants.LockFileType;
 import static org.intellij.sdk.codesync.Constants.*;
 
 public class PricingAlerts {
     private static void acquirePricingLock() {
         CodeSyncLock pricingAlertLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, PRICING_ALERT_LOCK_KEY);
-        pricingAlertLock.acquireLock(PRICING_ALERT_LOCK_KEY);
+        pricingAlertLock.acquireLock();
     }
     public static void setPlanLimitReached() {
         setPlanLimitReached((Project) null);
@@ -52,7 +50,7 @@ public class PricingAlerts {
 
     public static void resetPlanLimitReached() {
         CodeSyncLock pricingAlertLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, PRICING_ALERT_LOCK_KEY);
-        pricingAlertLock.releaseLock(PRICING_ALERT_LOCK_KEY);
+        pricingAlertLock.releaseLock();
     }
 
     /*
@@ -62,6 +60,6 @@ public class PricingAlerts {
         CodeSyncLock pricingAlertLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, PRICING_ALERT_LOCK_KEY);
 
         // If lock is acquired then it means price limit is reached.
-        return pricingAlertLock.isLockAcquired(PRICING_ALERT_LOCK_KEY);
+        return pricingAlertLock.isLockAcquired();
     }
 }

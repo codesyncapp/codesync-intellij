@@ -115,22 +115,31 @@ public class PopulateBuffer {
             } catch (FileInfoError error) {
                 // Log the message and continue.
                 CodeSyncLogger.error(String.format(
-                        "Error while getting the file info for %s, Error: %s", filePath, error.getMessage()
+                    "Error while getting the file info for %s, Error: %s", filePath, error.getMessage()
                 ));
             }
         }
     }
 
+    /*
+    Schedule populate buffer daemon, a new daemon will be registered if there is none already running.
+    */
     public static void startPopulateBufferDaemon(Project project) {
-        ProjectUtils.startDaemonProcess(() -> populateBuffer(project));
+        boolean canStartDaemon = ProjectUtils.canStartDaemon(
+            LockFileType.POPULATE_BUFFER_LOCK,
+            POPULATE_BUFFER_DAEMON_LOCK_KEY,
+            project.getName()
+        );
+
+        if (canStartDaemon) {
+            // Start the daemon.
+            ProjectUtils.startDaemonProcess(PopulateBuffer::populateBuffer);
+        }
     }
 
-    public static void populateBuffer(Project project) {
-        CodeSyncLock codeSyncLock = new CodeSyncLock(LockFileType.POPULATE_BUFFER_LOCK, POPULATE_BUFFER_DAEMON_LOCK_KEY);
-        if (codeSyncLock.acquireLock(project.getName())) {
-            Map<String, String> reposToUpdate = detectBranchChange();
-            populateBufferForMissedEvents(reposToUpdate);
-        }
+    public static void populateBuffer() {
+        Map<String, String> reposToUpdate = detectBranchChange();
+        populateBufferForMissedEvents(reposToUpdate);
     }
 
     public static Map<String, String> detectBranchChange() {
@@ -305,7 +314,6 @@ public class PopulateBuffer {
                         isNewFile, isDeleted, isRename, false
                 );
             }
-
         }
     }
 
