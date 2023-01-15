@@ -62,16 +62,14 @@ public class ActivityAlerts {
     }
 
     public static void showActivityAlert(Project project) {
-        System.out.printf("[%s]: Calling showActivityAlert.%n", new Date());
         if (!canShowActivityAlert()) {
             return;
         }
-        System.out.printf("[%s]: showActivityAlert called.%n", new Date());
 
         String accessToken = UserFile.getAccessToken();
         String email = UserFile.getEmail();
 
-        // If team activity is already shown other IDE then no need to proceed.
+        // If team activity is already shown in other IDE then no need to proceed.
         if (AlertsFile.isTeamActivityAlreadyShown(email)) {
             skipToday();
             return;
