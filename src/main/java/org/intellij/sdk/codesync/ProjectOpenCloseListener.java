@@ -56,19 +56,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return;
     }
-    // Create system directories required by the plugin.
-    createSystemDirectories();
-
-    // Populate state
-    StateUtils.populateState(project);
-
-    PopulateBuffer.startPopulateBufferDaemon(project);
-
-    // Schedule buffer handler.
-    HandleBuffer.scheduleBufferHandler(project);
-
-    // Start alerts daemon
-    ActivityAlerts.startActivityAlertDaemon(project);
 
     CodeSyncLock codeSyncProjectLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, project.getBasePath());
 
@@ -85,6 +72,19 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     Instant expiry = Instant.now().plus(5, ChronoUnit.SECONDS);
     codeSyncProjectLock.acquireLock(project.getName(), expiry);
 
+    // Create system directories required by the plugin.
+    createSystemDirectories();
+
+    // Populate state
+    StateUtils.populateState(project);
+
+    PopulateBuffer.startPopulateBufferDaemon(project);
+
+    // Schedule buffer handler.
+    HandleBuffer.scheduleBufferHandler(project);
+
+    // Start alerts daemon
+    ActivityAlerts.startActivityAlertDaemon(project);
 
     StartupManagerEx.getInstance(project).runWhenProjectIsInitialized(() -> {
       if (project.isDisposed()) return;
