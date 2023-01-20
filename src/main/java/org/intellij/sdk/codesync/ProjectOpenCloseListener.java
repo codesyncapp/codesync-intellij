@@ -56,6 +56,8 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return;
     }
+    // Create system directories required by the plugin.
+    createSystemDirectories();
 
     CodeSyncLock codeSyncProjectLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, project.getBasePath());
 
@@ -71,9 +73,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     // Keep a very low expiry to make sure, if user switches between projects then lock does not cause issues.
     Instant expiry = Instant.now().plus(5, ChronoUnit.SECONDS);
     codeSyncProjectLock.acquireLock(project.getName(), expiry);
-
-    // Create system directories required by the plugin.
-    createSystemDirectories();
 
     // Populate state
     StateUtils.populateState(project);
