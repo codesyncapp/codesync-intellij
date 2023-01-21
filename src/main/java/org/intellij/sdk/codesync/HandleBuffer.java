@@ -126,7 +126,7 @@ public class HandleBuffer {
                 project.getName()
             );
             if (canRunDaemon) {
-                System.out.println("Calling handleBuffer.");
+                System.out.printf("[%s]: Calling handleBuffer.%n", new Date());
                 HandleBuffer.handleBuffer();
             }
         });

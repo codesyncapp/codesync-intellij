@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -108,7 +109,7 @@ public class ActivityAlerts {
 
             if (canRunDaemon) {
                 // Start the daemon.
-                System.out.println("Calling showActivityAlert.");
+                System.out.printf("[%s]: Calling showActivityAlert.%n", new Date());
                 ProjectUtils.startDaemonProcess(() -> showActivityAlert(project));
             }
         });
