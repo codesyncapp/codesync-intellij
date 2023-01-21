@@ -344,7 +344,7 @@ public class CommonUtils {
         ZoneId timeZone = ZoneId.systemDefault();
         LocalDateTime yesterdayDateTime = LocalDateTime.now(timeZone);
         ZonedDateTime zonedDateTime = ZonedDateTime.of(yesterdayDateTime, timeZone);
-        zonedDateTime
+        zonedDateTime = zonedDateTime
             .withHour(hour)
             .withMinute(minute)
             .withSecond(second);
