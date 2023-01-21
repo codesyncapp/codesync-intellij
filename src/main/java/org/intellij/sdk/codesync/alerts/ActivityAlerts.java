@@ -15,6 +15,7 @@ import org.json.simple.JSONObject;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
@@ -85,11 +86,21 @@ public class ActivityAlerts {
                 WEBAPP_DASHBOARD_URL, isTeamActivity, project
             );
             boolean hasUserChecked = activityAlertDialog.showAndGet();
+            Instant checkedFor;
+            Instant now = CommonUtils.getTodayInstant();
+
+            // if activity is shown before 4 AM then it was for yesterday's activity,
+            // and we need to show another notification after 4:30 PM today.
+            if (now.atZone(ZoneId.systemDefault()).getHour() < 4) {
+                checkedFor = CommonUtils.getYesterdayInstant();
+            } else {
+                checkedFor = CommonUtils.getTodayInstant();
+            }
             if (email != null && hasUserChecked) {
                 AlertsFile.updateTeamActivity(
                     email,
                     CommonUtils.getTodayInstant(),
-                    CommonUtils.getYesterdayInstant(),
+                    checkedFor,
                     CommonUtils.getTodayInstant()
                 );
             }
