@@ -58,6 +58,17 @@ public class ProjectUtils {
         executor.scheduleWithFixedDelay(task, initialDelay, delayBetweenTasks, delayUnit);
     }
 
+    /*
+    Gets the base path for the project and returns that path after normalisation.
+     */
+    public static String getRepoPath(Project project) {
+        String repoPath = project.getBasePath();
+        if (repoPath != null) {
+            return FileUtils.normalizeFilePath(project.getBasePath());
+        }
+        return null;
+    }
+
     public static String getRepoPath(VirtualFile virtualFile, Project project) throws FileNotInModuleError {
         ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
         VirtualFile moduleContentRoot = projectFileIndex.getContentRootForFile(virtualFile);

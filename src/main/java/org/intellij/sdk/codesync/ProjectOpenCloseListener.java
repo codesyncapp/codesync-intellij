@@ -59,7 +59,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     // Create system directories required by the plugin.
     createSystemDirectories();
 
-    CodeSyncLock codeSyncProjectLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, project.getBasePath());
+    CodeSyncLock codeSyncProjectLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, ProjectUtils.getRepoPath(project));
 
     // This code is executed multiple times when a project window is opened,
     // causing the callbacks to be registered many times, this lock would prevent the
