@@ -58,7 +58,14 @@ public class ActivityAlerts {
     Update the lock to skip the reminder for today and remind the user tomorrow.
      */
     public static void skipToday() {
+        Instant now = CommonUtils.getTodayInstant();
         Instant reminderInstant = CommonUtils.getTomorrowAlertInstant();
+
+        // if activity is shown before 4 AM then it was for yesterday's activity,
+        // and we need to show another notification after 4:30 PM today.
+        if (now.atZone(ZoneId.systemDefault()).getHour() < 4) {
+            reminderInstant = CommonUtils.getTodayInstant(16, 30, 0);
+        }
         acquireActivityLock(reminderInstant);
     }
 
