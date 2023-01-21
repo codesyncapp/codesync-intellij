@@ -7,7 +7,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.intellij.sdk.codesync.Constants;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.state.PluginState;
@@ -19,24 +18,17 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.intellij.sdk.codesync.Constants.DELAY_BETWEEN_BUFFER_TASKS_IN_SECONDS;
-import static org.intellij.sdk.codesync.Constants.POPULATE_BUFFER_DAEMON_LOCK_KEY;
 
 public class ProjectUtils {
 
     /*
     Check if a daemon can be started with the given locking credentials.
     */
-    public static boolean canStartDaemon(String lockType, String lockCategory, String lockOwner) {
+    public static boolean canRunDaemon(String lockType, String lockCategory, String lockOwner) {
         CodeSyncLock codeSyncLock = new CodeSyncLock(lockType, lockCategory);
 
-        if (codeSyncLock.isLockAcquired() && !codeSyncLock.isLockOwner(lockOwner)) {
-            // Return `false` if lock is already acquired by some other process.
-            return false;
-        }
-
         // if lock was not acquired or if it was acquired by this project then refresh the lock and return true.
-        codeSyncLock.acquireLock(lockOwner);
-        return true;
+        return codeSyncLock.acquireLock(lockOwner);
     }
 
     /*

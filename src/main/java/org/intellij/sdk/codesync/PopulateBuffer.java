@@ -12,7 +12,6 @@ import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
 import org.intellij.sdk.codesync.files.UserFile;
-import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
@@ -125,16 +124,19 @@ public class PopulateBuffer {
     Schedule populate buffer daemon, a new daemon will be registered if there is none already running.
     */
     public static void startPopulateBufferDaemon(Project project) {
-        boolean canStartDaemon = ProjectUtils.canStartDaemon(
-            LockFileType.POPULATE_BUFFER_LOCK,
-            POPULATE_BUFFER_DAEMON_LOCK_KEY,
-            project.getName()
-        );
+        ProjectUtils.startDaemonProcess(() -> {
+            boolean canRunDaemon = ProjectUtils.canRunDaemon(
+                LockFileType.POPULATE_BUFFER_LOCK,
+                POPULATE_BUFFER_DAEMON_LOCK_KEY,
+                project.getName()
+            );
 
-        if (canStartDaemon) {
-            // Start the daemon.
-            ProjectUtils.startDaemonProcess(PopulateBuffer::populateBuffer);
-        }
+            if (canRunDaemon) {
+                // Start the daemon.
+                System.out.println("Calling populateBuffer.");
+                PopulateBuffer.populateBuffer();
+            }
+        });
     }
 
     public static void populateBuffer() {

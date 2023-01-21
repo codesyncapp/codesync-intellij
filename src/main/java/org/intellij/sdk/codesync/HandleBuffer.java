@@ -6,7 +6,6 @@ import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.clients.CodeSyncWebSocketClient;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.files.*;
-import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
@@ -120,16 +119,17 @@ public class HandleBuffer {
     Schedule buffer handler, a new daemon will be registered if there is none already running.
     */
     public static void scheduleBufferHandler(Project project) {
-        boolean canStartDaemon = ProjectUtils.canStartDaemon(
-            LockFileType.HANDLE_BUFFER_LOCK,
-            DIFFS_DAEMON_LOCK_KEY,
-            project.getName()
-        );
-
-        if (canStartDaemon) {
-            // Start the daemon.
-            ProjectUtils.startDaemonProcess(HandleBuffer::handleBuffer);
-        }
+        ProjectUtils.startDaemonProcess(() -> {
+            boolean canRunDaemon = ProjectUtils.canRunDaemon(
+                LockFileType.HANDLE_BUFFER_LOCK,
+                DIFFS_DAEMON_LOCK_KEY,
+                project.getName()
+            );
+            if (canRunDaemon) {
+                System.out.println("Calling handleBuffer.");
+                HandleBuffer.handleBuffer();
+            }
+        });
     }
 
     public static void handleBuffer() {
