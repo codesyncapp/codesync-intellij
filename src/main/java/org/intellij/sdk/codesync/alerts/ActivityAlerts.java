@@ -105,9 +105,9 @@ public class ActivityAlerts {
             Instant checkedFor;
             Instant now = CommonUtils.getTodayInstant();
 
-            // if activity is shown before 4 AM then it was for yesterday's activity,
+            // if activity is shown before 4 PM then it was for yesterday's activity,
             // and we need to show another notification after 4:30 PM today.
-            if (now.atZone(ZoneId.systemDefault()).getHour() < 4) {
+            if (now.atZone(ZoneId.systemDefault()).getHour() < 16) {
                 checkedFor = CommonUtils.getYesterdayInstant();
             } else {
                 checkedFor = CommonUtils.getTodayInstant();
