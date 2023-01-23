@@ -77,6 +77,10 @@ public class ActivityAlerts {
         String accessToken = UserFile.getAccessToken();
         String email = UserFile.getEmail();
 
+        if (accessToken == null) {
+            return;
+        }
+
         // If team activity is already shown in other IDE then no need to proceed.
         if (AlertsFile.isTeamActivityAlreadyShown(email)) {
             skipToday();
@@ -85,6 +89,11 @@ public class ActivityAlerts {
 
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         JSONObject jsonResponse = codeSyncClient.getTeamActivity(accessToken);
+
+        if (jsonResponse == null) {
+            return;
+        }
+
         if (hasActivityInTheLastDay(jsonResponse)) {
             boolean isTeamActivity = jsonResponse.containsKey("is_team_activity") &&
                 (boolean) jsonResponse.get("is_team_activity");
