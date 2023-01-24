@@ -15,7 +15,6 @@ import org.json.simple.JSONObject;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -62,8 +61,8 @@ public class ActivityAlerts {
         Instant reminderInstant = CommonUtils.getTomorrowAlertInstant();
 
         // if activity is shown before 4 PM then it was for yesterday's activity,
-        // and we need to show another notification after 4:30 PM today only if there has been an activity in past 24 h.
-        if (now.atZone(ZoneId.systemDefault()).getHour() < 4) {
+        // and we need to show another notification after 4:30 PM today only if there has been an activity in past 24h.
+        if (now.atZone(ZoneId.systemDefault()).getHour() < 16) {
             reminderInstant = CommonUtils.getTodayInstant(16, 30, 0);
         }
         acquireActivityLock(reminderInstant);
