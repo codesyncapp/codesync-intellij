@@ -136,7 +136,6 @@ public class ActivityAlerts {
 
             if (canRunDaemon) {
                 // Start the daemon.
-                System.out.printf("[%s]: Calling showActivityAlert.%n", new Date());
                 ProjectUtils.startDaemonProcess(() -> showActivityAlert(project));
             }
         });

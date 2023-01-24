@@ -133,7 +133,6 @@ public class PopulateBuffer {
 
             if (canRunDaemon) {
                 // Start the daemon.
-                System.out.printf("[%s]: Calling populateBuffer.%n", new Date());
                 PopulateBuffer.populateBuffer();
             }
         });
