@@ -14,8 +14,6 @@ import org.json.simple.JSONObject;
 
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
@@ -27,12 +25,14 @@ public class ActivityAlerts {
         activityAlertLock.acquireLock(expiry);
     }
 
+    /*
+    Checks if user has had any activity from 4:30 PM yesterday to 4:30 PM today.
+    */
     private static boolean hasActivityInTheLastDay(JSONObject jsonResponse) {
-        ZoneId timeZone = ZoneId.systemDefault();
-        ZonedDateTime now = ZonedDateTime.now(timeZone);
+        Instant today = CommonUtils.getTodayInstant(16, 30, 0);
         Instant yesterday = CommonUtils.getYesterdayInstant();
 
-        return DataUtils.hasActivity(jsonResponse, yesterday, now.toInstant());
+        return DataUtils.hasActivity(jsonResponse, yesterday, today);
     }
 
     /*
@@ -61,8 +61,8 @@ public class ActivityAlerts {
         Instant now = CommonUtils.getTodayInstant();
         Instant reminderInstant = CommonUtils.getTomorrowAlertInstant();
 
-        // if activity is shown before 4 AM then it was for yesterday's activity,
-        // and we need to show another notification after 4:30 PM today.
+        // if activity is shown before 4 PM then it was for yesterday's activity,
+        // and we need to show another notification after 4:30 PM today only if there has been an activity in past 24 h.
         if (now.atZone(ZoneId.systemDefault()).getHour() < 4) {
             reminderInstant = CommonUtils.getTodayInstant(16, 30, 0);
         }

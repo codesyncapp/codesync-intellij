@@ -26,7 +26,7 @@ We can have the following data in alerts.yml
         userEmail:
             checked_at: "2022-07-05"
             checked_for: "2022-07-05"
-            shown_at: 2022-07-05 16:30:27.210
+            shown_at: 2022-07-05T16:30:27.210Z
     user_activity: '2022-07-05 16:30:27.210'
     upgrade_plan: '2022-07-05 21:51:27.210'
  */
@@ -177,7 +177,7 @@ public class AlertsFile extends CodeSyncYmlFile{
             alertDetails.put("checked_at", CommonUtils.formatDate(Date.from(checkedAt), DATE_FORMAT));
         }
         alertDetails.put("checked_for", CommonUtils.formatDate(Date.from(checkedFor), DATE_FORMAT));
-        alertDetails.put("shown_at", CommonUtils.formatDate(Date.from(shownAt), DATE_TIME_FORMAT));
+        alertDetails.put("shown_at", CommonUtils.formatDate(Date.from(shownAt), ISO_DATE_TIME_FORMAT));
 
         teamActivity.put(userEmail, alertDetails);
         alertsFile.contentsMap.put("team_activity", teamActivity);
