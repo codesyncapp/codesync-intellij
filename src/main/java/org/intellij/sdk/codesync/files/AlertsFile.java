@@ -141,12 +141,12 @@ public class AlertsFile extends CodeSyncYmlFile{
         );
 
         if (checkedForInstant != null) {
-            Instant yesterday = CommonUtils.getYesterdayInstant();
+            Instant todayInstant = CommonUtils.getTodayInstant();
             // Truncate time information.
-            yesterday = DateUtils.truncate(Date.from(yesterday), Calendar.DATE).toInstant();
+            todayInstant = DateUtils.truncate(Date.from(todayInstant), Calendar.DATE).toInstant();
 
-            // Return true if alert was checked either yesterday or before that
-            return checkedForInstant.equals(yesterday) || checkedForInstant.isBefore(yesterday);
+            // Return true if alert was checked either yesterday or after that
+            return checkedForInstant.equals(todayInstant);
         }
 
         return false;

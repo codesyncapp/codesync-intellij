@@ -93,7 +93,7 @@ public class ActivityAlerts {
             return;
         }
 
-        if (hasActivityInTheLastDay(jsonResponse)) {
+        if (!hasActivityInTheLastDay(jsonResponse)) {
             boolean isTeamActivity = jsonResponse.containsKey("is_team_activity") &&
                 (boolean) jsonResponse.get("is_team_activity");
 
