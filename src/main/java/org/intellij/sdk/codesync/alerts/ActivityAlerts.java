@@ -14,9 +14,7 @@ import org.json.simple.JSONObject;
 
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -26,12 +24,14 @@ public class ActivityAlerts {
         activityAlertLock.acquireLock(expiry);
     }
 
+    /*
+    Checks if user has had any activity from 4:30 PM yesterday to 4:30 PM today.
+    */
     private static boolean hasActivityInTheLastDay(JSONObject jsonResponse) {
-        ZoneId timeZone = ZoneId.systemDefault();
-        ZonedDateTime now = ZonedDateTime.now(timeZone);
+        Instant today = CommonUtils.getTodayInstant(16, 30, 0);
         Instant yesterday = CommonUtils.getYesterdayInstant();
 
-        return DataUtils.hasActivity(jsonResponse, yesterday, now.toInstant());
+        return DataUtils.hasActivity(jsonResponse, yesterday, today);
     }
 
     /*
@@ -57,7 +57,14 @@ public class ActivityAlerts {
     Update the lock to skip the reminder for today and remind the user tomorrow.
      */
     public static void skipToday() {
+        Instant now = CommonUtils.getTodayInstant();
         Instant reminderInstant = CommonUtils.getTomorrowAlertInstant();
+
+        // if activity is shown before 4 PM then it was for yesterday's activity,
+        // and we need to show another notification after 4:30 PM today only if there has been an activity in past 24h.
+        if (now.atZone(ZoneId.systemDefault()).getHour() < 16) {
+            reminderInstant = CommonUtils.getTodayInstant(16, 30, 0);
+        }
         acquireActivityLock(reminderInstant);
     }
 
@@ -69,6 +76,10 @@ public class ActivityAlerts {
         String accessToken = UserFile.getAccessToken();
         String email = UserFile.getEmail();
 
+        if (accessToken == null) {
+            return;
+        }
+
         // If team activity is already shown in other IDE then no need to proceed.
         if (AlertsFile.isTeamActivityAlreadyShown(email)) {
             skipToday();
@@ -77,7 +88,12 @@ public class ActivityAlerts {
 
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         JSONObject jsonResponse = codeSyncClient.getTeamActivity(accessToken);
-        if (hasActivityInTheLastDay(jsonResponse)) {
+
+        if (jsonResponse == null) {
+            return;
+        }
+
+        if (!hasActivityInTheLastDay(jsonResponse)) {
             boolean isTeamActivity = jsonResponse.containsKey("is_team_activity") &&
                 (boolean) jsonResponse.get("is_team_activity");
 
@@ -85,11 +101,21 @@ public class ActivityAlerts {
                 WEBAPP_DASHBOARD_URL, isTeamActivity, project
             );
             boolean hasUserChecked = activityAlertDialog.showAndGet();
+            Instant checkedFor;
+            Instant now = CommonUtils.getTodayInstant();
+
+            // if activity is shown before 4 PM then it was for yesterday's activity,
+            // and we need to show another notification after 4:30 PM today.
+            if (now.atZone(ZoneId.systemDefault()).getHour() < 16) {
+                checkedFor = CommonUtils.getYesterdayInstant();
+            } else {
+                checkedFor = CommonUtils.getTodayInstant();
+            }
             if (email != null && hasUserChecked) {
                 AlertsFile.updateTeamActivity(
                     email,
                     CommonUtils.getTodayInstant(),
-                    CommonUtils.getYesterdayInstant(),
+                    checkedFor,
                     CommonUtils.getTodayInstant()
                 );
             }
@@ -97,18 +123,20 @@ public class ActivityAlerts {
     }
 
     /*
-    Schedule activity alert daemon, a new daemon will be registered if there is none already running.
+    Schedule activity alert daemon, daemon will make sure to run only once every 5 seconds.
     */
     public static void startActivityAlertDaemon(Project project) {
-        boolean canStartDaemon = ProjectUtils.canStartDaemon(
-            LockFileType.PROJECT_LOCK,
-            ACTIVITY_ALERT_DAEMON_LOCK_KEY,
-            project.getName()
-        );
+        ProjectUtils.startDaemonProcess(() -> {
+            boolean canRunDaemon = ProjectUtils.canRunDaemon(
+                LockFileType.PROJECT_LOCK,
+                ACTIVITY_ALERT_DAEMON_LOCK_KEY,
+                project.getName()
+            );
 
-        if (canStartDaemon) {
-            // Start the daemon.
-            ProjectUtils.startDaemonProcess(() -> showActivityAlert(project));
-        }
+            if (canRunDaemon) {
+                // Start the daemon.
+                ProjectUtils.startDaemonProcess(() -> showActivityAlert(project));
+            }
+        });
     }
 }

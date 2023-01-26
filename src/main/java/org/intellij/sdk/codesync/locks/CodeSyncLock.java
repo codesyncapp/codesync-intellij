@@ -62,39 +62,41 @@ public class CodeSyncLock {
     /*
     Acquire lock and return `true` if lock was acquired with success or `false` of lock could not be acquired.
     */
-    public void acquireLock() {
+    public boolean acquireLock() {
         // Default expiry is 5 minutes.
         Instant defaultExpiry = Instant.now().plus(5, ChronoUnit.MINUTES);
-        acquireLock(defaultExpiry);
+        return acquireLock(defaultExpiry);
     }
 
     /*
     Acquire lock for the given owner and return `true` if lock was acquired with success
     or `false` of lock could not be acquired.
     */
-    public void acquireLock(String owner) {
+    public boolean acquireLock(String owner) {
         // Default expiry is 5 minutes.
         Instant defaultExpiry = Instant.now().plus(5, ChronoUnit.MINUTES);
-        acquireLock(owner, defaultExpiry);
+        return acquireLock(owner, defaultExpiry);
     }
 
     /*
     Acquire lock with custom expiry.
      */
-    public void acquireLock(Instant expiry) {
-        acquireLock(null, expiry);
+    public boolean acquireLock(Instant expiry) {
+        return acquireLock(null, expiry);
     }
 
     /*
     Acquire lock with custom expiry.
+
+    Return true if lock is acquired with success and false otherwise.
      */
-    public void acquireLock(String owner, Instant expiry) {
+    public boolean acquireLock(String owner, Instant expiry) {
         if (isLockAcquired() && !isLockOwner(owner)) {
             // Lock is acquired by some other process, it can not be acquired.
-            return;
+            return false;
         }
         // If lock is not acquired or if the lock belongs to the same owner then publish the new lock.
-        this.lockFile.publishNewLock(this.lock.getCategory(), expiry, owner);
+        return this.lockFile.publishNewLock(this.lock.getCategory(), expiry, owner);
     }
 
     /*

@@ -18,6 +18,7 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.serviceContainer.AlreadyDisposedException;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.intellij.sdk.codesync.alerts.ActivityAlerts;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
@@ -58,8 +59,12 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     }
     // Create system directories required by the plugin.
     createSystemDirectories();
-
-    CodeSyncLock codeSyncProjectLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, project.getBasePath());
+    String repoDirPath = ProjectUtils.getRepoPath(project);
+    CodeSyncLock codeSyncProjectLock = new CodeSyncLock(
+        LockFileType.PROJECT_LOCK,
+        // We are using one way hash here to avoid special character (e.g. : in path) issues on some Operating Systems
+        repoDirPath != null ? DigestUtils.sha256Hex(repoDirPath): null
+    );
 
     // This code is executed multiple times when a project window is opened,
     // causing the callbacks to be registered many times, this lock would prevent the

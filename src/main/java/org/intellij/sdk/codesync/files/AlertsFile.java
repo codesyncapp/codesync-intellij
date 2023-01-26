@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync.files;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
@@ -8,6 +9,7 @@ import org.intellij.sdk.codesync.utils.CommonUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +26,7 @@ We can have the following data in alerts.yml
         userEmail:
             checked_at: "2022-07-05"
             checked_for: "2022-07-05"
-            shown_at: 2022-07-05 16:30:27.210
+            shown_at: 2022-07-05T16:30:27.210Z
     user_activity: '2022-07-05 16:30:27.210'
     upgrade_plan: '2022-07-05 21:51:27.210'
  */
@@ -95,7 +97,7 @@ public class AlertsFile extends CodeSyncYmlFile{
             return;
         }
         alertsFile.contentsMap.put(
-            "upgrade_plan", CommonUtils.formatDate(Date.from(activityInstant), DATE_TIME_FORMAT_WITHOUT_TIMEZONE)
+            "upgrade_plan", CommonUtils.formatDate(Date.from(activityInstant), DATE_TIME_FORMAT)
         );
 
         try {
@@ -133,15 +135,18 @@ public class AlertsFile extends CodeSyncYmlFile{
             return false;
         }
 
-        Instant lasShownInstant = CommonUtils.parseDateToInstant(
-            userActivityDetails.get("shown_at"),
-            DATE_TIME_FORMAT_WITHOUT_TIMEZONE
+        Instant checkedForInstant = CommonUtils.parseDateToInstant(
+            userActivityDetails.get("checked_for"),
+            DATE_FORMAT
         );
 
-        if (lasShownInstant != null) {
-            Instant yesterday = CommonUtils.getYesterdayInstant();
-            Instant today = CommonUtils.getTodayInstant();
-            return lasShownInstant.isAfter(yesterday) && lasShownInstant.isBefore(today);
+        if (checkedForInstant != null) {
+            Instant todayInstant = CommonUtils.getTodayInstant();
+            // Truncate time information.
+            todayInstant = DateUtils.truncate(Date.from(todayInstant), Calendar.DATE).toInstant();
+
+            // Return true if alert was checked either yesterday or after that
+            return checkedForInstant.equals(todayInstant);
         }
 
         return false;
@@ -172,7 +177,7 @@ public class AlertsFile extends CodeSyncYmlFile{
             alertDetails.put("checked_at", CommonUtils.formatDate(Date.from(checkedAt), DATE_FORMAT));
         }
         alertDetails.put("checked_for", CommonUtils.formatDate(Date.from(checkedFor), DATE_FORMAT));
-        alertDetails.put("shown_at", CommonUtils.formatDate(Date.from(shownAt), DATE_TIME_FORMAT_WITHOUT_TIMEZONE));
+        alertDetails.put("shown_at", CommonUtils.formatDate(Date.from(shownAt), ISO_DATE_TIME_FORMAT));
 
         teamActivity.put(userEmail, alertDetails);
         alertsFile.contentsMap.put("team_activity", teamActivity);

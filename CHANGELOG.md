@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.18.3] - 2022-01-26
+- Fixed file path issue for lock files.
+- Updates for the daemon calling functionality.
+- Fixed a path issue in the project lock file for Windows OS.
+- Updated logic for alerts to handle an edge case.
+- If previous alert was shown before 4 PM then we need to show another one at 4:30 PM
+
 ## [3.18.2] - 2022-01-20
 - Fixed a quick bug observed by new users.
 

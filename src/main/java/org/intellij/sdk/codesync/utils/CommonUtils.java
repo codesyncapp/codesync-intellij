@@ -336,4 +336,19 @@ public class CommonUtils {
 
         return zonedDateTime.toInstant();
     }
+
+    /*
+    Get today's instant for the given hour, minute and second.
+    */
+    public static Instant getTodayInstant(int hour, int minute, int second) {
+        ZoneId timeZone = ZoneId.systemDefault();
+        LocalDateTime yesterdayDateTime = LocalDateTime.now(timeZone);
+        ZonedDateTime zonedDateTime = ZonedDateTime.of(yesterdayDateTime, timeZone);
+        zonedDateTime = zonedDateTime
+            .withHour(hour)
+            .withMinute(minute)
+            .withSecond(second);
+
+        return zonedDateTime.toInstant();
+    }
 }
