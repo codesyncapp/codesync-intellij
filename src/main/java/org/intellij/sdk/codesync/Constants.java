@@ -123,7 +123,9 @@ public final class Constants {
         public static final String NO = "No";
         public static final String SERVICE_NOT_AVAILABLE = "CodeSync Service is unavailable. Please try again in a moment.";
         public static final String UPGRADE_PLAN = String.format("Upgrade your plan: %s", PLANS_URL);
-        public static final String PUBLIC_OR_PRIVATE = "Do you want to make the repo public? (You can change this later.)";
+
+        public static final String PUBLIC_OR_PRIVATE_TITLE = "Do you want to make the repository public?";
+        public static final String PUBLIC_OR_PRIVATE = "Do you want to make the repository public? (You can change this later.)";
 
         public static final String INIT_SUCCESS_MESSAGE = "Repo initialized successfully, your code will now be synced with CodeSync.";
         public static final String INIT_ERROR_MESSAGE = "Repo initialization errored out, please try again later. If problem persists then contact support.";
