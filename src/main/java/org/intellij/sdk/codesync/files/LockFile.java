@@ -3,7 +3,7 @@ package org.intellij.sdk.codesync.files;
 import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
-import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 
 import java.io.*;
 import java.time.Instant;
@@ -52,7 +52,7 @@ public class LockFile extends CodeSyncYmlFile {
 
         public Lock(String category, Map<String, Object> lockContents) {
             this.category = category;
-            this.expiry = CommonUtils.parseDateToInstant((String) lockContents.get("expiry"));
+            this.expiry = CodeSyncDateUtils.parseDateToInstant((String) lockContents.get("expiry"));
             this.owner = (String) lockContents.get("owner");
         }
 
@@ -87,7 +87,7 @@ public class LockFile extends CodeSyncYmlFile {
 
         public Map<String, Object> getYMLAsHashMap() {
             Map<String, Object> lock = new HashMap<>();
-            lock.put("expiry", CommonUtils.formatDate(this.expiry));
+            lock.put("expiry", CodeSyncDateUtils.formatDate(this.expiry));
             lock.put("owner", this.owner);
 
             return lock;

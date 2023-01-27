@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [3.18.3] - 2022-01-26
+- Added delay for invalid request to get activity data.
+- Refactored the code a bit.
+
+## [3.18.3] - 2022-01-26
 - Fixed file path issue for lock files.
 - Updates for the daemon calling functionality.
 - Fixed a path issue in the project lock file for Windows OS.

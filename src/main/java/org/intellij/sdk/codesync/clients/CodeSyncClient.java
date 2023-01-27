@@ -13,7 +13,7 @@ import org.intellij.sdk.codesync.models.User;
 import org.intellij.sdk.codesync.models.UserPlan;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
-import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.json.simple.JSONObject;
@@ -118,10 +118,10 @@ public class CodeSyncClient {
         payload.put("is_binary", (Boolean) fileInfo.get("isBinary"));
         payload.put("size", (long) fileInfo.get("size"));
         payload.put("file_path", diffFile.fileRelativePath);
-        payload.put("created_at", CommonUtils.formatDate(diffFile.createdAt));
+        payload.put("created_at", CodeSyncDateUtils.formatDate(diffFile.createdAt));
 
         if (diffFile.addedAt != null) {
-            payload.put("added_at", CommonUtils.formatDate(diffFile.addedAt));
+            payload.put("added_at", CodeSyncDateUtils.formatDate(diffFile.addedAt));
         }
         JSONResponse jsonResponse;
         try {

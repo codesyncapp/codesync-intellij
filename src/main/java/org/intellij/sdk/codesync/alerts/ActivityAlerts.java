@@ -7,8 +7,8 @@ import org.intellij.sdk.codesync.files.AlertsFile;
 import org.intellij.sdk.codesync.files.UserFile;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.ui.dialogs.ActivityAlertDialog;
-import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.DataUtils;
+import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.json.simple.JSONObject;
 
@@ -28,8 +28,8 @@ public class ActivityAlerts {
     Checks if user has had any activity from 4:30 PM yesterday to 4:30 PM today.
     */
     private static boolean hasActivityInTheLastDay(JSONObject jsonResponse) {
-        Instant today = CommonUtils.getTodayInstant(16, 30, 0);
-        Instant yesterday = CommonUtils.getYesterdayInstant();
+        Instant today = CodeSyncDateUtils.getTodayInstant(16, 30, 0);
+        Instant yesterday = CodeSyncDateUtils.getYesterdayInstant();
 
         return DataUtils.hasActivity(jsonResponse, yesterday, today);
     }
@@ -49,7 +49,14 @@ public class ActivityAlerts {
         Update the lock to remind the user 15 minutes later.
     */
     public static void remindLater() {
-        Instant fifteenMinutesInFuture = Instant.now().plus(15, ChronoUnit.MINUTES);
+        remindLater(15);
+    }
+
+    /*
+        Update the lock to remind the user 15 minutes later.
+    */
+    public static void remindLater(long waitTimeInMinutes) {
+        Instant fifteenMinutesInFuture = Instant.now().plus(waitTimeInMinutes, ChronoUnit.MINUTES);
         acquireActivityLock(fifteenMinutesInFuture);
     }
 
@@ -57,13 +64,13 @@ public class ActivityAlerts {
     Update the lock to skip the reminder for today and remind the user tomorrow.
      */
     public static void skipToday() {
-        Instant now = CommonUtils.getTodayInstant();
-        Instant reminderInstant = CommonUtils.getTomorrowAlertInstant();
+        Instant now = CodeSyncDateUtils.getTodayInstant();
+        Instant reminderInstant = CodeSyncDateUtils.getTomorrowAlertInstant();
 
         // if activity is shown before 4 PM then it was for yesterday's activity,
         // and we need to show another notification after 4:30 PM today only if there has been an activity in past 24h.
         if (now.atZone(ZoneId.systemDefault()).getHour() < 16) {
-            reminderInstant = CommonUtils.getTodayInstant(16, 30, 0);
+            reminderInstant = CodeSyncDateUtils.getTodayInstant(16, 30, 0);
         }
         acquireActivityLock(reminderInstant);
     }
@@ -77,6 +84,7 @@ public class ActivityAlerts {
         String email = UserFile.getEmail();
 
         if (accessToken == null) {
+            ActivityAlerts.remindLater(5);
             return;
         }
 
@@ -90,6 +98,7 @@ public class ActivityAlerts {
         JSONObject jsonResponse = codeSyncClient.getTeamActivity(accessToken);
 
         if (jsonResponse == null) {
+            ActivityAlerts.remindLater(5);
             return;
         }
 
@@ -102,21 +111,21 @@ public class ActivityAlerts {
             );
             boolean hasUserChecked = activityAlertDialog.showAndGet();
             Instant checkedFor;
-            Instant now = CommonUtils.getTodayInstant();
+            Instant now = CodeSyncDateUtils.getTodayInstant();
 
             // if activity is shown before 4 PM then it was for yesterday's activity,
             // and we need to show another notification after 4:30 PM today.
             if (now.atZone(ZoneId.systemDefault()).getHour() < 16) {
-                checkedFor = CommonUtils.getYesterdayInstant();
+                checkedFor = CodeSyncDateUtils.getYesterdayInstant();
             } else {
-                checkedFor = CommonUtils.getTodayInstant();
+                checkedFor = CodeSyncDateUtils.getTodayInstant();
             }
             if (email != null && hasUserChecked) {
                 AlertsFile.updateTeamActivity(
                     email,
-                    CommonUtils.getTodayInstant(),
+                    CodeSyncDateUtils.getTodayInstant(),
                     checkedFor,
-                    CommonUtils.getTodayInstant()
+                    CodeSyncDateUtils.getTodayInstant()
                 );
             }
         }

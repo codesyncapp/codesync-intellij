@@ -6,6 +6,7 @@ import java.util.Date;
 
 
 import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
@@ -36,7 +37,7 @@ public class DiffFile {
         try {
             this.createdAt = (Date) obj.get("created_at");
         } catch (ClassCastException e) {
-            this.createdAt = CommonUtils.parseDate((String) obj.get("created_at"));
+            this.createdAt = CodeSyncDateUtils.parseDate((String) obj.get("created_at"));
         }
         this.fileRelativePath = (String) obj.get("file_relative_path");
 
@@ -49,7 +50,7 @@ public class DiffFile {
         this.isDirRename = CommonUtils.getBoolValue(obj, "is_dir_rename", false);
 
         if (this.isNewFile) {
-            this.addedAt =  CommonUtils.parseDate((String) obj.get("added_at"));
+            this.addedAt =  CodeSyncDateUtils.parseDate((String) obj.get("added_at"));
         }
 
         if (this.isDirRename) {

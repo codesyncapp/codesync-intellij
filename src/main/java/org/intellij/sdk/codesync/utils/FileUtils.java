@@ -163,8 +163,8 @@ public class FileUtils
         try {
             BasicFileAttributes fileAttributes = Files.readAttributes(path, BasicFileAttributes.class);
             fileInfo.put("size", fileAttributes.size());
-            fileInfo.put("creationTime", CommonUtils.formatDate(fileAttributes.creationTime()));
-            fileInfo.put("modifiedTime", CommonUtils.formatDate(fileAttributes.lastModifiedTime()));
+            fileInfo.put("creationTime", CodeSyncDateUtils.formatDate(fileAttributes.creationTime()));
+            fileInfo.put("modifiedTime", CodeSyncDateUtils.formatDate(fileAttributes.lastModifiedTime()));
             fileInfo.put("isBinary", isBinaryFile(file));
         } catch (IOException error) {
             throw new FileInfoError(error.getMessage());

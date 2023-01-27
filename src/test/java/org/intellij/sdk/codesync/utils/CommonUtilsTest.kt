@@ -8,10 +8,16 @@ import java.util.*
 class CommonUtilsTest {
     @Test
     fun validateParseDate() {
-        var date: Date? = CommonUtils.parseDate("2023-01-15 07:40:02.682 UTC", Constants.DATE_TIME_FORMAT)
+        var date: Date? = CodeSyncDateUtils.parseDate(
+            "2023-01-15 07:40:02.682 UTC",
+            Constants.DATE_TIME_FORMAT
+        )
         assert(date != null)
 
-        date = CommonUtils.parseDate("invalid-date", Constants.DATE_TIME_FORMAT)
+        date = CodeSyncDateUtils.parseDate(
+            "invalid-date",
+            Constants.DATE_TIME_FORMAT
+        )
         assert(date == null)
     }
 }
