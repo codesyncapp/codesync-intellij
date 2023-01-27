@@ -15,10 +15,7 @@ import org.intellij.sdk.codesync.files.UserFile;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
-import org.intellij.sdk.codesync.utils.CommonUtils;
-import org.intellij.sdk.codesync.utils.DiffUtils;
-import org.intellij.sdk.codesync.utils.FileUtils;
-import org.intellij.sdk.codesync.utils.ProjectUtils;
+import org.intellij.sdk.codesync.utils.*;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -320,12 +317,12 @@ public class PopulateBuffer {
 
     public boolean isModifiedSinceLastSync() {
         Optional<Date> maxModifiedTimeOptional = this.fileInfoMap.values().stream()
-                .map(item -> CommonUtils.parseDate((String) item.get("modifiedTime")))
+                .map(item -> CodeSyncDateUtils.parseDate((String) item.get("modifiedTime")))
                 .filter(Objects::nonNull)
                 .max(Date::compareTo);
 
         Optional<Date> maxCreationTimeOptional = this.fileInfoMap.values().stream()
-                .map(item -> CommonUtils.parseDate((String) item.get("creationTime")))
+                .map(item -> CodeSyncDateUtils.parseDate((String) item.get("creationTime")))
                 .filter(Objects::nonNull)
                 .max(Date::compareTo);
 
@@ -373,8 +370,8 @@ public class PopulateBuffer {
 
                     try {
                         Map<String, Object> shadowFileInfo = FileUtils.getFileInfo(shadowFile.getPath());
-                        Date fileModifiedTime = CommonUtils.parseDate((String) fileInfo.get("modifiedTime"));
-                        Date shadowFileModifiedTime = CommonUtils.parseDate((String) shadowFileInfo.get("modifiedTime"));
+                        Date fileModifiedTime = CodeSyncDateUtils.parseDate((String) fileInfo.get("modifiedTime"));
+                        Date shadowFileModifiedTime = CodeSyncDateUtils.parseDate((String) shadowFileInfo.get("modifiedTime"));
 
                         // If shadow file was modified after the file was written to disk, then, skip the change.
                         if (
@@ -442,13 +439,13 @@ public class PopulateBuffer {
             if (!diff.isEmpty() || isNewFile) {
                 Map<String, Object> diffContentMap = new HashMap<>();
                 Map<String, Object> fileInfo = this.fileInfoMap.get(relativeFilePath);
-                Date createdAt = CommonUtils.parseDate((String) fileInfo.get("creationTime"));
+                Date createdAt = CodeSyncDateUtils.parseDate((String) fileInfo.get("creationTime"));
 
                 diffContentMap.put("diff", diff);
                 diffContentMap.put("is_rename", isRename);
                 diffContentMap.put("is_new_file", isNewFile);
                 diffContentMap.put("is_binary", isBinary);
-                diffContentMap.put("created_at", CommonUtils.formatDate(createdAt, DATE_TIME_FORMAT));
+                diffContentMap.put("created_at", CodeSyncDateUtils.formatDate(createdAt, DATE_TIME_FORMAT));
 
                 diffs.put(relativeFilePath, diffContentMap);
             }

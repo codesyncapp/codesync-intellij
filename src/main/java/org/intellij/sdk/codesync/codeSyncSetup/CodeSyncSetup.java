@@ -31,6 +31,7 @@ import org.intellij.sdk.codesync.ui.progress.InitRepoMilestones;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.jetbrains.annotations.NotNull;
@@ -433,7 +434,7 @@ public class CodeSyncSetup {
             JSONObject item = new JSONObject();
             item.put("is_binary",  fileInfo.get("isBinary"));
             item.put("size", fileInfo.get("size"));
-            item.put("created_at", CommonUtils.getPosixTime((String) fileInfo.get("creationTime")));
+            item.put("created_at", CodeSyncDateUtils.getPosixTime((String) fileInfo.get("creationTime")));
             filesData.put(relativeFilePath, item);
         }
         ConfigRepo configRepo;

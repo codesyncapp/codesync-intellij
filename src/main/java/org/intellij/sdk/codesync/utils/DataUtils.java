@@ -24,7 +24,7 @@ public class DataUtils {
             .stream()
             .anyMatch(
                 activity -> {
-                    Instant lastSyncedAt = CommonUtils.parseDateToInstant(
+                    Instant lastSyncedAt = CodeSyncDateUtils.parseDateToInstant(
                         (String) ((JSONObject) activity).get("last_synced_at"),
                         DATE_TIME_FORMAT_WITHOUT_TIMEZONE
                     );

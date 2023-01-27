@@ -4,7 +4,7 @@ import org.apache.commons.lang.time.DateUtils;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
-import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -73,7 +73,7 @@ public class AlertsFile extends CodeSyncYmlFile{
             return;
         }
         alertsFile.contentsMap.put(
-            "user_activity", CommonUtils.formatDate(Date.from(activityInstant), DATE_TIME_FORMAT_WITHOUT_TIMEZONE)
+            "user_activity", CodeSyncDateUtils.formatDate(Date.from(activityInstant), DATE_TIME_FORMAT_WITHOUT_TIMEZONE)
         );
 
         try {
@@ -97,7 +97,7 @@ public class AlertsFile extends CodeSyncYmlFile{
             return;
         }
         alertsFile.contentsMap.put(
-            "upgrade_plan", CommonUtils.formatDate(Date.from(activityInstant), DATE_TIME_FORMAT)
+            "upgrade_plan", CodeSyncDateUtils.formatDate(Date.from(activityInstant), DATE_TIME_FORMAT)
         );
 
         try {
@@ -135,13 +135,13 @@ public class AlertsFile extends CodeSyncYmlFile{
             return false;
         }
 
-        Instant checkedForInstant = CommonUtils.parseDateToInstant(
+        Instant checkedForInstant = CodeSyncDateUtils.parseDateToInstant(
             userActivityDetails.get("checked_for"),
             DATE_FORMAT
         );
 
         if (checkedForInstant != null) {
-            Instant todayInstant = CommonUtils.getTodayInstant();
+            Instant todayInstant = CodeSyncDateUtils.getTodayInstant();
             // Truncate time information.
             todayInstant = DateUtils.truncate(Date.from(todayInstant), Calendar.DATE).toInstant();
 
@@ -174,10 +174,10 @@ public class AlertsFile extends CodeSyncYmlFile{
             }
             alertDetails.put("checked_at", newCheckedAt);
         } else {
-            alertDetails.put("checked_at", CommonUtils.formatDate(Date.from(checkedAt), DATE_FORMAT));
+            alertDetails.put("checked_at", CodeSyncDateUtils.formatDate(Date.from(checkedAt), DATE_FORMAT));
         }
-        alertDetails.put("checked_for", CommonUtils.formatDate(Date.from(checkedFor), DATE_FORMAT));
-        alertDetails.put("shown_at", CommonUtils.formatDate(Date.from(shownAt), ISO_DATE_TIME_FORMAT));
+        alertDetails.put("checked_for", CodeSyncDateUtils.formatDate(Date.from(checkedFor), DATE_FORMAT));
+        alertDetails.put("shown_at", CodeSyncDateUtils.formatDate(Date.from(shownAt), ISO_DATE_TIME_FORMAT));
 
         teamActivity.put(userEmail, alertDetails);
         alertsFile.contentsMap.put("team_activity", teamActivity);

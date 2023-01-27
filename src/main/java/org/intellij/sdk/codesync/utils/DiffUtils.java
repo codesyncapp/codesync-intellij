@@ -22,7 +22,7 @@ public class DiffUtils {
                 repoPath, branchName, relPath, diff, isNewFile, isDeleted, isRename, isDirRename,
 
                 // Pass the current time as createdAt if it is not passed in the argument.
-                CommonUtils.getCurrentDatetime()
+                CodeSyncDateUtils.getCurrentDatetime()
         );
 
     }
@@ -41,7 +41,7 @@ public class DiffUtils {
         }
         if (isNewFile) {
             data.put("is_new_file", true);
-            data.put("added_at", CommonUtils.getCurrentDatetime());
+            data.put("added_at", CodeSyncDateUtils.getCurrentDatetime());
         }
         if (isDeleted) {
             data.put("is_deleted", true);

@@ -11,8 +11,8 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 import org.apache.http.client.utils.URIBuilder;
-import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.alerts.PricingAlerts;
+import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.JSONArray;
@@ -104,7 +104,7 @@ public class CodeSyncWebSocketClient {
         diff.put("is_deleted", diffFile.isDeleted);
         diff.put("is_rename", diffFile.isRename);
         diff.put("is_binary", diffFile.isBinary);
-        diff.put("created_at", CommonUtils.formatDate(diffFile.createdAt));
+        diff.put("created_at", CodeSyncDateUtils.formatDate(diffFile.createdAt));
         diff.put("path", diffFile.fileRelativePath);
         diff.put("diff_file_path", diffFile.originalDiffFile.getPath());
 
@@ -159,7 +159,7 @@ public class CodeSyncWebSocketClient {
             diff.put("is_deleted", diffFile.isDeleted);
             diff.put("is_rename", diffFile.isRename);
             diff.put("is_binary", diffFile.isBinary);
-            diff.put("created_at", CommonUtils.formatDate(diffFile.createdAt));
+            diff.put("created_at", CodeSyncDateUtils.formatDate(diffFile.createdAt));
             diff.put("path", diffFile.fileRelativePath);
             diff.put("diff_file_path", diffFile.originalDiffFile.getPath());
 

@@ -5,7 +5,7 @@ import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.files.AlertsFile;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.ui.dialogs.PricingAlertDialog;
-import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 import org.json.simple.JSONObject;
 
 import static org.intellij.sdk.codesync.Constants.LockFileType;
@@ -42,7 +42,7 @@ public class PricingAlerts {
 
             PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(isOrgRepo, canAvailTrial, pricingUrl, project);
             pricingAlertDialog.show();
-            AlertsFile.updateUpgradePlanActivity(CommonUtils.getTodayInstant());
+            AlertsFile.updateUpgradePlanActivity(CodeSyncDateUtils.getTodayInstant());
         } else {
             setPlanLimitReached(project);
         }
