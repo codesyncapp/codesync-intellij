@@ -49,7 +49,14 @@ public class ActivityAlerts {
         Update the lock to remind the user 15 minutes later.
     */
     public static void remindLater() {
-        Instant fifteenMinutesInFuture = Instant.now().plus(15, ChronoUnit.MINUTES);
+        remindLater(15);
+    }
+
+    /*
+        Update the lock to remind the user 15 minutes later.
+    */
+    public static void remindLater(long waitTimeInMinutes) {
+        Instant fifteenMinutesInFuture = Instant.now().plus(waitTimeInMinutes, ChronoUnit.MINUTES);
         acquireActivityLock(fifteenMinutesInFuture);
     }
 
@@ -77,6 +84,7 @@ public class ActivityAlerts {
         String email = UserFile.getEmail();
 
         if (accessToken == null) {
+            ActivityAlerts.remindLater(5);
             return;
         }
 
@@ -90,6 +98,7 @@ public class ActivityAlerts {
         JSONObject jsonResponse = codeSyncClient.getTeamActivity(accessToken);
 
         if (jsonResponse == null) {
+            ActivityAlerts.remindLater(5);
             return;
         }
 
