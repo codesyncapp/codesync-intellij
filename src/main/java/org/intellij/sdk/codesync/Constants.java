@@ -45,7 +45,6 @@ public final class Constants {
 
     public static final String DEFAULT_TIMEZONE = ZoneId.systemDefault().getId();
     public static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS z";
-    public static final String ISO_DATE_TIME_FORMAT = "YYYY-MM-DDTHH:mm:ss.sssZ";
     public static final String DATE_FORMAT = "yyyy-MM-dd";
     public static final String DATE_TIME_FORMAT_WITHOUT_TIMEZONE = "yyyy-MM-dd HH:mm:ss.SSS";
     public static final String IDE_NAME = ApplicationInfo.getInstance().getVersionName();

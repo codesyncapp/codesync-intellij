@@ -31,6 +31,5 @@ public class DataUtils {
                     return lastSyncedAt != null && (lastSyncedAt.isAfter(from) && lastSyncedAt.isBefore(to));
                 }
             );
-
     }
 }

@@ -152,7 +152,7 @@ public class AlertsFile extends CodeSyncYmlFile{
         return false;
     }
 
-    public static void updateTeamActivity(String userEmail, Instant checkedAt, Instant checkedFor, Instant shownAt) {
+    public static void updateTeamActivity(String userEmail, Instant checkedAt, Instant checkedFor, Instant shownAt ) {
         AlertsFile alertsFile = getInstance();
         if (alertsFile == null) {
             return;
@@ -177,7 +177,7 @@ public class AlertsFile extends CodeSyncYmlFile{
             alertDetails.put("checked_at", CodeSyncDateUtils.formatDate(Date.from(checkedAt), DATE_FORMAT));
         }
         alertDetails.put("checked_for", CodeSyncDateUtils.formatDate(Date.from(checkedFor), DATE_FORMAT));
-        alertDetails.put("shown_at", CodeSyncDateUtils.formatDate(Date.from(shownAt), ISO_DATE_TIME_FORMAT));
+        alertDetails.put("shown_at", CodeSyncDateUtils.formatDate(Date.from(shownAt), DATE_TIME_FORMAT));
 
         teamActivity.put(userEmail, alertDetails);
         alertsFile.contentsMap.put("team_activity", teamActivity);
