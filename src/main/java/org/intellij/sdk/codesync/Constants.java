@@ -45,7 +45,6 @@ public final class Constants {
 
     public static final String DEFAULT_TIMEZONE = ZoneId.systemDefault().getId();
     public static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS z";
-    public static final String ISO_DATE_TIME_FORMAT = "YYYY-MM-DDTHH:mm:ss.sssZ";
     public static final String DATE_FORMAT = "yyyy-MM-dd";
     public static final String DATE_TIME_FORMAT_WITHOUT_TIMEZONE = "yyyy-MM-dd HH:mm:ss.SSS";
     public static final String IDE_NAME = ApplicationInfo.getInstance().getVersionName();
@@ -70,7 +69,7 @@ public final class Constants {
     public static final String API_USERS = String.format("%s/users", API_ENDPOINT);
     public static final String CODESYNC_REPO_URL = String.format("%s/repos", API_ENDPOINT);
     public static final String FILES_API_ENDPOINT = String.format("%s/files", API_ENDPOINT);
-    public static final String TEAM_ACTIVITY_ENDPOINT = String.format("%s/team_activity?tz=%s", API_ENDPOINT, DEFAULT_TIMEZONE);
+    public static final String TEAM_ACTIVITY_ENDPOINT = String.format("%s/team_activity?tz=%s&source=%s", API_ENDPOINT, DEFAULT_TIMEZONE, DIFF_SOURCE);
 
     public static final String API_HEALTHCHECK = String.format("%s/healthcheck", CODESYNC_HOST);
     public static final String CODESYNC_AUTHORIZE_URL = String.format("%s/authorize", CODESYNC_HOST);

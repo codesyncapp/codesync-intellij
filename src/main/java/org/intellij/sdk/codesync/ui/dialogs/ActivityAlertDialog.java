@@ -13,9 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 
 
 public class ActivityAlertDialog extends DialogWrapper {
@@ -43,14 +41,12 @@ public class ActivityAlertDialog extends DialogWrapper {
         }
 
         setTitle(this.title);
-        getWindow().addWindowListener(
-            new WindowAdapter() {
-                @Override
-                public void windowClosing(WindowEvent e) {
-                    remindLaterAction();
-                }
-            }
-        );
+    }
+
+    @Override
+    public void doCancelAction() {
+        remindLaterAction();
+        super.doCancelAction();
     }
 
     public ActivityAlertDialog(String teamActivityURL, boolean isTeamActivity){
@@ -62,7 +58,7 @@ public class ActivityAlertDialog extends DialogWrapper {
             () -> {
                 init();
                 super.show();
-                return OK_EXIT_CODE;
+                return getExitCode();
             },
             ModalityState.defaultModalityState()
         );

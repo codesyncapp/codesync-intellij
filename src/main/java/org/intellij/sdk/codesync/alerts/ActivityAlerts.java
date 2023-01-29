@@ -102,7 +102,7 @@ public class ActivityAlerts {
             return;
         }
 
-        if (!hasActivityInTheLastDay(jsonResponse)) {
+        if (hasActivityInTheLastDay(jsonResponse)) {
             boolean isTeamActivity = jsonResponse.containsKey("is_team_activity") &&
                 (boolean) jsonResponse.get("is_team_activity");
 
@@ -128,6 +128,12 @@ public class ActivityAlerts {
                     CodeSyncDateUtils.getTodayInstant()
                 );
             }
+        } else {
+            // No activity today, so skip today.
+            ActivityAlerts.skipToday();
+
+            Instant today = CodeSyncDateUtils.getTodayInstant();
+            AlertsFile.updateTeamActivity(email, today, today, today);
         }
     }
 
@@ -143,8 +149,7 @@ public class ActivityAlerts {
             );
 
             if (canRunDaemon) {
-                // Start the daemon.
-                ProjectUtils.startDaemonProcess(() -> showActivityAlert(project));
+                showActivityAlert(project);
             }
         });
     }
