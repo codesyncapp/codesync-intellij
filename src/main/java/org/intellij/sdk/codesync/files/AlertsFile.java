@@ -24,11 +24,8 @@ update this message then.
 We can have the following data in alerts.yml
     team_activity:
         userEmail:
-            checked_at: "2022-07-05"
             checked_for: "2022-07-05"
-            shown_at_intellij: 2022-07-05T16:30:27.210Z
-    user_activity: '2022-07-05 16:30:27.210'
-    upgrade_plan: '2022-07-05 21:51:27.210'
+            shown_at_intellij: 2023-01-28 14:08:32.191 UTC
  */
 public class AlertsFile extends CodeSyncYmlFile{
     File alertsFile;
