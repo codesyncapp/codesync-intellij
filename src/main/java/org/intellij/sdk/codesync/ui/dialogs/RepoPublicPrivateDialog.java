@@ -40,7 +40,7 @@ public class RepoPublicPrivateDialog extends DialogWrapper {
                 () -> {
                     init();
                     super.show();
-                    return CANCEL_EXIT_CODE;
+                    return  getExitCode();
                 },
                 ModalityState.defaultModalityState()
         );
