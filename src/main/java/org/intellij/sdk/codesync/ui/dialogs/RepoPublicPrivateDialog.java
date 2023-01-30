@@ -1,11 +1,8 @@
 package org.intellij.sdk.codesync.ui.dialogs;
 
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import org.intellij.sdk.codesync.Constants.Notification;
-import org.intellij.sdk.codesync.alerts.ActivityAlerts;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -19,15 +16,13 @@ import java.awt.event.WindowEvent;
 
 public class RepoPublicPrivateDialog extends DialogWrapper {
 
-    String message, title, makeItPublicButtonText = "Make it Public", keepItPrivateButtonText = "Keep it Private";
+    String message = "Do you want to make the repository public? (You can change this later.)",
+            title = "Do you want to make the repository public?",
+            makeItPublicButtonText = "Make it Public",
+            keepItPrivateButtonText = "Keep it Private";
 
-
-
-    public RepoPublicPrivateDialog(String title, String message, Project project) {
+    public RepoPublicPrivateDialog(Project project) {
         super(project);
-
-        this.title = title;
-        this.message = message;
 
         setTitle(this.title);
         getWindow().addWindowListener(
@@ -74,7 +69,6 @@ public class RepoPublicPrivateDialog extends DialogWrapper {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         if(isEnabled()){
-                            System.out.println("Make public!");
                             close(OK_EXIT_CODE);
                         }
                     }
@@ -83,7 +77,6 @@ public class RepoPublicPrivateDialog extends DialogWrapper {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         if(isEnabled()){
-                            System.out.println("Keep private!");
                             close(CANCEL_EXIT_CODE);
                         }
                     }

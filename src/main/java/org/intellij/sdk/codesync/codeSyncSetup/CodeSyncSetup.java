@@ -502,14 +502,7 @@ public class CodeSyncSetup {
         JSONObject payload = new JSONObject();
         boolean isPublic = false;
         if (!isSyncingBranch) {
-//            isPublic = CodeSyncMessages.showYesNoMessage(
-//                    Notification.PUBLIC_OR_PRIVATE,
-//                    Notification.PUBLIC_OR_PRIVATE,
-//                    project
-//            );
-            RepoPublicPrivateDialog repoPublicPrivateDialog = new RepoPublicPrivateDialog(
-                    Notification.PUBLIC_OR_PRIVATE_TITLE, Notification.PUBLIC_OR_PRIVATE, project
-            );
+            RepoPublicPrivateDialog repoPublicPrivateDialog = new RepoPublicPrivateDialog(project);
             isPublic = repoPublicPrivateDialog.showAndGet();
         }
 
