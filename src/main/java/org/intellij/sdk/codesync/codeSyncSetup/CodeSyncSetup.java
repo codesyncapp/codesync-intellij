@@ -24,6 +24,7 @@ import org.intellij.sdk.codesync.exceptions.repo.RepoNotActive;
 import org.intellij.sdk.codesync.files.*;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
+import org.intellij.sdk.codesync.ui.dialogs.RepoPublicPrivateDialog;
 import org.intellij.sdk.codesync.ui.messages.CodeSyncMessages;
 import org.intellij.sdk.codesync.models.User;
 import org.intellij.sdk.codesync.ui.progress.CodeSyncProgressIndicator;
@@ -501,11 +502,8 @@ public class CodeSyncSetup {
         JSONObject payload = new JSONObject();
         boolean isPublic = false;
         if (!isSyncingBranch) {
-            isPublic = CodeSyncMessages.showYesNoMessage(
-                    Notification.PUBLIC_OR_PRIVATE,
-                    Notification.PUBLIC_OR_PRIVATE,
-                    project
-            );
+            RepoPublicPrivateDialog repoPublicPrivateDialog = new RepoPublicPrivateDialog(project);
+            isPublic = repoPublicPrivateDialog.showAndGet();
         }
 
         payload.put("name", repoName);
