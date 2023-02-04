@@ -12,6 +12,8 @@ import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.intellij.sdk.codesync.exceptions.base.BaseException;
 import org.intellij.sdk.codesync.exceptions.base.BaseNetworkException;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
+import org.intellij.sdk.codesync.state.PluginState;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -28,13 +30,19 @@ public class CodeSyncSetupAction extends BaseModuleAction {
             e.getPresentation().setEnabled(false);
             return;
         }
+
         VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
         if (contentRoots.length > 1) {
             // If more than one module are present in the project then a file must be open to show repo setup action
             // this is needed because without the file we can not determine the correct repo sync.
             try {
                 VirtualFile virtualFile = e.getRequiredData(CommonDataKeys.PSI_FILE).getVirtualFile();
-                if (this.isRepoInSync(virtualFile, project)) {
+                String repoPath = ProjectUtils.getRepoPath(project);
+                PluginState pluginState = StateUtils.getState(repoPath);
+                if(pluginState.syncInProcess){
+                    Presentation presentation = e.getPresentation();
+                    presentation.setEnabled(false);
+                }else if (this.isRepoInSync(virtualFile, project)) {
                     Presentation presentation = e.getPresentation();
                     presentation.setText("Disconnect Repo...");
                     presentation.setDescription("Disconnect repo...");
@@ -49,7 +57,12 @@ public class CodeSyncSetupAction extends BaseModuleAction {
         } else if (contentRoots.length == 1) {
             // If there is only one module then we can simply show the repo playback for the only repo present.
             // Disable the button if repo is not in sync.
-            if (this.isRepoInSync(contentRoots[0])) {
+            String repoPath = ProjectUtils.getRepoPath(project);
+            PluginState pluginState = StateUtils.getState(repoPath);
+            if(pluginState.syncInProcess){
+                Presentation presentation = e.getPresentation();
+                presentation.setEnabled(false);
+            }else if (this.isRepoInSync(contentRoots[0])) {
                 Presentation presentation = e.getPresentation();
                 presentation.setText("Disconnect Repo...");
                 presentation.setDescription("Disconnect repo.");
@@ -66,7 +79,6 @@ public class CodeSyncSetupAction extends BaseModuleAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getProject();
-
         if(project == null) {
             NotificationManager.notifyError("An error occurred trying to perform repo playback action.");
             CodeSyncLogger.error("An error occurred trying to perform repo playback action. e.getProject() is null.");

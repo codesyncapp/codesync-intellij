@@ -126,6 +126,8 @@ public class CodeSyncSetup {
     }
 
     public static void setupCodeSyncRepoAsync(Project project, String repoPath, String repoName, boolean skipSyncPrompt, boolean isSyncingBranch) {
+        PluginState pluginState = StateUtils.getState(repoPath);
+        pluginState.syncInProcess = true;
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 progressIndicator.setIndeterminate(false);
@@ -138,8 +140,10 @@ public class CodeSyncSetup {
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
+                pluginState.syncInProcess = false;
             }
         });
+
     }
 
     public static void setupCodeSyncRepo(Project project, String repoPath, String repoName, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipSyncPrompt, boolean isSyncingBranch) {
