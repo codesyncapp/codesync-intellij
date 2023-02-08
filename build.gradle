@@ -36,6 +36,7 @@ patchPluginXml {
 dependencies {
   implementation files('libs/diff_match_patch.jar')
   implementation files('libs/gitignore-file-filter-1.0.0.jar')
+  implementation files('libs/sqlite-jdbc-3.40.1.0.jar')
 
   // https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple
   implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
