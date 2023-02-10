@@ -201,6 +201,7 @@ public class HandleBuffer {
             }
 
             System.out.printf("Processing diff file: %s.\n", diffFile.originalDiffFile.getPath());
+            System.out.printf("Processing diff: %s%n", diffFile.diff);
 
             if (!configFile.repos.containsKey(diffFile.repoPath)) {
                 CodeSyncLogger.error(String.format("Repo `%s` is in buffer but not in configFile.yml.\n", diffFile.repoPath));
@@ -379,7 +380,6 @@ public class HandleBuffer {
                             return;
                         }
                         System.out.printf("Diff file '%s' successfully processed.\n", diffFilePath);
-
                         if (DiffFile.delete(diffFilePath)) {
                             System.out.printf("Diff file '%s' successfully deleted.\n", diffFilePath);
                         } else {
