@@ -3,6 +3,7 @@ package org.intellij.sdk.codesync;
 import com.intellij.openapi.application.ApplicationInfo;
 import org.intellij.sdk.codesync.configuration.Configuration;
 import org.intellij.sdk.codesync.configuration.ConfigurationFactory;
+import org.intellij.sdk.codesync.utils.ProjectUtils;
 
 import java.nio.file.Paths;
 import java.time.ZoneId;
@@ -49,6 +50,7 @@ public final class Constants {
     public static final String DATE_TIME_FORMAT_WITHOUT_TIMEZONE = "yyyy-MM-dd HH:mm:ss.SSS";
     public static final String IDE_NAME = ApplicationInfo.getInstance().getVersionName();
     public static final String DIFF_SOURCE = "intellij";
+    public static final String PLUGIN_VERSION = ProjectUtils.getPluginVersion();;
     public static final String GA4_PARAMS = String.format("utm_medium=plugin&utm_source=%s&utm_source_platform=%s", DIFF_SOURCE, IDE_NAME);
 
     public static final String MAGIC_STRING = "IntellijIdeaRulezzz";
@@ -65,16 +67,16 @@ public final class Constants {
     public static final String WEBSOCKET_ENDPOINT = configuration.getCodeSyncWebsocketURL();
 
     public static final String API_ENDPOINT = String.format("%s/v1", CODESYNC_HOST);
-    public static final String API_INIT = String.format("%s/init", API_ENDPOINT);
-    public static final String API_USERS = String.format("%s/users", API_ENDPOINT);
+    public static final String API_INIT = String.format("%s/init&source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
+    public static final String API_USERS = String.format("%s/users&source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String CODESYNC_REPO_URL = String.format("%s/repos", API_ENDPOINT);
-    public static final String FILES_API_ENDPOINT = String.format("%s/files", API_ENDPOINT);
-    public static final String TEAM_ACTIVITY_ENDPOINT = String.format("%s/team_activity?tz=%s&source=%s", API_ENDPOINT, DEFAULT_TIMEZONE, DIFF_SOURCE);
+    public static final String FILES_API_ENDPOINT = String.format("%s/files&source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
+    public static final String TEAM_ACTIVITY_ENDPOINT = String.format("%s/team_activity?tz=%s&source=%s&v=%s", API_ENDPOINT, DEFAULT_TIMEZONE, DIFF_SOURCE, PLUGIN_VERSION);
 
-    public static final String API_HEALTHCHECK = String.format("%s/healthcheck", CODESYNC_HOST);
+    public static final String API_HEALTHCHECK = String.format("%s/healthcheck&source=%s&v=%s", CODESYNC_HOST, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String CODESYNC_AUTHORIZE_URL = String.format("%s/authorize", CODESYNC_HOST);
     public static final String CODESYNC_LOGOUT_URL = String.format("%s/auth-logout", CODESYNC_HOST);
-    public static final String CODESYNC_PRICING_URL = String.format("%s/pricing?%s", CODESYNC_HOST, GA4_PARAMS);
+    public static final String CODESYNC_PRICING_URL = String.format("%s/pricing?%s&source=%s&v=%s", CODESYNC_HOST, GA4_PARAMS, DIFF_SOURCE, PLUGIN_VERSION);
 
     public static final String WEBAPP_DASHBOARD_URL = String.format("%s/?%s", WEB_APP_URL, GA4_PARAMS);
     public static final String PLANS_URL = String.format("%s/plans?%s", WEB_APP_URL, GA4_PARAMS);
