@@ -342,6 +342,8 @@ public class Utils {
         }
         // Update shadow file
         try {
+            db obj = new db();
+            obj.connectDB();
             FileWriter myWriter = new FileWriter(shadowPath.toFile());
             myWriter.write(currentText);
             myWriter.close();
