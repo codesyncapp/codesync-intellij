@@ -44,7 +44,7 @@ import static org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup.createSystem
  */
 public class ProjectOpenCloseListener implements ProjectManagerListener {
   private static final Map<String, Pair<Project, DocumentListener>> changeHandlers = new HashMap<>();
-
+  private db dbObject;
   /**
    * Invoked on project open.
    *
@@ -73,6 +73,12 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       System.out.println("Skipping the callback registration.");
       return;
     }
+
+    System.out.println("New Database!");
+    dbObject = new db();
+    dbObject.connect();
+    dbObject.createTable();
+
 
     // Acquire the lock now.
     // Keep a very low expiry to make sure, if user switches between projects then lock does not cause issues.
@@ -169,7 +175,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       @Override
       public void documentChanged(@NotNull DocumentEvent event) {
         if (!project.isDisposed()){
-          ChangesHandler(event, project);
+          ChangesHandler(event, project, dbObject);
         }
       }
     };
@@ -188,6 +194,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
   }
 
   public void disposeProjectListeners(Project project) {
+    dbObject.disconnect();
     // Release all the locks acquired by this project.
     CodeSyncLock.releaseAllLocks(LockFileType.PROJECT_LOCK, project.getName());
     CodeSyncLock.releaseAllLocks(LockFileType.HANDLE_BUFFER_LOCK, project.getName());

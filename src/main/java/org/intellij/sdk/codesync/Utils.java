@@ -262,7 +262,7 @@ public class Utils {
         }
     }
 
-    public static void ChangesHandler(DocumentEvent event, Project project) {
+    public static void ChangesHandler(DocumentEvent event, Project project, db dbObject) {
         Document document = event.getDocument();
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
         String repoPath;
@@ -286,10 +286,10 @@ public class Utils {
             return;
         }
 
-        handleDocumentUpdates(file, repoPath, fileContents);
+        handleDocumentUpdates(file, repoPath, fileContents, dbObject);
     }
 
-    public static void handleDocumentUpdates(VirtualFile file, String repoPath, String currentText) {
+    public static void handleDocumentUpdates(VirtualFile file, String repoPath, String currentText, db dbObject) {
         if (file == null) {
             CodeSyncLogger.error("Skipping the update event, file is null.");
             return;
@@ -342,8 +342,8 @@ public class Utils {
         }
         // Update shadow file
         try {
-            db obj = new db();
-            obj.connectDB();
+//            dbObject.executeUpdate(currentText);
+            dbObject.executeUpdate("Something");
             FileWriter myWriter = new FileWriter(shadowPath.toFile());
             myWriter.write(currentText);
             myWriter.close();
