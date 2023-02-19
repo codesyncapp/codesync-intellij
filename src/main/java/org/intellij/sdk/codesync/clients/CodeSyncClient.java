@@ -240,7 +240,7 @@ public class CodeSyncClient {
     }
 
     public JSONObject updateRepo(String accessToken, int repoId, JSONObject payload) {
-        String url = String.format("%s/%s&source=%s&v=%s", CODESYNC_REPO_URL, repoId, DIFF_SOURCE, PLUGIN_VERSION);
+        String url = String.format("%s/%s?source=%s&v=%s", CODESYNC_REPO_URL, repoId, DIFF_SOURCE, PLUGIN_VERSION);
         try {
             JSONResponse jsonResponse = ClientUtils.sendPatch(url, payload, accessToken);
             jsonResponse.raiseForStatus();
@@ -255,7 +255,7 @@ public class CodeSyncClient {
     }
 
     public JSONObject getRepoPlanInfo(String accessToken, int repoId) {
-        String url = String.format("%s/%s/upgrade_plan&source=%s&v=%s", CODESYNC_REPO_URL, repoId, DIFF_SOURCE, PLUGIN_VERSION);
+        String url = String.format("%s/%s/upgrade_plan?source=%s&v=%s", CODESYNC_REPO_URL, repoId, DIFF_SOURCE, PLUGIN_VERSION);
 
         try {
             JSONResponse jsonResponse = ClientUtils.sendGet(url, accessToken);

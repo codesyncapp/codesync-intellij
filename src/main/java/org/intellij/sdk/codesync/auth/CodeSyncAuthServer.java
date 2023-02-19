@@ -60,6 +60,8 @@ public class CodeSyncAuthServer {
         try {
             URIBuilder uriBuilder = new URIBuilder(CODESYNC_AUTHORIZE_URL);
             uriBuilder.addParameter("redirect_uri", getServerURL());
+            uriBuilder.addParameter("source", DIFF_SOURCE);
+            uriBuilder.addParameter("v", PLUGIN_VERSION);
 
             return uriBuilder.toString();
         } catch (URISyntaxException e) {
