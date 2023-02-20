@@ -342,8 +342,9 @@ public class Utils {
         }
         // Update shadow file
         try {
-//            dbObject.executeUpdate(currentText);
-            dbObject.executeUpdate("Something");
+            if(!dbObject.executeQuery().equals(currentText)) {
+                dbObject.executeUpdate(currentText);
+            }
             FileWriter myWriter = new FileWriter(shadowPath.toFile());
             myWriter.write(currentText);
             myWriter.close();

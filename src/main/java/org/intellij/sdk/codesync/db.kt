@@ -26,8 +26,8 @@ class db {
     fun createTable(){
         try {
             val statement = connection?.createStatement()
-            statement?.executeUpdate("drop table if exists myFiles")
-            statement?.executeUpdate("create table myFiles (id integer, file string)")
+            statement?.executeUpdate("drop table if exists files")
+            statement?.executeUpdate("create table files (file blob)")
         } catch (exception: Exception) {
             // Code to handle the exception
         } finally {
@@ -38,7 +38,7 @@ class db {
     fun executeUpdate(text: String){
         try {
             val statement = connection?.createStatement()
-            var stm: String = "insert into myFiles values(1, '"+text+"')"
+            var stm: String = "insert into files values('"+text+"')"
             statement?.executeUpdate(stm)
         } catch (exception: Exception) {
             println(exception.message)
@@ -47,18 +47,20 @@ class db {
         }
     }
 
-    fun executeQuery(){
+    fun executeQuery (): String{
         try {
             val statement = connection?.createStatement()
-            val rs: ResultSet? = statement?.executeQuery("select * from myFiles")
+            val rs: ResultSet? = statement?.executeQuery("SELECT * FROM FILES ORDER BY ROWID DESC LIMIT 1")
             while (rs?.next() == true) {
-                println(rs?.getString("file"))
+                return rs?.getString("file").toString()
             }
         } catch (exception: Exception) {
             // Code to handle the exception
         } finally {
             // Code that will be executed regardless of whether an exception was thrown or not
         }
+
+        return "";
     }
 
 

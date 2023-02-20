@@ -77,7 +77,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     System.out.println("New Database!");
     dbObject = new db();
     dbObject.connect();
-    dbObject.createTable();
+//    dbObject.createTable();
 
 
     // Acquire the lock now.
