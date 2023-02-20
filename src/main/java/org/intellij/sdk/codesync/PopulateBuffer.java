@@ -117,25 +117,35 @@ public class PopulateBuffer {
         }
     }
 
-    /*
-    Schedule populate buffer daemon, a new daemon will be registered if there is none already running.
-    */
-    public static void startPopulateBufferDaemon(Project project) {
-        ProjectUtils.startDaemonProcess(() -> {
-            boolean canRunDaemon = ProjectUtils.canRunDaemon(
-                LockFileType.POPULATE_BUFFER_LOCK,
-                POPULATE_BUFFER_DAEMON_LOCK_KEY,
-                project.getName()
-            );
+    private static void populateBufferDaemon(final Timer timer, Project project) {
+        timer.schedule(new TimerTask() {
+            public void run() {
+                try {
+                    populateBuffer(project);
+                } catch (Exception e) {
+                    System.out.println("populateBuffer exited with error.");
+                }
 
-            if (canRunDaemon) {
-                // Start the daemon.
-                PopulateBuffer.populateBuffer();
+                populateBufferDaemon(timer, project);
             }
-        });
+        }, DELAY_BETWEEN_BUFFER_TASKS);
     }
 
-    public static void populateBuffer() {
+    public static void startPopulateBufferDaemon(Project project) {
+        Timer timer = new Timer(true);
+        populateBufferDaemon(timer, project);
+    }
+
+    public static void populateBuffer(Project project) {
+        boolean canRunDaemon = ProjectUtils.canRunDaemon(
+            LockFileType.POPULATE_BUFFER_LOCK,
+            POPULATE_BUFFER_DAEMON_LOCK_KEY,
+            project.getName()
+        );
+
+        if (!canRunDaemon) {
+            return;
+        }
         Map<String, String> reposToUpdate = detectBranchChange();
         populateBufferForMissedEvents(reposToUpdate);
     }
