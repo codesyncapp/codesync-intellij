@@ -7,7 +7,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.jetbrains.annotations.NotNull;
 
-import static org.intellij.sdk.codesync.Constants.CODESYNC_LOGOUT_URL;
+import static org.intellij.sdk.codesync.Constants.*;
 
 // TODO: remove this if we decide to never use this action.
 public class LogoutAction extends AnAction {
@@ -25,6 +25,8 @@ public class LogoutAction extends AnAction {
             server =  CodeSyncAuthServer.getInstance();
             URIBuilder uriBuilder = new URIBuilder(CODESYNC_LOGOUT_URL);
             uriBuilder.addParameter("redirect_uri", server.getServerURL());
+            uriBuilder.addParameter("source", DIFF_SOURCE);
+            uriBuilder.addParameter("v", PLUGIN_VERSION);
             BrowserUtil.browse(uriBuilder.toString());
         } catch (Exception exc) {
             exc.printStackTrace();
