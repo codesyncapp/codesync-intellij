@@ -122,11 +122,11 @@ public class DiffFile {
 
     }
 
-    public Boolean delete() {
+    public boolean delete() {
         return this.originalDiffFile.delete();
     }
 
-    public static Boolean delete(String diffFilePath) {
+    public static boolean delete(String diffFilePath) {
         if (diffFilePath != null){
             return new File(diffFilePath).delete();
         }
