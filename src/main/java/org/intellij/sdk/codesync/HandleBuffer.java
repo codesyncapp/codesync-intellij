@@ -201,7 +201,6 @@ public class HandleBuffer {
             }
 
             System.out.printf("Processing diff file: %s.\n", diffFile.originalDiffFile.getPath());
-            System.out.printf("Processing diff: %s%n", diffFile.diff);
 
             if (!configFile.repos.containsKey(diffFile.repoPath)) {
                 CodeSyncLogger.error(String.format("Repo `%s` is in buffer but not in configFile.yml.\n", diffFile.repoPath));
@@ -477,7 +476,7 @@ public class HandleBuffer {
         } catch (FileInfoError error) {
             error.printStackTrace();
         }
-        String shadowText = FileUtils.readLineByLineJava8(shadowPath);
+        String shadowText = FileUtils.readFileToString(shadowPath.toFile());
         diff = CommonUtils.computeDiff(shadowText, "");
         cleanUpDeletedDiff(configFile,  configRepo, configRepoBranch, diffFile, shadowPath);
 
