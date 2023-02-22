@@ -379,7 +379,6 @@ public class HandleBuffer {
                             return;
                         }
                         System.out.printf("Diff file '%s' successfully processed.\n", diffFilePath);
-
                         if (DiffFile.delete(diffFilePath)) {
                             System.out.printf("Diff file '%s' successfully deleted.\n", diffFilePath);
                         } else {
@@ -477,7 +476,7 @@ public class HandleBuffer {
         } catch (FileInfoError error) {
             error.printStackTrace();
         }
-        String shadowText = FileUtils.readLineByLineJava8(shadowPath);
+        String shadowText = FileUtils.readFileToString(shadowPath.toFile());
         diff = CommonUtils.computeDiff(shadowText, "");
         cleanUpDeletedDiff(configFile,  configRepo, configRepoBranch, diffFile, shadowPath);
 

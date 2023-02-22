@@ -7,6 +7,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
+import kt.org.intellij.sdk.codesync.tasks.TaskExecutor;
 import name.fraser.neil.plaintext.diff_match_patch;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
@@ -285,8 +286,7 @@ public class Utils {
             // Skip the events that contain the MAGIC_STRING as those are duplicate events.
             return;
         }
-
-        handleDocumentUpdates(file, repoPath, fileContents);
+        TaskExecutor.INSTANCE.execute(() -> handleDocumentUpdates(file, repoPath, fileContents));
     }
 
     public static void handleDocumentUpdates(VirtualFile file, String repoPath, String currentText) {
@@ -324,7 +324,7 @@ public class Utils {
             return;
         }
 
-        currentText = currentText.replace(MAGIC_STRING, "").trim();
+        currentText = currentText.replace(MAGIC_STRING, "");
 
         ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branch);
         Path shadowPath = shadowRepoManager.getFilePath(relativeFilePath);
@@ -333,13 +333,18 @@ public class Utils {
         }
 
         // Read shadow file
-        String shadowText = FileUtils.readLineByLineJava8(shadowPath);
+        String shadowText = FileUtils.readFileToString(shadowPath.toFile());
+        if (shadowText == null) {
+            CodeSyncLogger.error("Skipping the event, shadow file could not be read.");
+            return;
+        }
         // If shadow text is same as current content, no need to compute diffs
         if (shadowText.equals(currentText)) {
             // TODO: Remove after debugging.
             CodeSyncLogger.debug("Skipping the event, shadow text is same as current text.");
             return;
         }
+
         // Update shadow file
         try {
             FileWriter myWriter = new FileWriter(shadowPath.toFile());

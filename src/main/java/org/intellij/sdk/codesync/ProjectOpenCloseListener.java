@@ -18,6 +18,7 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.serviceContainer.AlreadyDisposedException;
+import kt.org.intellij.sdk.codesync.tasks.TaskExecutor;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.intellij.sdk.codesync.alerts.ActivityAlerts;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
@@ -89,6 +90,9 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
 
     // Start alerts daemon
     ActivityAlerts.startActivityAlertDaemon(project);
+
+    // Start the task executor.
+    TaskExecutor.INSTANCE.start();
 
     StartupManagerEx.getInstance(project).runWhenProjectIsInitialized(() -> {
       if (project.isDisposed()) return;

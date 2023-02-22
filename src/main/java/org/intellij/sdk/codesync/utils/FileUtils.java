@@ -29,27 +29,6 @@ import static org.intellij.sdk.codesync.Constants.IGNORABLE_DIRECTORIES;
 
 public class FileUtils
 {
-    public static String readLineByLineJava8(Path filePath) {
-        return readLineByLineJava8(filePath.toString());
-    }
-
-    //Read file content into the string with - Files.lines(Path path, Charset cs)
-    public static String readLineByLineJava8(String filePath)
-    {
-        StringBuilder contentBuilder = new StringBuilder();
-
-        try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.UTF_8))
-        {
-            stream.forEach(s -> contentBuilder.append(s).append("\n"));
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-
-        return contentBuilder.toString();
-    }
-
     public static String readFileToString(String filePath) {
         return readFileToString(new File(filePath));
     }
