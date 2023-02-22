@@ -72,7 +72,7 @@ public class LockFile extends CodeSyncYmlFile {
 
         public boolean isActive () {
             // return true if `this.expiry` is in the future.
-            return this.expiry.compareTo(Instant.now()) > 0 ;
+            return this.expiry.isAfter(Instant.now());
         }
 
         /*
