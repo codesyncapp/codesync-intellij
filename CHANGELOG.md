@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.19.2] - 2023-02-22
+- Fixed a bug that was causing suppression on dialogs.
+
 ## [3.19.1] - 2023-02-22
 - Fixed a bug that was causing failure in the detection of new line characters.
 - Removed changes handler logic from main thread into a separate thread

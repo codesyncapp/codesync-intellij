@@ -111,7 +111,8 @@ public class ActivityAlerts {
             ActivityAlertDialog activityAlertDialog = new ActivityAlertDialog(
                 WEBAPP_DASHBOARD_URL, isTeamActivity, project
             );
-            boolean hasUserChecked = activityAlertDialog.showAndGet();
+            activityAlertDialog.show();
+            boolean hasUserChecked = activityAlertDialog.isOK();
             Instant checkedFor;
             Instant now = CodeSyncDateUtils.getTodayInstant();
 
