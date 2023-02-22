@@ -15,6 +15,8 @@ import org.json.simple.JSONObject;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -136,21 +138,34 @@ public class ActivityAlerts {
             AlertsFile.updateTeamActivity(email, today, today, today);
         }
     }
+    public static void startActivityAlertDaemon(Project project) {
+        Timer timer = new Timer(true);
+        activityDaemon(timer, project);
+    }
+
+    private static void activityDaemon(final Timer timer, Project project) {
+        timer.schedule(new TimerTask() {
+            public void run() {
+                try {
+                    boolean canRunDaemon = ProjectUtils.canRunDaemon(
+                        LockFileType.PROJECT_LOCK,
+                        ACTIVITY_ALERT_DAEMON_LOCK_KEY,
+                        project.getName()
+                    );
+
+                    if (canRunDaemon) {
+                        showActivityAlert(project);
+                    }
+                } catch (Exception e) {
+                    System.out.printf("Error Running the activity alert daemon. Error: %s%n", e.getMessage());
+                }
+
+                activityDaemon(timer, project);
+            }
+        }, DELAY_BETWEEN_BUFFER_TASKS);
+    }
 
     /*
     Schedule activity alert daemon, daemon will make sure to run only once every 5 seconds.
     */
-    public static void startActivityAlertDaemon(Project project) {
-        ProjectUtils.startDaemonProcess(() -> {
-            boolean canRunDaemon = ProjectUtils.canRunDaemon(
-                LockFileType.PROJECT_LOCK,
-                ACTIVITY_ALERT_DAEMON_LOCK_KEY,
-                project.getName()
-            );
-
-            if (canRunDaemon) {
-                showActivityAlert(project);
-            }
-        });
-    }
 }

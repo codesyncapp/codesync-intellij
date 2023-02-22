@@ -6,6 +6,7 @@ import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.clients.CodeSyncWebSocketClient;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.files.*;
+import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
@@ -115,25 +116,39 @@ public class HandleBuffer {
         return new DiffFile[0];
     }
 
-    /*
-    Schedule buffer handler, a new daemon will be registered if there is none already running.
-    */
-    public static void scheduleBufferHandler(Project project) {
-        ProjectUtils.startDaemonProcess(() -> {
-            boolean canRunDaemon = ProjectUtils.canRunDaemon(
-                LockFileType.HANDLE_BUFFER_LOCK,
-                DIFFS_DAEMON_LOCK_KEY,
-                project.getName()
-            );
-            if (canRunDaemon) {
-                HandleBuffer.handleBuffer();
+    private static void bufferHandler(final Timer timer, Project project) {
+        timer.schedule(new TimerTask() {
+            public void run() {
+                try {
+                    HandleBuffer.handleBuffer(project);
+                } catch (Exception e) {
+                    System.out.println("handleBuffer exited with error:");
+                }
+
+                bufferHandler(timer, project);
             }
-        });
+        }, DELAY_BETWEEN_BUFFER_TASKS);
     }
 
-    public static void handleBuffer() {
+    public static void scheduleBufferHandler(Project project) {
+        Timer timer = new Timer(true);
+        bufferHandler(timer, project);
+    }
+
+    public static void handleBuffer(Project project) {
         ConfigFile configFile;
         HashSet<String> newFiles = new HashSet<>();
+
+        boolean canRunDaemon = ProjectUtils.canRunDaemon(
+            LockFileType.HANDLE_BUFFER_LOCK,
+            DIFFS_DAEMON_LOCK_KEY,
+            project.getName()
+        );
+
+        if (!canRunDaemon) {
+            return;
+        }
+
 
         try {
             configFile = new ConfigFile(CONFIG_PATH);
@@ -235,7 +250,11 @@ public class HandleBuffer {
                 boolean isSuccess = handleNewFile(client, accessToken, diffFile, configFile, configRepo, configRepoBranch);
                 if (isSuccess) {
                     System.out.printf("Diff file '%s' successfully processed.\n", diffFile.originalDiffFile.getPath());
-                    diffFile.delete();
+                    if (diffFile.delete()) {
+                        System.out.printf("Diff file '%s' successfully deleted.\n", diffFile.originalDiffFile.getPath());
+                    } else {
+                        System.out.printf("Diff file '%s' could not be deleted.\n", diffFile.originalDiffFile.getPath());
+                    }
 
                     // We also need to disconnect existing connections here,
                     // otherwise the server cache causes an error and file updates end in error until the IDE restarts.
@@ -360,7 +379,12 @@ public class HandleBuffer {
                             return;
                         }
                         System.out.printf("Diff file '%s' successfully processed.\n", diffFilePath);
-                        DiffFile.delete(diffFilePath);
+
+                        if (DiffFile.delete(diffFilePath)) {
+                            System.out.printf("Diff file '%s' successfully deleted.\n", diffFilePath);
+                        } else {
+                            System.out.printf("Diff file '%s' could not be deleted.\n", diffFilePath);
+                        }
                     });
                 } catch (WebSocketConnectionError error) {
                     diffFilesBeingProcessed.clear();
