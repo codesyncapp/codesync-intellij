@@ -45,6 +45,7 @@ import static org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup.createSystem
  */
 public class ProjectOpenCloseListener implements ProjectManagerListener {
   private static final Map<String, Pair<Project, DocumentListener>> changeHandlers = new HashMap<>();
+  private static Integer eventCount = 0;
 
   /**
    * Invoked on project open.
@@ -173,7 +174,8 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       @Override
       public void documentChanged(@NotNull DocumentEvent event) {
         if (!project.isDisposed()){
-          ChangesHandler(event, project);
+          eventCount += 1;
+          ChangesHandler(event, project, eventCount);
         }
       }
     };

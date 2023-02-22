@@ -263,7 +263,7 @@ public class Utils {
         }
     }
 
-    public static void ChangesHandler(DocumentEvent event, Project project) {
+    public static void ChangesHandler(DocumentEvent event, Project project, Integer eventCount) {
         Document document = event.getDocument();
         VirtualFile file = FileDocumentManager.getInstance().getFile(document);
         String repoPath;
@@ -286,10 +286,13 @@ public class Utils {
             // Skip the events that contain the MAGIC_STRING as those are duplicate events.
             return;
         }
-        TaskExecutor.INSTANCE.execute(() -> handleDocumentUpdates(file, repoPath, fileContents));
+        System.out.printf("fileContents: %s%n", fileContents);
+        System.out.printf("Delegating Event: %s%n", eventCount);
+        TaskExecutor.INSTANCE.execute(() -> handleDocumentUpdates(file, repoPath, fileContents, eventCount));
     }
 
-    public static void handleDocumentUpdates(VirtualFile file, String repoPath, String currentText) {
+    public static void handleDocumentUpdates(VirtualFile file, String repoPath, String currentText, Integer eventCount) {
+        System.out.printf("Processing Event: %s%n", eventCount);
         if (file == null) {
             CodeSyncLogger.error("Skipping the update event, file is null.");
             return;
@@ -345,6 +348,7 @@ public class Utils {
             return;
         }
 
+        System.out.printf("shadowText: %s%n", shadowText);
         // Update shadow file
         try {
             FileWriter myWriter = new FileWriter(shadowPath.toFile());
@@ -359,6 +363,7 @@ public class Utils {
 
         // Create text representation of patches objects
         String diffs = dmp.patch_toText(patches);
+        System.out.printf("Creating diff file with diffs: %s%n", diffs);
         DiffUtils.writeDiffToYml(repoPath, branch, relativeFilePath, diffs, false,
                 false, false, false);
     }
