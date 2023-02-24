@@ -16,11 +16,21 @@ import static org.intellij.sdk.codesync.Constants.*;
 
 import java.io.FileNotFoundException;
 import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Date;
 
 public class CodeSyncLogger {
-    private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+    public static void logConsoleMessage(String message) {
+        logConsoleMessage(message, LogMessageType.INFO);
+    }
+
+    /*
+    This will log given message to the console. It will not send the message to cloud watch.
+    This is useful only with local debugging or special cases when we can get log file from the client.
+     */
+    public static void logConsoleMessage(String message, String level) {
+        System.out.printf("[CODESYNC] [%s] [%s]: %s%n", new Date(), level, message);
+    }
+
     private static Integer retryCount = 0;
 
     private static void logMessageToCloudWatch(
@@ -83,7 +93,7 @@ public class CodeSyncLogger {
                 nextSequenceToken = error.expectedSequenceToken();
             }
 
-            System.out.println("Successfully put CloudWatch log event");
+            logConsoleMessage("Successfully put CloudWatch log event");
             // Update sequence token file for other plugins and daemon
             try {
                 SequenceTokenFile sequenceTokenFile = new SequenceTokenFile(SEQUENCE_TOKEN_FILE_PATH);
@@ -100,14 +110,14 @@ public class CodeSyncLogger {
         }
     }
 
-    public static void logEvent(String message, String type) {
+    private static void logEvent(String message, String type) {
         logEvent(message, null, type);
     }
 
-    public static void logEvent(String message, String userEmail, String type) {
-        LOGGER.log(Level.SEVERE, message);
+    private static void logEvent(String message, String userEmail, String type) {
         UserFile.User user = null;
         UserFile userFile = null;
+        logConsoleMessage(message, type);
 
         try {
             userFile = new UserFile(USER_FILE_PATH);

@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync.alerts;
 
 import com.intellij.openapi.project.Project;
+import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.Constants;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.files.AlertsFile;
@@ -81,17 +82,20 @@ public class ActivityAlerts {
         if (!canShowActivityAlert()) {
             return;
         }
+        CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Activity alert lock acquired.");
 
         String accessToken = UserFile.getAccessToken();
         String email = UserFile.getEmail();
 
         if (accessToken == null) {
             ActivityAlerts.remindLater(5);
+            CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Access token is null, waiting for 5 minutes.");
             return;
         }
 
         // If team activity is already shown in other IDE then no need to proceed.
         if (AlertsFile.isTeamActivityAlreadyShown(email)) {
+            CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Alert is already shown to the user by some other IDE.");
             skipToday();
             return;
         }
@@ -101,6 +105,7 @@ public class ActivityAlerts {
 
         if (jsonResponse == null) {
             ActivityAlerts.remindLater(5);
+            CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] null response returned by the server, waiting 5 minutes.");
             return;
         }
 
@@ -111,8 +116,13 @@ public class ActivityAlerts {
             ActivityAlertDialog activityAlertDialog = new ActivityAlertDialog(
                 WEBAPP_DASHBOARD_URL, isTeamActivity, project
             );
+            CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Showing activity alert dialog to the user.");
+
             activityAlertDialog.show();
             boolean hasUserChecked = activityAlertDialog.isOK();
+
+            CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Activity alert dialog shown to the user.");
+            CodeSyncLogger.debug(String.format("[CODESYNC_DAEMON] [ACTIVITY_ALERT]. User responded with '%s' status", hasUserChecked));
             Instant checkedFor;
             Instant now = CodeSyncDateUtils.getTodayInstant();
 
@@ -124,6 +134,7 @@ public class ActivityAlerts {
                 checkedFor = CodeSyncDateUtils.getTodayInstant();
             }
             if (email != null && hasUserChecked) {
+                CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Updating team activity yml file.");
                 AlertsFile.updateTeamActivity(
                     email,
                     CodeSyncDateUtils.getTodayInstant(),
@@ -132,15 +143,19 @@ public class ActivityAlerts {
                 );
             }
         } else {
+            CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] User does not have any activity so skipping today.");
+
             // No activity today, so skip today.
             ActivityAlerts.skipToday();
 
             Instant today = CodeSyncDateUtils.getTodayInstant();
             AlertsFile.updateTeamActivity(email, today, today, today);
         }
+        CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] exiting activity alert logic.");
     }
     public static void startActivityAlertDaemon(Project project) {
         Timer timer = new Timer(true);
+        CodeSyncLogger.debug("[CODESYNC_DAEMON]: Starting activity alert daemon.");
         activityDaemon(timer, project);
     }
 
@@ -155,6 +170,7 @@ public class ActivityAlerts {
                     );
 
                     if (canRunDaemon) {
+                        CodeSyncLogger.debug("[CODESYNC_DAEMON]: showActivityAlert called.");
                         showActivityAlert(project);
                     }
                 } catch (Exception e) {

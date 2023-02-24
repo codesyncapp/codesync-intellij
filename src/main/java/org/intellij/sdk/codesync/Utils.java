@@ -100,7 +100,7 @@ public class Utils {
         DiffUtils.writeDiffToYml(repoPath, branchName, relativeFilePath, "", true,
                 false, false, false
         );
-        System.out.println(String.format("FileCreated: %s", filePath));
+        CodeSyncLogger.logConsoleMessage(String.format("FileCreated: %s", filePath));
     }
 
     public static void FileDeleteHandler(VFileEvent event, String repoPath) {
@@ -132,7 +132,7 @@ public class Utils {
 
         DiffUtils.writeDiffToYml(repoPath, branchName, relativeFilePath, "", false,
                 true, false, false);
-        System.out.println(String.format("FileDeleted: %s", filePath));
+        CodeSyncLogger.logConsoleMessage(String.format("FileDeleted: %s", filePath));
     }
 
     public static void handleDirDelete(String repoPath, String branch, String relativeDirPath) {
@@ -214,7 +214,7 @@ public class Utils {
         shadowRepoManager.renameFile(oldRelativeFilePath, newRelativeFilePath);
 
         if (!isFile) {
-            System.out.println(String.format("RepoRenamed: %s, %s", oldAbsPath, newAbsPath));
+            CodeSyncLogger.logConsoleMessage(String.format("RepoRenamed: %s, %s", oldAbsPath, newAbsPath));
             // Create diff
             JSONObject diff = new JSONObject();
             diff.put("old_path", oldAbsPath);
@@ -222,7 +222,7 @@ public class Utils {
             handleDirRename(oldAbsPath, newAbsPath, repoPath, branch);
             return;
         }
-        System.out.println(String.format("FileRenamed: %s, %s", oldAbsPath, newAbsPath));
+        CodeSyncLogger.logConsoleMessage(String.format("FileRenamed: %s, %s", oldAbsPath, newAbsPath));
         // Create diff
         JSONObject diff = new JSONObject();
         diff.put("old_rel_path", oldRelativeFilePath);
@@ -269,7 +269,7 @@ public class Utils {
         String repoPath;
 
         if (file == null) {
-            System.out.println("Ignoring event because event file is null.");
+            CodeSyncLogger.logConsoleMessage("Ignoring event because event file is null.");
             return;
         }
 
@@ -277,7 +277,7 @@ public class Utils {
             repoPath = ProjectUtils.getRepoPath(file, project);
         } catch (FileNotInModuleError error) {
             // Ignore events not belonging to current project.
-            System.out.println("Ignoring event because event does not belong to any of the module files.");
+            CodeSyncLogger.logConsoleMessage("Ignoring event because event does not belong to any of the module files.");
             return;
         }
 
@@ -294,8 +294,6 @@ public class Utils {
             CodeSyncLogger.error("Skipping the update event, file is null.");
             return;
         }
-        float time = System.currentTimeMillis();
-        System.out.println(String.format("Event: %s", time));
         String filePath = Paths.get(file.getPath()).toString();
 
         if (repoPath == null) {
@@ -312,7 +310,7 @@ public class Utils {
         if (shouldSkipEvent(repoPath) || FileUtils.shouldIgnoreFile(relativeFilePath, repoPath)) {
             // TODO: Remove after debugging.
             CodeSyncLogger.debug(
-                    String.format("Skipping the event, file '%s' in repo '%s' is ignored.", relativeFilePath, repoPath)
+                String.format("Skipping the event, file '%s' in repo '%s' is ignored.", relativeFilePath, repoPath)
             );
             return;
         }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URI;
 
 import jakarta.websocket.*;
+import org.intellij.sdk.codesync.CodeSyncLogger;
 
 
 @ClientEndpoint
@@ -38,13 +39,13 @@ public class WebSocketClientEndpoint {
 
     @OnOpen
     public void onOpen(Session userSession) {
-        System.out.println("opening websocket");
+        CodeSyncLogger.logConsoleMessage("opening websocket");
         this.userSession = userSession;
     }
 
     @OnClose
     public void onClose(Session userSession, CloseReason reason) {
-        System.out.println("closing websocket");
+        CodeSyncLogger.logConsoleMessage("closing websocket");
         this.userSession = null;
     }
 
