@@ -123,7 +123,7 @@ public class PopulateBuffer {
                 try {
                     populateBuffer(project);
                 } catch (Exception e) {
-                    System.out.println("populateBuffer exited with error.");
+                    CodeSyncLogger.error(String.format("populateBuffer exited with error: %s", e.getMessage()));
                 }
 
                 populateBufferDaemon(timer, project);
@@ -133,6 +133,7 @@ public class PopulateBuffer {
 
     public static void startPopulateBufferDaemon(Project project) {
         Timer timer = new Timer(true);
+        CodeSyncLogger.debug("[CODESYNC_DAEMON]: Starting  populate buffer daemon.");
         populateBufferDaemon(timer, project);
     }
 
@@ -146,6 +147,7 @@ public class PopulateBuffer {
         if (!canRunDaemon) {
             return;
         }
+        CodeSyncLogger.debug("[CODESYNC_DAEMON]: populateBuffer Called.");
         Map<String, String> reposToUpdate = detectBranchChange();
         populateBufferForMissedEvents(reposToUpdate);
     }

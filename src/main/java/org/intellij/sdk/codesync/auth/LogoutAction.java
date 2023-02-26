@@ -14,7 +14,7 @@ public class LogoutAction extends AnAction {
     @Override
     public void update(AnActionEvent e) {
         // Using the event, evaluate the context, and enable or disable the action.
-        System.out.println("Logout Action:update called.");
+        CodeSyncLogger.logConsoleMessage("Logout Action:update called.");
     }
 
     @Override

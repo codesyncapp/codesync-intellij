@@ -82,8 +82,7 @@ abstract public class CodeSyncYmlFile {
                 return true;
             }
         } catch (IOException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
+            CodeSyncLogger.error(String.format("Error while creating an empty yml file. Error: %s", e.getMessage()));
         }
 
         return false;

@@ -175,7 +175,7 @@ public class CodeSyncClient {
                 this.uploadToS3(originalsFile, preSignedURLData);
             }
         } catch (ClassCastException error) {
-            System.out.println("Could not upload the file.");
+            CodeSyncLogger.logConsoleMessage("Could not upload the file.");
             // this would probably mean that `url` is empty, and we can skip aws upload.
         }
 

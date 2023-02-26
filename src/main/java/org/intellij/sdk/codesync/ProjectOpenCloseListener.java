@@ -71,7 +71,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     // causing the callbacks to be registered many times, this lock would prevent the
     // listeners from being registered multiple times.
     if (codeSyncProjectLock.isLockAcquired(project.getName())) {
-      System.out.println("Skipping the callback registration.");
+      CodeSyncLogger.logConsoleMessage("Skipping the callback registration.");
       return;
     }
 
@@ -123,7 +123,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
 
           if (virtualFile == null) {
             // Ignore events not belonging to current project.
-            System.out.println("Ignoring event because event does not know which file was affected.");
+            CodeSyncLogger.logConsoleMessage("Ignoring event because event does not know which file was affected.");
             return;
           }
 
@@ -131,7 +131,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
             repoPath = ProjectUtils.getRepoPath(virtualFile, project);
           } catch (FileNotInModuleError error) {
             // Ignore events not belonging to current project.
-            System.out.println("Ignoring event because event does not belong to any of the module files.");
+            CodeSyncLogger.logConsoleMessage("Ignoring event because event does not belong to any of the module files.");
             return;
           }
 
@@ -140,8 +140,8 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
 
           if (!projectFileIndex.isInContent(virtualFile)) {
             // Ignore events not belonging to current project.
-            System.out.println("Ignoring event from other project. ");
-            System.out.println(eventString);
+            CodeSyncLogger.logConsoleMessage("Ignoring event from other project. ");
+            CodeSyncLogger.logConsoleMessage(eventString);
             return;
           }
 
@@ -164,7 +164,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
             }
             return;
           }
-          System.out.println(eventString);
         }
       }
     });
