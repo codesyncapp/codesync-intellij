@@ -547,6 +547,11 @@ public class CodeSyncSetup {
                     (String) userObject.get("iam_secret_key")
             );
         } catch (ClassCastException err) {
+            if (isSyncingBranch) {
+                configRepo.deleteRepoBranch(branchName);
+            } else {
+                configFile.deleteRepo(repoPath);
+            }
             CodeSyncLogger.critical(String.format(
                     "Error parsing the response of /init endpoint. Error: %s", err.getMessage()
             ));
@@ -566,6 +571,12 @@ public class CodeSyncSetup {
                     email
                 );
 
+                if (isSyncingBranch) {
+                    configRepo.deleteRepoBranch(branchName);
+                } else {
+                    configFile.deleteRepo(repoPath);
+                }
+
                 return false;
             }
 
@@ -578,6 +589,12 @@ public class CodeSyncSetup {
                     String.format("Error parsing the response of /init endpoint. Error: %s", err.getMessage()),
                     email
             );
+
+            if (isSyncingBranch) {
+                configRepo.deleteRepoBranch(branchName);
+            } else {
+                configFile.deleteRepo(repoPath);
+            }
 
             return false;
         }
