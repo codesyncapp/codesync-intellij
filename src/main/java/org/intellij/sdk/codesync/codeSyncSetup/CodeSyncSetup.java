@@ -547,10 +547,16 @@ public class CodeSyncSetup {
                     (String) userObject.get("iam_secret_key")
             );
         } catch (ClassCastException err) {
-            if (isSyncingBranch) {
-                configRepo.deleteRepoBranch(branchName);
-            } else {
-                configFile.deleteRepo(repoPath);
+            try {
+                if (isSyncingBranch) {
+                    configFile.publishBranchRemoval(configRepo, branchName);
+                } else {
+                    configFile.publishRepoRemoval(repoPath);
+                }
+            } catch (InvalidConfigFileError error) {
+                CodeSyncLogger.error(String.format(
+                    "Error removing repo from config file after init error. Error: %s", error.getMessage()
+                ));
             }
             CodeSyncLogger.critical(String.format(
                     "Error parsing the response of /init endpoint. Error: %s", err.getMessage()
@@ -571,10 +577,16 @@ public class CodeSyncSetup {
                     email
                 );
 
-                if (isSyncingBranch) {
-                    configRepo.deleteRepoBranch(branchName);
-                } else {
-                    configFile.deleteRepo(repoPath);
+                try {
+                    if (isSyncingBranch) {
+                        configFile.publishBranchRemoval(configRepo, branchName);
+                    } else {
+                        configFile.publishRepoRemoval(repoPath);
+                    }
+                } catch (InvalidConfigFileError error) {
+                    CodeSyncLogger.error(String.format(
+                        "Error removing repo from config file after init error. Error: %s", error.getMessage()
+                    ));
                 }
 
                 return false;
@@ -590,10 +602,16 @@ public class CodeSyncSetup {
                     email
             );
 
-            if (isSyncingBranch) {
-                configRepo.deleteRepoBranch(branchName);
-            } else {
-                configFile.deleteRepo(repoPath);
+            try {
+                if (isSyncingBranch) {
+                    configFile.publishBranchRemoval(configRepo, branchName);
+                } else {
+                    configFile.publishRepoRemoval(repoPath);
+                }
+            } catch (InvalidConfigFileError error) {
+                CodeSyncLogger.error(String.format(
+                    "Error removing repo from config file after init error. Error: %s", error.getMessage()
+                ));
             }
 
             return false;
