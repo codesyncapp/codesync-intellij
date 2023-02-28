@@ -62,9 +62,9 @@ public class HandleBuffer {
             return true;
         }
 
-        if (configFile.isRepoDisconnected(diffFile.repoPath)) {
+        if (!configFile.isRepoActive(diffFile.repoPath)) {
             CodeSyncLogger.info(String.format(
-                "Repo %s is disconnected.", diffFile.repoPath
+                "Repo %s is not active.", diffFile.repoPath
             ));
             diffFile.delete();
             return true;
