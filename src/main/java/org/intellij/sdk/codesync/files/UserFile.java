@@ -1,5 +1,7 @@
 package org.intellij.sdk.codesync.files;
 
+import org.intellij.sdk.codesync.DataClass.UserTable;
+import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.utils.CommonUtils;
@@ -26,6 +28,7 @@ public class UserFile extends CodeSyncYmlFile {
             this.secretKey = (String) userCredentials.getOrDefault("secret_key", null);
             this.accessToken = (String) userCredentials.getOrDefault("access_token", null);
             this.isActive = CommonUtils.getBoolValue(userCredentials, "is_active", false);
+            UserTable.update(this);
         }
 
         /*
@@ -35,6 +38,7 @@ public class UserFile extends CodeSyncYmlFile {
             this.userEmail = userEmail;
             this.accessToken = accessToken;
             this.isActive = true;
+            UserTable.update(this);
         }
 
         /*
@@ -44,6 +48,7 @@ public class UserFile extends CodeSyncYmlFile {
             this.userEmail = userEmail;
             this.accessKey = iamAccessKey;
             this.secretKey = iamSecretKey;
+            //UserTable.update(this);
         }
 
         public String getUserEmail () {
@@ -61,6 +66,9 @@ public class UserFile extends CodeSyncYmlFile {
         public void makeActive () { this.isActive = true; }
         public void makeInActive () { this.isActive = false; }
 
+        public Boolean getActive() {
+            return isActive;
+        }
 
         public Map<String, Object> getYMLAsHashMap() {
             Map<String, Object> user = new HashMap<>();
@@ -78,9 +86,10 @@ public class UserFile extends CodeSyncYmlFile {
         if (!userFile.isFile()) {
             throw new FileNotFoundException(String.format("User file \"%s\" does not exist.", filePath));
         }
-        this.userFile = userFile;
-        this.contentsMap = this.readYml();
-        this.loadYmlContent();
+        this.users = UserTable.getUsers();
+//        this.userFile = userFile;
+//        this.contentsMap = this.readYml();
+//        this.loadYmlContent();
     }
 
     /*
@@ -97,10 +106,10 @@ public class UserFile extends CodeSyncYmlFile {
         } else if(!userFile.isFile()) {
             throw new FileNotFoundException(String.format("User file \"%s\" does not exist.", filePath));
         }
-
-        this.userFile = userFile;
-        this.contentsMap = this.readYml();
-        this.loadYmlContent();
+        this.users = UserTable.getUsers();
+//        this.userFile = userFile;
+//        this.contentsMap = this.readYml();
+//        this.loadYmlContent();
     }
 
     /*
@@ -171,7 +180,7 @@ public class UserFile extends CodeSyncYmlFile {
                     Map<String, Object> userCredentials = (Map<String, Object>) userEntry.getValue();
                     this.users.put(userEntry.getKey(), new User(userEntry.getKey(), userCredentials));
                 }
-
+                UserTable.getUsers();
             }
         } catch (ClassCastException e){
             throw new InvalidYmlFileError(
@@ -261,5 +270,7 @@ public class UserFile extends CodeSyncYmlFile {
         }
         this.users.put(userEmail, user);
     }
+
+    public void writeYml() throws FileNotFoundException, InvalidYmlFileError, FileLockedError {}
 
 }

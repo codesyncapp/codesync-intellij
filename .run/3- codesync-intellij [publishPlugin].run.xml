@@ -1,9 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run [runIde]" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="3- codesync-intellij [publishPlugin]" type="GradleRunConfiguration" factoryName="Gradle">
     <ExternalSystemSettings>
       <option name="env">
         <map>
-          <entry key="env" value="prod" />
+          <entry key="ORG_GRADLE_PROJECT_intellijPublishToken" value="" />
         </map>
       </option>
       <option name="executionName" />
@@ -15,7 +15,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value="runIde" />
+          <option value="publishPlugin" />
         </list>
       </option>
       <option name="vmOptions" />
