@@ -5,7 +5,6 @@ import org.intellij.sdk.codesync.files.UserFile;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 public class UserTable {
 
@@ -15,62 +14,74 @@ public class UserTable {
     static String access_key;
     static int is_active;
 
-    public static void update(UserFile.User user){
-        updateValues(user);
-        String query = "SELECT * FROM user WHERE email = '" + email + "'";
-        ArrayList<HashMap<String, String>> users = getRecords(query);
-        if(users != null && users.size() > 0){
-            query = "UPDATE user SET " +
-                    "access_token = '" + access_token +
-                    "', secret_key = '" + secret_key +
-                    "', access_key = '" + access_key +
-                    "', is_active = " + is_active +
-                    " WHERE email = '"+ email +"'";
-        }else{
-            query = "INSERT INTO user VALUES('"
-                    + email + "', '"
-                    + access_token + "', '"
-                    + secret_key + "', '"
-                    + access_key +"', '"
-                    + is_active + "')";
-        }
+    public static void insertNewUser(UserFile.User user){
+        setValues(user);
+        String query = String.format("INSERT INTO user VALUES(%s, %s, %s, %s, %d)", email, access_token, secret_key, access_key, is_active);
         Database.executeUpdate(query);
+    }
+
+    public static void updateUser(UserFile.User user){
+        setValues(user);
+        String query = String.format("UPDATE user SET access_token = %s, secret_key = %s, access_key = %s, is_active = %d WHERE email = %s", access_token, secret_key, access_key, is_active, email);
+        Database.executeUpdate(query);
+    }
+
+    public static void updateAllUsersInActive(){
+        String query = "UPDATE user SET is_active = 0";
+        Database.executeUpdate(query);
+    }
+
+    public static UserFile.User getActiveUser(){
+        String query = "SELECT * FROM user WHERE is_active = 1";
+        ArrayList<HashMap<String, Object>> usersArray = Database.runQuery(query);
+
+        if(usersArray.size() > 0){
+            UserFile.User user = new UserFile.User((String) usersArray.get(0).get("EMAIL"));
+            user.setAccessKey((String) usersArray.get(0).getOrDefault("ACCESS_KEY", null));
+            user.setAccessToken((String) usersArray.get(0).getOrDefault("ACCESS_TOKEN", null));
+            user.setSecretKey((String) usersArray.get(0).getOrDefault("SECRET_KEY", null));
+            if((String) usersArray.get(0).getOrDefault("IS_ACTIVE", null) == "1"){
+                user.makeActive();
+            }else {
+                user.makeInActive();
+            }
+            return user;
+        }
+
+        return null;
 
     }
 
-    static void updateValues(UserFile.User user){
+    public static UserFile.User getUserByEmail(String email){
+        String query = String.format("SELECT * FROM user WHERE email = '%s'", email);
+        ArrayList<HashMap<String, Object>> usersArray = Database.runQuery(query);
 
-        email = user.getUserEmail() != null? user.getUserEmail() : "";
-        access_token = user.getAccessToken() != null? user.getAccessToken() : "";
-        secret_key = user.getSecretKey() != null? user.getSecretKey() : "";
-        access_key = user.getAccessKey() != null? user.getAccessKey() : "";
+        if(usersArray.size() > 0){
+            UserFile.User user = new UserFile.User((String) usersArray.get(0).get("EMAIL"));
+            user.setAccessKey((String) usersArray.get(0).getOrDefault("ACCESS_KEY", null));
+            user.setAccessToken((String) usersArray.get(0).getOrDefault("ACCESS_TOKEN", null));
+            user.setSecretKey((String) usersArray.get(0).getOrDefault("SECRET_KEY", null));
+            if((String) usersArray.get(0).getOrDefault("IS_ACTIVE", null) == "1"){
+                user.makeActive();
+            }else {
+                user.makeInActive();
+            }
+            return user;
+        }
+
+        return null;
+    }
+
+    static void setValues(UserFile.User user){
+        email = user.getUserEmail() != null? String.format("'%s'", user.getUserEmail()) : "NULL";
+        access_token = user.getAccessToken() != null? String.format("'%s'", user.getAccessToken()) : "NULL";
+        secret_key = user.getSecretKey() != null? String.format("'%s'", user.getSecretKey()) : "NULL";
+        access_key = user.getAccessKey() != null? String.format("'%s'", user.getAccessKey()) : "NULL";
         if(user.getActive() != null){
             is_active = user.getActive()? 1 : 0;
         }else{
             is_active = 0;
         }
-    }
-
-    public static Map<String, UserFile.User> getUsers(){
-        String query = "SELECT * FROM user";
-        Map<String, UserFile.User> users = new HashMap<>();
-        ArrayList<HashMap<String, Object>> usersArray = getRecords(query);
-        String userEmail;
-        Map<String, Object> userCredentials;
-        for(int i = 0; i < usersArray.size(); i++){
-            userCredentials = new HashMap<>();
-            userEmail = (String) usersArray.get(i).get("EMAIL");
-            userCredentials.put("access_key", usersArray.get(i).getOrDefault("ACCESS_KEY", null));
-            userCredentials.put("access_token", usersArray.get(i).getOrDefault("ACCESS_TOKEN", null));
-            userCredentials.put("secret_key", usersArray.get(i).getOrDefault("SECRET_KEY", null));
-            userCredentials.put("is_active", usersArray.get(i).getOrDefault("IS_ACTIVE", null).equals("1")? true : false);
-            UserFile.User user = new UserFile.User(userEmail, userCredentials);
-            users.put(userEmail, user);
-        }
-        return users;
-    }
-    static ArrayList getRecords(String query){
-        return Database.runQuery(query);
     }
 
 }

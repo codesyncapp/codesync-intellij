@@ -1,34 +1,22 @@
 package org.intellij.sdk.codesync.files;
 
 import org.intellij.sdk.codesync.DataClass.UserTable;
-import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
-import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.intellij.sdk.codesync.Constants.USER_FILE_PATH;
+public class UserFile{
 
-
-public class UserFile extends CodeSyncYmlFile {
-    File userFile;
-    public Map<String, Object> contentsMap;
-    public Map<String, User> users = new HashMap<>();
 
     public static class User {
         String userEmail, accessKey = null, secretKey = null, accessToken = null;
         Boolean isActive = false;
 
-        public User(String userEmail, Map<String, Object> userCredentials) {
+        public User(String userEmail) {
             this.userEmail = userEmail;
-            this.accessKey = (String) userCredentials.getOrDefault("access_key", null);
-            this.secretKey = (String) userCredentials.getOrDefault("secret_key", null);
-            this.accessToken = (String) userCredentials.getOrDefault("access_token", null);
-            this.isActive = CommonUtils.getBoolValue(userCredentials, "is_active", false);
-            UserTable.update(this);
         }
 
         /*
@@ -38,7 +26,6 @@ public class UserFile extends CodeSyncYmlFile {
             this.userEmail = userEmail;
             this.accessToken = accessToken;
             this.isActive = true;
-            UserTable.update(this);
         }
 
         /*
@@ -48,7 +35,6 @@ public class UserFile extends CodeSyncYmlFile {
             this.userEmail = userEmail;
             this.accessKey = iamAccessKey;
             this.secretKey = iamSecretKey;
-            //UserTable.update(this);
         }
 
         public String getUserEmail () {
@@ -80,36 +66,17 @@ public class UserFile extends CodeSyncYmlFile {
         }
     }
 
-    public UserFile (String filePath) throws FileNotFoundException, InvalidYmlFileError {
-        File userFile = new File(filePath);
-
-        if (!userFile.isFile()) {
-            throw new FileNotFoundException(String.format("User file \"%s\" does not exist.", filePath));
-        }
-        this.users = UserTable.getUsers();
-//        this.userFile = userFile;
-//        this.contentsMap = this.readYml();
-//        this.loadYmlContent();
+    public UserFile (String filePath) throws FileNotFoundException, InvalidYmlFileError{
+        //UserFile constructor 1
+        System.out.println("UserFile constructor 1: " + filePath);
     }
 
     /*
     Instantiate a user file, create the file if it does not exist.
      */
-    public UserFile (String filePath, boolean shouldCreateIfAbsent) throws FileNotFoundException, FileNotCreatedError, InvalidYmlFileError {
-        File userFile = new File(filePath);
-
-        if (!userFile.isFile() && shouldCreateIfAbsent) {
-            boolean isFileReady = createFile(filePath);
-            if (!isFileReady) {
-                throw new FileNotCreatedError(String.format("User file \"%s\" could not be created.", filePath));
-            }
-        } else if(!userFile.isFile()) {
-            throw new FileNotFoundException(String.format("User file \"%s\" does not exist.", filePath));
-        }
-        this.users = UserTable.getUsers();
-//        this.userFile = userFile;
-//        this.contentsMap = this.readYml();
-//        this.loadYmlContent();
+    public UserFile (String filePath, boolean shouldCreateIfAbsent)throws FileNotFoundException, FileNotCreatedError, InvalidYmlFileError{
+        //UserFile constructor 2
+        System.out.println("UserFile constructor 2: " + filePath + " " + shouldCreateIfAbsent);
     }
 
     /*
@@ -119,12 +86,17 @@ public class UserFile extends CodeSyncYmlFile {
     access token will be present.
      */
     public static String getAccessToken(String email) {
+
         UserFile userFile;
-        try {
-            userFile = new UserFile(USER_FILE_PATH);
-        } catch (FileNotFoundException | InvalidYmlFileError e) {
-            return null;
+
+        try{
+            userFile = new UserFile("FakePath");
+        } catch (InvalidYmlFileError e) {
+            throw new RuntimeException(e);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
         }
+
         UserFile.User user = email == null ? userFile.getActiveUser(): userFile.getActiveUser(email);
         if (user != null) {
             return user.getAccessToken();
@@ -138,10 +110,13 @@ public class UserFile extends CodeSyncYmlFile {
      */
     public static String getEmail() {
         UserFile userFile;
-        try {
-            userFile = new UserFile(USER_FILE_PATH);
-        } catch (FileNotFoundException | InvalidYmlFileError e) {
-            return null;
+
+        try{
+            userFile = new UserFile("FakePath");
+        } catch (InvalidYmlFileError e) {
+            throw new RuntimeException(e);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
         }
 
         UserFile.User user =  userFile.getActiveUser();
@@ -158,42 +133,11 @@ public class UserFile extends CodeSyncYmlFile {
         return getAccessToken(null);
     }
 
-    public File getYmlFile()  {
-        return this.userFile;
-    }
-
-    public Map<String, Object> getYMLAsHashMap() {
-        Map<String, Object> contents = new HashMap<>();
-        for (User user: this.users.values()) {
-            contents.put(user.getUserEmail(), user.getYMLAsHashMap());
-        }
-        return contents;
-    }
-
-    private void loadYmlContent () throws InvalidYmlFileError {
-        if (this.contentsMap == null) {
-            return;
-        }
-        try {
-            for (Map.Entry<String, Object> userEntry : this.contentsMap.entrySet()) {
-                if (userEntry.getValue() != null) {
-                    Map<String, Object> userCredentials = (Map<String, Object>) userEntry.getValue();
-                    this.users.put(userEntry.getKey(), new User(userEntry.getKey(), userCredentials));
-                }
-                UserTable.getUsers();
-            }
-        } catch (ClassCastException e){
-            throw new InvalidYmlFileError(
-                String.format("User yml file \"%s\" is not valid. Error: %s", this.getYmlFile().getPath(), e.getMessage())
-            );
-        }
-    }
-
     /*
     Get the user matching the given email.
      */
     public User getUser(String userEmail) {
-        return this.users.getOrDefault(userEmail, null);
+        return UserTable.getUserByEmail(userEmail);
     }
 
     /*
@@ -212,19 +156,17 @@ public class UserFile extends CodeSyncYmlFile {
      */
     public User getActiveUser(String email) {
         User user = getUser(email);
-        return user.isActive ? user: null;
+        if(user != null){
+            return user.isActive ? user: null;
+        }
+        return null;
     }
 
     /*
     Get the active user from the map.
      */
     public User getActiveUser() {
-        for (User user: this.users.values()) {
-            if (user.isActive) {
-                return user;
-            }
-        }
-        return null;
+        return UserTable.getActiveUser();
     }
 
     /*
@@ -237,24 +179,26 @@ public class UserFile extends CodeSyncYmlFile {
         User user = getUser(userEmail);
         if (user == null) {
             user = new User(userEmail, accessToken);
+            // First mark all users in-active.
+            this.makeAllUsersInActive();
+            // Now mark the new user active.
+            user.makeActive();
+            UserTable.insertNewUser(user);
         } else {
             user.setAccessToken(accessToken);
+            // First mark all users in-active.
+            this.makeAllUsersInActive();
+            // Now mark the new user active.
+            user.makeActive();
+            UserTable.updateUser(user);
         }
-        // First mark all users in-active.
-        this.makeAllUsersInActive();
-
-        // Now mark the new user active.
-        user.makeActive();
-        this.users.put(userEmail, user);
     }
 
     /*
     Make all user's in-active by setting `is_active` to false.
      */
     public void makeAllUsersInActive() {
-        for (User user: this.users.values()) {
-            user.makeInActive();
-        }
+        UserTable.updateAllUsersInActive();
     }
 
     /*
@@ -264,13 +208,12 @@ public class UserFile extends CodeSyncYmlFile {
         User user = getUser(userEmail);
         if (user == null) {
             user = new User(userEmail, iamAccessKey, iamSecretKey);
+            UserTable.insertNewUser(user);
         } else {
             user.setAccessKey(iamAccessKey);
             user.setSecretKey(iamSecretKey);
+            UserTable.updateUser(user);
         }
-        this.users.put(userEmail, user);
     }
-
-    public void writeYml() throws FileNotFoundException, InvalidYmlFileError, FileLockedError {}
 
 }

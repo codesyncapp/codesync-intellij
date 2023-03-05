@@ -675,13 +675,6 @@ public class CodeSyncSetup {
         }
 
         userFile.setActiveUser(email, iamAccessKey, iamSecretKey);
-        try {
-            userFile.writeYml();
-        } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError error) {
-            CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: Could not write to user auth file. Error %s", error.getMessage())
-            );
-        }
     }
 
     public static void saveFileIds(

@@ -81,23 +81,10 @@ public class Authenticator extends HttpServlet {
         try {
             userFile = new UserFile(USER_FILE_PATH);
         } catch (FileNotFoundException e) {
-            if(UserFile.createFile(USER_FILE_PATH)){
-                try {
-                    userFile = new UserFile(USER_FILE_PATH);
-                } catch (FileNotFoundException | InvalidYmlFileError error) {
-                    CodeSyncLogger.error(
-                        String.format("[INTELLIJ_AUTH_ERROR]: Error opening auth file. Error: %s", error.getMessage())
-                    );
-                    // Could not open user file.
-                    return false;
-                }
-            } else {
-                // Could not create user file.
-                return false;
-            }
             CodeSyncLogger.error(
                 String.format("[INTELLIJ_AUTH_ERROR]: auth file not found. Error: %s", e.getMessage())
             );
+            return false;
         } catch (InvalidYmlFileError error) {
             error.printStackTrace();
             CodeSyncLogger.critical(
@@ -107,18 +94,10 @@ public class Authenticator extends HttpServlet {
             return false;
         }
         String userEmail = claims.get("email").asString();
-        userFile.setActiveUser(userEmail, accessToken);
 
         // Clear any cache that depends on user authentication status.
         new ClearReposToIgnoreCache().execute();
-        try {
-            userFile.writeYml();
-        } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
-            CodeSyncLogger.error(
-                String.format("[INTELLIJ_AUTH_ERROR]: Could not write to auth file. Error: %s", e.getMessage())
-            );
-            return false;
-        }
+        userFile.setActiveUser(userEmail, accessToken);
 
         CodeSyncLogger.debug("[INTELLIJ_AUTH]: User completed login flow.");
         return true;

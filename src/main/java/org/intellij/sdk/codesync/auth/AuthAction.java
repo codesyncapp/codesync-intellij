@@ -82,21 +82,12 @@ public class AuthAction extends AnAction {
                     // Could not read user file.
                     return;
                 }
-                userFile.makeAllUsersInActive();
 
                 // Clear any cache that depends on user authentication status.
                 new ClearReposToIgnoreCache().execute();
-                try {
-                    userFile.writeYml();
-                } catch (FileNotFoundException | InvalidYmlFileError error) {
-                    NotificationManager.notifyError(
-                            "An error occurred trying to logout the user, please tyr again later.", project
-                    );
-                    CodeSyncLogger.error(
-                            String.format("[INTELLIJ_AUTH_ERROR]: Could write to auth file. Error: %s", error.getMessage())
-                    );
-                    return;
-                }
+
+                userFile.makeAllUsersInActive();
+
                 // Reload the state now.
                 StateUtils.reloadState(project);
 
