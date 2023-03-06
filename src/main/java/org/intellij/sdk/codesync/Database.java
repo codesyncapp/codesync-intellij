@@ -15,8 +15,24 @@ public class Database {
             Class.forName("org.sqlite.JDBC");
             String connectionString = "jdbc:sqlite:" + CODESYNC_ROOT + "\\localstorage.db";
             connection = DriverManager.getConnection(connectionString);
+            createTable();
         }catch (Exception exception) {
             System.out.println("Database connection error: " + exception.getMessage());
+        }
+    }
+
+    public static void createTable(){
+        try {
+            Statement statement = connection.createStatement();
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS user " +
+                            "(EMAIL TEXT PRIMARY KEY, " +
+                            "ACCESS_TOKEN TEXT, " +
+                            "SECRET_KEY TEXT, " +
+                            "ACCESS_KEY TEXT, " +
+                            "IS_ACTIVE INT)");
+        } catch (Exception exception) {
+            System.out.println("Table creation error!");
         }
     }
 
