@@ -5,13 +5,12 @@ import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
 
 public class UserFile{
 
 
     public static class User {
+        //New chagnes
         String userEmail, accessKey = null, secretKey = null, accessToken = null;
         Boolean isActive = false;
 
@@ -54,15 +53,6 @@ public class UserFile{
 
         public Boolean getActive() {
             return isActive;
-        }
-
-        public Map<String, Object> getYMLAsHashMap() {
-            Map<String, Object> user = new HashMap<>();
-            user.put("access_key", this.accessKey);
-            user.put("secret_key", this.secretKey);
-            user.put("access_token", this.accessToken);
-            user.put("is_active", this.isActive);
-            return user;
         }
     }
 
