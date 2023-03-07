@@ -7,7 +7,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static org.intellij.sdk.codesync.Constants.CODESYNC_ROOT;
+import static org.intellij.sdk.codesync.Constants.USER_FILE_PATH;
 
 public class Database {
 
@@ -16,19 +16,17 @@ public class Database {
     public static void initiate() {
 
         try{
-
-            String filePath = CODESYNC_ROOT + "\\localstorage.db";
-            File file = new File(filePath);
+            File file = new File(USER_FILE_PATH);
             if(!file.exists()){
                 Class.forName("org.sqlite.JDBC");
-                String connectionString = "jdbc:sqlite:" + filePath;
+                String connectionString = "jdbc:sqlite:" + USER_FILE_PATH;
                 connection = DriverManager.getConnection(connectionString);
                 createTable();
                 TransformFileToDB transformFileToDB = new TransformFileToDB();
                 transformFileToDB.readUsersInFile();
             }else {
                 Class.forName("org.sqlite.JDBC");
-                String connectionString = "jdbc:sqlite:" + filePath;
+                String connectionString = "jdbc:sqlite:" + USER_FILE_PATH;
                 connection = DriverManager.getConnection(connectionString);
                 createTable();
             }
