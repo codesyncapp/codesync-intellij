@@ -34,8 +34,8 @@ public final class Constants {
     public static final String CONFIG_PATH = Paths.get(CODESYNC_ROOT, "config.yml").toString();
 
     //TODO: User file will be removed
-    public static final String USER_FILE_PATH = Paths.get(CODESYNC_ROOT, "codesyncdb.db").toString();
-    public static final String DATABASE_FILE_LOCATION = Paths.get(CODESYNC_ROOT, "").toString();
+    public static final String USER_FILE_PATH = Paths.get(CODESYNC_ROOT, "user.yml").toString();
+    public static final String DATABASE_PATH = Paths.get(CODESYNC_ROOT, "codesyncdb.db").toString();
     public static final String ALERTS_FILE_PATH = Paths.get(CODESYNC_ROOT, "alerts.yml").toString();
     public static final String SEQUENCE_TOKEN_FILE_PATH = Paths.get(CODESYNC_ROOT, "sequence_token.yml").toString();
     public static final String DEFAULT_BRANCH = "default";

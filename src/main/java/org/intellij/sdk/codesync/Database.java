@@ -7,6 +7,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static org.intellij.sdk.codesync.Constants.DATABASE_PATH;
 import static org.intellij.sdk.codesync.Constants.USER_FILE_PATH;
 
 public class Database {
@@ -16,17 +17,17 @@ public class Database {
     public static void initiate() {
 
         try{
-            File file = new File(USER_FILE_PATH);
+            File file = new File(DATABASE_PATH);
             if(!file.exists()){
                 Class.forName("org.sqlite.JDBC");
-                String connectionString = "jdbc:sqlite:" + USER_FILE_PATH;
+                String connectionString = "jdbc:sqlite:" + DATABASE_PATH;
                 connection = DriverManager.getConnection(connectionString);
                 createTable();
                 TransformFileToDB transformFileToDB = new TransformFileToDB();
                 transformFileToDB.readUsersInFile();
             }else {
                 Class.forName("org.sqlite.JDBC");
-                String connectionString = "jdbc:sqlite:" + USER_FILE_PATH;
+                String connectionString = "jdbc:sqlite:" + DATABASE_PATH;
                 connection = DriverManager.getConnection(connectionString);
                 createTable();
             }
