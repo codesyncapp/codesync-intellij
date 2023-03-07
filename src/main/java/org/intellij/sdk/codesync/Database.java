@@ -1,5 +1,8 @@
 package org.intellij.sdk.codesync;
 
+import org.intellij.sdk.codesync.DataClass.TransformFileToDB;
+
+import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,11 +14,25 @@ public class Database {
     private static Connection connection = null;
 
     public static void initiate() {
+
         try{
-            Class.forName("org.sqlite.JDBC");
-            String connectionString = "jdbc:sqlite:" + CODESYNC_ROOT + "\\localstorage.db";
-            connection = DriverManager.getConnection(connectionString);
-            createTable();
+
+            String filePath = CODESYNC_ROOT + "\\localstorage.db";
+            File file = new File(filePath);
+            if(!file.exists()){
+                Class.forName("org.sqlite.JDBC");
+                String connectionString = "jdbc:sqlite:" + filePath;
+                connection = DriverManager.getConnection(connectionString);
+                createTable();
+                TransformFileToDB transformFileToDB = new TransformFileToDB();
+                transformFileToDB.readUsersInFile();
+            }else {
+                Class.forName("org.sqlite.JDBC");
+                String connectionString = "jdbc:sqlite:" + filePath;
+                connection = DriverManager.getConnection(connectionString);
+                createTable();
+            }
+
         }catch (Exception exception) {
             System.out.println("Database connection error: " + exception.getMessage());
         }

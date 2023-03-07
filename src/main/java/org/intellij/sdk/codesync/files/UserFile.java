@@ -3,8 +3,10 @@ package org.intellij.sdk.codesync.files;
 import org.intellij.sdk.codesync.DataClass.UserTable;
 import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.io.*;
+import java.util.Map;
 
 public class UserFile{
 
@@ -13,6 +15,14 @@ public class UserFile{
         //New chagnes
         String userEmail, accessKey = null, secretKey = null, accessToken = null;
         Boolean isActive = false;
+
+        public User(String userEmail, Map<String, Object> userCredentials) {
+            this.userEmail = userEmail;
+            this.accessKey = (String) userCredentials.getOrDefault("access_key", null);
+            this.secretKey = (String) userCredentials.getOrDefault("secret_key", null);
+            this.accessToken = (String) userCredentials.getOrDefault("access_token", null);
+            this.isActive = CommonUtils.getBoolValue(userCredentials, "is_active", false);
+        }
 
         public User(String userEmail) {
             this.userEmail = userEmail;
