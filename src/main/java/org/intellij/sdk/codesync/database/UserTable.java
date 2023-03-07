@@ -1,4 +1,4 @@
-package org.intellij.sdk.codesync.DataClass;
+package org.intellij.sdk.codesync.database;
 
 import org.intellij.sdk.codesync.Database;
 import org.intellij.sdk.codesync.files.UserFile;
@@ -52,7 +52,7 @@ public class UserTable {
 
     }
 
-    public static UserFile.User getUserByEmail(String email){
+    public static UserFile.User getByEmail(String email){
         String query = String.format("SELECT * FROM user WHERE email = '%s'", email);
         ArrayList<HashMap<String, Object>> usersArray = Database.runQuery(query);
 

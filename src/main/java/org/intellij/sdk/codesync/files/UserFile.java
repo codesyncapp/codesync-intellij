@@ -1,6 +1,6 @@
 package org.intellij.sdk.codesync.files;
 
-import org.intellij.sdk.codesync.DataClass.UserTable;
+import org.intellij.sdk.codesync.database.UserTable;
 import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.utils.CommonUtils;
@@ -137,7 +137,7 @@ public class UserFile{
     Get the user matching the given email.
      */
     public User getUser(String userEmail) {
-        return UserTable.getUserByEmail(userEmail);
+        return UserTable.getByEmail(userEmail);
     }
 
     /*

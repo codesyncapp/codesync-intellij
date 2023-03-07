@@ -1,7 +1,7 @@
-package org.intellij.sdk.codesync.DataClass;
+package org.intellij.sdk.codesync.database.migrations;
 
 import com.google.common.io.CharStreams;
-import org.intellij.sdk.codesync.Database;
+import org.intellij.sdk.codesync.database.UserTable;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.files.UserFile;
 import org.yaml.snakeyaml.Yaml;
@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.intellij.sdk.codesync.Constants.USER_FILE_PATH;
-public class TransformFileToDB {
+public class MigrateUser {
 
     File userFile = new File(USER_FILE_PATH);
     public Map<String, Object> contentsMap;
@@ -50,7 +50,7 @@ public class TransformFileToDB {
         }
     }
 
-    public void readUsersInFile(){
+    public void migrateData(){
         try{
             readYml();
             loadYmlContent();

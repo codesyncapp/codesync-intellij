@@ -35,7 +35,6 @@ public final class Constants {
 
     //TODO: User file will be removed
     public static final String USER_FILE_PATH = Paths.get(CODESYNC_ROOT, "user.yml").toString();
-    public static final String DATABASE_PATH = Paths.get(CODESYNC_ROOT, "codesyncdb.db").toString();
     public static final String ALERTS_FILE_PATH = Paths.get(CODESYNC_ROOT, "alerts.yml").toString();
     public static final String SEQUENCE_TOKEN_FILE_PATH = Paths.get(CODESYNC_ROOT, "sequence_token.yml").toString();
     public static final String DEFAULT_BRANCH = "default";
@@ -47,6 +46,11 @@ public final class Constants {
     public static final Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
     public static final Integer DELAY_BETWEEN_ACTIVITY_ALERT_TASKS = 10 * 60 * 1000; // 10 minutes wait.
     public static final Integer DELAY_BETWEEN_BUFFER_TASKS_IN_SECONDS = 5;
+
+    //Database queries and strings
+    public static final String DATABASE_PATH = Paths.get(CODESYNC_ROOT, "codesyncdb.db").toString();
+    public static final String CONNECTION_STRING = "jdbc:sqlite:" + DATABASE_PATH;
+    public static final String CREATE_USER_TABLE_QUERY = "CREATE TABLE IF NOT EXISTS user (EMAIL TEXT PRIMARY KEY, ACCESS_TOKEN TEXT, SECRET_KEY TEXT, ACCESS_KEY TEXT, IS_ACTIVE INT)";
 
     public static final String DEFAULT_TIMEZONE = ZoneId.systemDefault().getId();
     public static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS z";

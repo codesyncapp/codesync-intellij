@@ -75,8 +75,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       return;
     }
 
-    Database.initiate();
-
     // Acquire the lock now.
     // Keep a very low expiry to make sure, if user switches between projects then lock does not cause issues.
     Instant expiry = Instant.now().plus(5, ChronoUnit.SECONDS);
