@@ -115,6 +115,7 @@ public class CodeSyncLogger {
     }
 
     public static void logEvent(String message, String userEmail, String type) {
+        LOGGER.log(Level.SEVERE, message);
         UserAccount userAccount = new UserAccount();
         logConsoleMessage(message, type);
 
