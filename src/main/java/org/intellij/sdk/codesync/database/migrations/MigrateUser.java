@@ -3,7 +3,7 @@ package org.intellij.sdk.codesync.database.migrations;
 import com.google.common.io.CharStreams;
 import org.intellij.sdk.codesync.database.UserTable;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
-import org.intellij.sdk.codesync.files.UserFile;
+import org.intellij.sdk.codesync.models.UserAccount;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
@@ -16,7 +16,7 @@ public class MigrateUser {
 
     File userFile = new File(USER_FILE_PATH);
     public Map<String, Object> contentsMap;
-    public Map<String, UserFile.User> users = new HashMap<>();
+    public Map<String, UserAccount> users = new HashMap<>();
 
     private void readYml() throws FileNotFoundException, InvalidYmlFileError {
         Yaml yaml = new Yaml();
@@ -40,7 +40,7 @@ public class MigrateUser {
             for (Map.Entry<String, Object> userEntry : this.contentsMap.entrySet()) {
                 if (userEntry.getValue() != null) {
                     Map<String, Object> userCredentials = (Map<String, Object>) userEntry.getValue();
-                    this.users.put(userEntry.getKey(), new UserFile.User(userEntry.getKey(), userCredentials));
+                    this.users.put(userEntry.getKey(), new UserAccount(userEntry.getKey(), userCredentials));
                 }
             }
         } catch (ClassCastException e){

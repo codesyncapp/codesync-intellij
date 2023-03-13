@@ -24,6 +24,7 @@ import org.intellij.sdk.codesync.exceptions.network.RepoUpdateError;
 import org.intellij.sdk.codesync.exceptions.network.ServerConnectionError;
 import org.intellij.sdk.codesync.exceptions.repo.RepoNotActive;
 import org.intellij.sdk.codesync.files.*;
+import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.ui.dialogs.RepoPublicPrivateDialog;
@@ -41,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -72,21 +72,10 @@ public class CodeSyncSetup {
             if (!configFile.isRepoActive(repoPath)) {
                throw new RepoNotActive(String.format("Repo '%s' is not active and can not be disconnected.", repoName));
             };
-            UserFile userFile;
-
-            try {
-                userFile = new UserFile(USER_FILE_PATH);
-            } catch (FileNotFoundException | InvalidYmlFileError e) {
-                throw new UserFileError(
-                    String.format(
-                        "Repo '%s' could not be disconnected because there was an error trying to read user file. Error: %s",
-                        repoName, e.getMessage()
-                    )
-                );
-            }
+            UserAccount userAccount = new UserAccount();
             ConfigRepo configRepo = configFile.getRepo(repoPath);
-            UserFile.User user = userFile.getUser(configRepo.email);
-            if (user == null) {
+            userAccount = userAccount.getUser(configRepo.email);
+            if (userAccount == null) {
                 throw new UserFileError(
                     String.format(
                         "Repo '%s' could not be disconnected because user data is missing from user file.",
@@ -94,7 +83,7 @@ public class CodeSyncSetup {
                     )
                 );
             }
-            String accessToken = user.getAccessToken();
+            String accessToken = userAccount.getAccessToken();
             CodeSyncClient codeSyncClient = new CodeSyncClient();
 
             if (!codeSyncClient.isServerUp()) {
@@ -257,13 +246,8 @@ public class CodeSyncSetup {
      */
     public static boolean checkUserAccess(Project project, String repoPath, String repoName, String branchName, boolean skipSyncPrompt, boolean isSyncingBranch) {
         String accessToken;
-        try {
-            UserFile userFile = new UserFile(USER_FILE_PATH);
-            accessToken = userFile.getActiveAccessToken();
-        } catch (FileNotFoundException | InvalidYmlFileError error) {
-            // Set access token to null to trigger user signup.
-            accessToken = null;
-        }
+        UserAccount userAccount = new UserAccount();
+        accessToken = userAccount.getActiveAccessToken();
 
         // User already has access token, no need to proceed.
         if (accessToken != null) {
@@ -487,7 +471,7 @@ public class CodeSyncSetup {
             }
         }
 
-        String accessToken = UserFile.getAccessToken();
+        String accessToken = UserAccount.getAccessTokenByEmail();
         if (accessToken == null) {
             // Show error message.
             if (!isSyncingBranch) {
@@ -654,29 +638,9 @@ public class CodeSyncSetup {
     }
 
     public static void saveIamUser(String email, String iamAccessKey, String iamSecretKey) {
-        UserFile userFile;
-        try {
-            userFile = new UserFile(USER_FILE_PATH, true);
-        } catch (FileNotFoundException e) {
-            CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: auth file not found. Error: %s", e.getMessage())
-            );
-            return;
-        } catch (InvalidYmlFileError error) {
-            error.printStackTrace();
-            CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: Invalid auth file. Error: %s", error.getMessage())
-            );
-            // Could not read user file.
-            return;
-        } catch (FileNotCreatedError error) {
-            CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: Could not create user auth file. Error %s", error.getMessage())
-            );
-            return;
-        }
-
-        userFile.setActiveUser(email, iamAccessKey, iamSecretKey);
+        UserAccount userAccount;
+        userAccount = new UserAccount();
+        userAccount.setActiveUser(email, iamAccessKey, iamSecretKey);
     }
 
     public static void saveFileIds(

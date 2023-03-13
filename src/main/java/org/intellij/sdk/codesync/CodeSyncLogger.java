@@ -11,7 +11,7 @@ import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
 import software.amazon.awssdk.services.cloudwatchlogs.model.*;
 
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
-import org.intellij.sdk.codesync.files.UserFile;
+import org.intellij.sdk.codesync.models.UserAccount;
 import static org.intellij.sdk.codesync.Constants.*;
 
 import java.io.FileNotFoundException;
@@ -114,26 +114,19 @@ public class CodeSyncLogger {
         logEvent(message, null, type);
     }
 
-    private static void logEvent(String message, String userEmail, String type) {
-        UserFile.User user = null;
-        UserFile userFile = null;
+    public static void logEvent(String message, String userEmail, String type) {
+        UserAccount userAccount = new UserAccount();
         logConsoleMessage(message, type);
 
-        try {
-            userFile = new UserFile(USER_FILE_PATH);
-        } catch (FileNotFoundException | InvalidYmlFileError e) {
-            e.printStackTrace();
-        }
-
-        if (userEmail != null && userFile != null) {
-            user = userFile.getUser(userEmail);
-        } else if (userFile != null) {
-            user = userFile.getActiveUser();
+        if (userEmail != null && userAccount != null) {
+            userAccount = userAccount.getUser(userEmail);
+        } else if (userAccount != null) {
+            userAccount = userAccount.getActiveUser();
         }
 
         String streamName, accessKey, secretKey;
 
-        if (user == null || user.getAccessKey() == null || user.getSecretKey() == null || user.getUserEmail() == null) {
+        if (userAccount == null || userAccount.getAccessKey() == null || userAccount.getSecretKey() == null || userAccount.getUserEmail() == null) {
             //Log with the plugin user.
             streamName = PLUGIN_USER_LOG_STREAM;
             if (PLUGIN_USER_ACCESS_KEY == null || PLUGIN_USER_SECRET_KEY == null) {
@@ -145,9 +138,9 @@ public class CodeSyncLogger {
                 secretKey = PLUGIN_USER_SECRET_KEY;
             }
         } else {
-            streamName = user.getUserEmail();
-            accessKey = user.getAccessKey();
-            secretKey = user.getSecretKey();
+            streamName = userAccount.getUserEmail();
+            accessKey = userAccount.getAccessKey();
+            secretKey = userAccount.getSecretKey();
         }
 
         try {

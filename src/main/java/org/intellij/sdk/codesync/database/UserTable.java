@@ -1,7 +1,7 @@
 package org.intellij.sdk.codesync.database;
 
 import org.intellij.sdk.codesync.Database;
-import org.intellij.sdk.codesync.files.UserFile;
+import org.intellij.sdk.codesync.models.UserAccount;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,14 +14,14 @@ public class UserTable {
     static String access_key;
     static int is_active;
 
-    public static void insertNewUser(UserFile.User user){
-        setValues(user);
+    public static void insertNewUser(UserAccount userAccount){
+        setValues(userAccount);
         String query = String.format("INSERT INTO user VALUES(%s, %s, %s, %s, %d)", email, access_token, secret_key, access_key, is_active);
         Database.executeUpdate(query);
     }
 
-    public static void updateUser(UserFile.User user){
-        setValues(user);
+    public static void updateUser(UserAccount userAccount){
+        setValues(userAccount);
         String query = String.format("UPDATE user SET access_token = %s, secret_key = %s, access_key = %s, is_active = %d WHERE email = %s", access_token, secret_key, access_key, is_active, email);
         Database.executeUpdate(query);
     }
@@ -31,54 +31,54 @@ public class UserTable {
         Database.executeUpdate(query);
     }
 
-    public static UserFile.User getActiveUser(){
+    public static UserAccount getActiveUser(){
         String query = "SELECT * FROM user WHERE is_active = 1";
         ArrayList<HashMap<String, Object>> usersArray = Database.runQuery(query);
 
         if(usersArray.size() > 0){
-            UserFile.User user = new UserFile.User((String) usersArray.get(0).get("EMAIL"));
-            user.setAccessKey((String) usersArray.get(0).getOrDefault("ACCESS_KEY", null));
-            user.setAccessToken((String) usersArray.get(0).getOrDefault("ACCESS_TOKEN", null));
-            user.setSecretKey((String) usersArray.get(0).getOrDefault("SECRET_KEY", null));
+            UserAccount userAccount = new UserAccount((String) usersArray.get(0).get("EMAIL"));
+            userAccount.setAccessKey((String) usersArray.get(0).getOrDefault("ACCESS_KEY", null));
+            userAccount.setAccessToken((String) usersArray.get(0).getOrDefault("ACCESS_TOKEN", null));
+            userAccount.setSecretKey((String) usersArray.get(0).getOrDefault("SECRET_KEY", null));
             if((String) usersArray.get(0).getOrDefault("IS_ACTIVE", null) == "1"){
-                user.makeActive();
+                userAccount.makeActive();
             }else {
-                user.makeInActive();
+                userAccount.makeInActive();
             }
-            return user;
+            return userAccount;
         }
 
         return null;
 
     }
 
-    public static UserFile.User getByEmail(String email){
+    public static UserAccount getByEmail(String email){
         String query = String.format("SELECT * FROM user WHERE email = '%s'", email);
         ArrayList<HashMap<String, Object>> usersArray = Database.runQuery(query);
 
         if(usersArray.size() > 0){
-            UserFile.User user = new UserFile.User((String) usersArray.get(0).get("EMAIL"));
-            user.setAccessKey((String) usersArray.get(0).getOrDefault("ACCESS_KEY", null));
-            user.setAccessToken((String) usersArray.get(0).getOrDefault("ACCESS_TOKEN", null));
-            user.setSecretKey((String) usersArray.get(0).getOrDefault("SECRET_KEY", null));
+            UserAccount userAccount = new UserAccount((String) usersArray.get(0).get("EMAIL"));
+            userAccount.setAccessKey((String) usersArray.get(0).getOrDefault("ACCESS_KEY", null));
+            userAccount.setAccessToken((String) usersArray.get(0).getOrDefault("ACCESS_TOKEN", null));
+            userAccount.setSecretKey((String) usersArray.get(0).getOrDefault("SECRET_KEY", null));
             if((String) usersArray.get(0).getOrDefault("IS_ACTIVE", null) == "1"){
-                user.makeActive();
+                userAccount.makeActive();
             }else {
-                user.makeInActive();
+                userAccount.makeInActive();
             }
-            return user;
+            return userAccount;
         }
 
         return null;
     }
 
-    static void setValues(UserFile.User user){
-        email = user.getUserEmail() != null? String.format("'%s'", user.getUserEmail()) : "NULL";
-        access_token = user.getAccessToken() != null? String.format("'%s'", user.getAccessToken()) : "NULL";
-        secret_key = user.getSecretKey() != null? String.format("'%s'", user.getSecretKey()) : "NULL";
-        access_key = user.getAccessKey() != null? String.format("'%s'", user.getAccessKey()) : "NULL";
-        if(user.getActive() != null){
-            is_active = user.getActive()? 1 : 0;
+    static void setValues(UserAccount userAccount){
+        email = userAccount.getUserEmail() != null? String.format("'%s'", userAccount.getUserEmail()) : "NULL";
+        access_token = userAccount.getAccessToken() != null? String.format("'%s'", userAccount.getAccessToken()) : "NULL";
+        secret_key = userAccount.getSecretKey() != null? String.format("'%s'", userAccount.getSecretKey()) : "NULL";
+        access_key = userAccount.getAccessKey() != null? String.format("'%s'", userAccount.getAccessKey()) : "NULL";
+        if(userAccount.getActive() != null){
+            is_active = userAccount.getActive()? 1 : 0;
         }else{
             is_active = 0;
         }

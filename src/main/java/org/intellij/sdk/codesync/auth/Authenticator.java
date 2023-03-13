@@ -4,17 +4,14 @@ import com.auth0.jwt.interfaces.Claim;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.commands.ClearReposToIgnoreCache;
-import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
-import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.exceptions.RequestError;
-import org.intellij.sdk.codesync.files.UserFile;
+import org.intellij.sdk.codesync.models.UserAccount;
 import org.json.simple.JSONObject;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
 
@@ -77,27 +74,13 @@ public class Authenticator extends HttpServlet {
             );
             return false;
         }
-        UserFile userFile;
-        try {
-            userFile = new UserFile(USER_FILE_PATH);
-        } catch (FileNotFoundException e) {
-            CodeSyncLogger.error(
-                String.format("[INTELLIJ_AUTH_ERROR]: auth file not found. Error: %s", e.getMessage())
-            );
-            return false;
-        } catch (InvalidYmlFileError error) {
-            error.printStackTrace();
-            CodeSyncLogger.critical(
-                String.format("[INTELLIJ_AUTH_ERROR]: Invalid auth file. Error: %s", error.getMessage())
-            );
-            // Could not read user file.
-            return false;
-        }
+        UserAccount userAccount;
+        userAccount = new UserAccount();
         String userEmail = claims.get("email").asString();
 
         // Clear any cache that depends on user authentication status.
         new ClearReposToIgnoreCache().execute();
-        userFile.setActiveUser(userEmail, accessToken);
+        userAccount.setActiveUser(userEmail, accessToken);
 
         CodeSyncLogger.debug("[INTELLIJ_AUTH]: User completed login flow.");
         return true;

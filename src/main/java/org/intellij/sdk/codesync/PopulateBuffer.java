@@ -6,12 +6,11 @@ import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.exceptions.FileInfoError;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
-import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.factories.DiffFactory;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
-import org.intellij.sdk.codesync.files.UserFile;
+import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
@@ -20,7 +19,6 @@ import org.intellij.sdk.codesync.utils.*;
 import static org.intellij.sdk.codesync.Constants.*;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -167,16 +165,8 @@ public class PopulateBuffer {
             return reposToUpdate;
         }
         Map<String, ConfigRepo> configRepoMap = configFile.getRepos();
-        UserFile userFile;
-
-        try {
-            userFile = new UserFile(USER_FILE_PATH);
-        } catch (FileNotFoundException | InvalidYmlFileError error) {
-            CodeSyncLogger.critical(String.format(
-                    "[POPULATE_BUFFER] User file error, %s.\n", error.getMessage()
-            ));
-            return reposToUpdate;
-        }
+        UserAccount userAccount;
+        userAccount = new UserAccount();
 
         for (Map.Entry<String, ConfigRepo> configRepoEntry: configRepoMap.entrySet()) {
             String repoPath = configRepoEntry.getKey();
@@ -193,13 +183,13 @@ public class PopulateBuffer {
                 continue;
             }
 
-            UserFile.User user = userFile.getUser(configRepo.email);
-            if (user == null) {
+            userAccount = userAccount.getUser(configRepo.email);
+            if (userAccount == null) {
                 // Could not find the user with this email in user.yml file.
                 continue;
             }
 
-            if (user.getAccessToken() == null) {
+            if (userAccount.getAccessToken() == null) {
                 CodeSyncLogger.error(String.format("Access token not found for repo: %s, %s`.", repoPath, configRepo.email));
                 continue;
             }
