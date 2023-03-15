@@ -22,6 +22,7 @@ import kt.org.intellij.sdk.codesync.tasks.TaskExecutor;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.intellij.sdk.codesync.alerts.ActivityAlerts;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
+import org.intellij.sdk.codesync.database.Database;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.state.StateUtils;

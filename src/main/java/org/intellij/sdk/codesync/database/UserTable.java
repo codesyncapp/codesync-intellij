@@ -1,6 +1,5 @@
 package org.intellij.sdk.codesync.database;
 
-import org.intellij.sdk.codesync.Database;
 import org.intellij.sdk.codesync.models.UserAccount;
 
 import java.util.ArrayList;
@@ -40,7 +39,7 @@ public class UserTable {
             userAccount.setAccessKey((String) usersArray.get(0).getOrDefault("ACCESS_KEY", null));
             userAccount.setAccessToken((String) usersArray.get(0).getOrDefault("ACCESS_TOKEN", null));
             userAccount.setSecretKey((String) usersArray.get(0).getOrDefault("SECRET_KEY", null));
-            if((String) usersArray.get(0).getOrDefault("IS_ACTIVE", null) == "1"){
+            if(((String)usersArray.get(0).getOrDefault("IS_ACTIVE", null)).equals("1")){
                 userAccount.makeActive();
             }else {
                 userAccount.makeInActive();
@@ -61,7 +60,7 @@ public class UserTable {
             userAccount.setAccessKey((String) usersArray.get(0).getOrDefault("ACCESS_KEY", null));
             userAccount.setAccessToken((String) usersArray.get(0).getOrDefault("ACCESS_TOKEN", null));
             userAccount.setSecretKey((String) usersArray.get(0).getOrDefault("SECRET_KEY", null));
-            if((String) usersArray.get(0).getOrDefault("IS_ACTIVE", null) == "1"){
+            if(((String)usersArray.get(0).getOrDefault("IS_ACTIVE", null)).equals("1")){
                 userAccount.makeActive();
             }else {
                 userAccount.makeInActive();

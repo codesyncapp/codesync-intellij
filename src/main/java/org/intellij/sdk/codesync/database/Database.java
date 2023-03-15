@@ -1,4 +1,4 @@
-package org.intellij.sdk.codesync;
+package org.intellij.sdk.codesync.database;
 
 import org.intellij.sdk.codesync.database.migrations.MigrateUser;
 

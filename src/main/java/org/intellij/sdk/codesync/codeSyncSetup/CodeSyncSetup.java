@@ -11,7 +11,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import kotlin.Pair;
 import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.Database;
+import org.intellij.sdk.codesync.database.Database;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
