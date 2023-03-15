@@ -132,7 +132,6 @@ public class HandleBuffer {
 
     public static void scheduleBufferHandler(Project project) {
         Timer timer = new Timer(true);
-        CodeSyncLogger.debug("[CODESYNC_DAEMON]: Starting  buffer handler daemon.");
         bufferHandler(timer, project);
     }
 
@@ -150,7 +149,6 @@ public class HandleBuffer {
             return;
         }
 
-        CodeSyncLogger.debug("[CODESYNC_DAEMON]: handleBuffer Called.");
         try {
             configFile = new ConfigFile(CONFIG_PATH);
         } catch (InvalidConfigFileError error) {
