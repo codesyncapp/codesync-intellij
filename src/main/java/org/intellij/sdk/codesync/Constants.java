@@ -42,6 +42,7 @@ public final class Constants {
     public static final String[] IGNORABLE_DIRECTORIES = new String[]{".git", "node_modules", ".DS_Store", ".idea"};
     public static final String CURRENT_GIT_BRANCH_COMMAND = "git rev-parse --abbrev-ref HEAD";
     public static final Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
+    public static final Integer DELAY_BETWEEN_ACTIVITY_ALERT_TASKS = 10 * 60 * 1000; // 10 minutes wait.
     public static final Integer DELAY_BETWEEN_BUFFER_TASKS_IN_SECONDS = 5;
 
     public static final String DEFAULT_TIMEZONE = ZoneId.systemDefault().getId();

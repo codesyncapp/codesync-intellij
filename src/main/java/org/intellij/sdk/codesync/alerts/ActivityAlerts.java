@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync.alerts;
 
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.Constants;
@@ -8,6 +9,7 @@ import org.intellij.sdk.codesync.files.AlertsFile;
 import org.intellij.sdk.codesync.files.UserFile;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.ui.dialogs.ActivityAlertDialog;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.DataUtils;
 import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
@@ -112,36 +114,40 @@ public class ActivityAlerts {
         if (hasActivityInTheLastDay(jsonResponse)) {
             boolean isTeamActivity = jsonResponse.containsKey("is_team_activity") &&
                 (boolean) jsonResponse.get("is_team_activity");
+            CommonUtils.invokeAndWait(
+                () -> {
+                    CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Showing activity alert dialog to the user.");
+                    ActivityAlertDialog activityAlertDialog = new ActivityAlertDialog(
+                        WEBAPP_DASHBOARD_URL, isTeamActivity, project
+                    );
 
-            ActivityAlertDialog activityAlertDialog = new ActivityAlertDialog(
-                WEBAPP_DASHBOARD_URL, isTeamActivity, project
+                    boolean hasUserChecked = activityAlertDialog.showAndGet();
+                    CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Activity alert dialog shown to the user.");
+                    CodeSyncLogger.debug(String.format("[CODESYNC_DAEMON] [ACTIVITY_ALERT]. User responded with '%s' status", hasUserChecked));
+                    Instant checkedFor;
+                    Instant now = CodeSyncDateUtils.getTodayInstant();
+
+                    // if activity is shown before 4 PM then it was for yesterday's activity,
+                    // and we need to show another notification after 4:30 PM today.
+                    if (now.atZone(ZoneId.systemDefault()).getHour() < 16) {
+                        checkedFor = CodeSyncDateUtils.getYesterdayInstant();
+                    } else {
+                        checkedFor = CodeSyncDateUtils.getTodayInstant();
+                    }
+                    if (email != null && hasUserChecked) {
+                        CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Updating team activity yml file.");
+                        AlertsFile.updateTeamActivity(
+                            email,
+                            CodeSyncDateUtils.getTodayInstant(),
+                            checkedFor,
+                            CodeSyncDateUtils.getTodayInstant()
+                        );
+                    }
+
+                    return hasUserChecked;
+                },
+                ModalityState.defaultModalityState()
             );
-            CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Showing activity alert dialog to the user.");
-
-            activityAlertDialog.show();
-            boolean hasUserChecked = activityAlertDialog.isOK();
-
-            CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Activity alert dialog shown to the user.");
-            CodeSyncLogger.debug(String.format("[CODESYNC_DAEMON] [ACTIVITY_ALERT]. User responded with '%s' status", hasUserChecked));
-            Instant checkedFor;
-            Instant now = CodeSyncDateUtils.getTodayInstant();
-
-            // if activity is shown before 4 PM then it was for yesterday's activity,
-            // and we need to show another notification after 4:30 PM today.
-            if (now.atZone(ZoneId.systemDefault()).getHour() < 16) {
-                checkedFor = CodeSyncDateUtils.getYesterdayInstant();
-            } else {
-                checkedFor = CodeSyncDateUtils.getTodayInstant();
-            }
-            if (email != null && hasUserChecked) {
-                CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Updating team activity yml file.");
-                AlertsFile.updateTeamActivity(
-                    email,
-                    CodeSyncDateUtils.getTodayInstant(),
-                    checkedFor,
-                    CodeSyncDateUtils.getTodayInstant()
-                );
-            }
         } else {
             CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] User does not have any activity so skipping today.");
 
@@ -159,6 +165,9 @@ public class ActivityAlerts {
         activityDaemon(timer, project);
     }
 
+    /*
+    Schedule activity alert daemon, daemon will make sure to run only once every 5 seconds.
+    */
     private static void activityDaemon(final Timer timer, Project project) {
         timer.schedule(new TimerTask() {
             public void run() {
@@ -179,10 +188,7 @@ public class ActivityAlerts {
 
                 activityDaemon(timer, project);
             }
-        }, DELAY_BETWEEN_BUFFER_TASKS);
+        }, DELAY_BETWEEN_ACTIVITY_ALERT_TASKS);
     }
 
-    /*
-    Schedule activity alert daemon, daemon will make sure to run only once every 5 seconds.
-    */
 }

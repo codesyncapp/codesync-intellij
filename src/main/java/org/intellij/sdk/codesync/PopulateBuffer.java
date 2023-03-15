@@ -133,7 +133,6 @@ public class PopulateBuffer {
 
     public static void startPopulateBufferDaemon(Project project) {
         Timer timer = new Timer(true);
-        CodeSyncLogger.debug("[CODESYNC_DAEMON]: Starting  populate buffer daemon.");
         populateBufferDaemon(timer, project);
     }
 
@@ -147,7 +146,6 @@ public class PopulateBuffer {
         if (!canRunDaemon) {
             return;
         }
-        CodeSyncLogger.debug("[CODESYNC_DAEMON]: populateBuffer Called.");
         Map<String, String> reposToUpdate = detectBranchChange();
         populateBufferForMissedEvents(reposToUpdate);
     }
