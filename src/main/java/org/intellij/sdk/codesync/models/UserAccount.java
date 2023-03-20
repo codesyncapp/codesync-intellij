@@ -8,7 +8,6 @@ import java.util.Map;
 public class UserAccount {
 
     public UserAccount(){}
-
     String userEmail, accessKey = null, secretKey = null, accessToken = null;
     Boolean isActive = false;
 

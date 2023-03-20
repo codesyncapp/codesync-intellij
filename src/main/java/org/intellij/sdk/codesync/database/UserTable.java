@@ -19,10 +19,10 @@ public class UserTable {
         Database.executeUpdate(query);
     }
 
-    public static void updateUser(UserAccount userAccount){
+    public static int updateUser(UserAccount userAccount){
         setValues(userAccount);
         String query = String.format("UPDATE user SET access_token = %s, secret_key = %s, access_key = %s, is_active = %d WHERE email = %s", access_token, secret_key, access_key, is_active, email);
-        Database.executeUpdate(query);
+        return Database.executeUpdate(query);
     }
 
     public static void updateAllUsersInActive(){
@@ -32,7 +32,7 @@ public class UserTable {
 
     public static UserAccount getActiveUser(){
         String query = "SELECT * FROM user WHERE is_active = 1";
-        ArrayList<HashMap<String, Object>> usersArray = Database.runQuery(query);
+        ArrayList<HashMap<String, String>> usersArray = Database.runQuery(query);
 
         if(usersArray.size() > 0){
             UserAccount userAccount = new UserAccount((String) usersArray.get(0).get("EMAIL"));
@@ -53,13 +53,13 @@ public class UserTable {
 
     public static UserAccount getByEmail(String email){
         String query = String.format("SELECT * FROM user WHERE email = '%s'", email);
-        ArrayList<HashMap<String, Object>> usersArray = Database.runQuery(query);
+        ArrayList<HashMap<String, String>> usersArray = Database.runQuery(query);
 
         if(usersArray.size() > 0){
             UserAccount userAccount = new UserAccount((String) usersArray.get(0).get("EMAIL"));
-            userAccount.setAccessKey((String) usersArray.get(0).getOrDefault("ACCESS_KEY", null));
             userAccount.setAccessToken((String) usersArray.get(0).getOrDefault("ACCESS_TOKEN", null));
             userAccount.setSecretKey((String) usersArray.get(0).getOrDefault("SECRET_KEY", null));
+            userAccount.setAccessKey((String) usersArray.get(0).getOrDefault("ACCESS_KEY", null));
             if(((String)usersArray.get(0).getOrDefault("IS_ACTIVE", null)).equals("1")){
                 userAccount.makeActive();
             }else {

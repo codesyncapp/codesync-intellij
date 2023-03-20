@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync.database;
 
+import com.intellij.openapi.application.ApplicationManager;
 import org.intellij.sdk.codesync.database.migrations.MigrateUser;
 
 import java.io.File;
@@ -14,6 +15,8 @@ public class Database {
     private static Connection connection = null;
 
     public static void initiate() {
+
+
 
         try{
             File file = new File(DATABASE_PATH);
@@ -36,6 +39,16 @@ public class Database {
         }
     }
 
+    public static void initiate(String connectionString) {
+        try{
+            Class.forName("org.sqlite.JDBC");
+            connection = DriverManager.getConnection(connectionString);
+            executeUpdate(CREATE_USER_TABLE_QUERY);
+        }catch (Exception exception) {
+            System.out.println("Database connection error: " + exception.getMessage());
+        }
+    }
+
     /*
     This method accepts a SELECT query and then using
     executeQuery method fetch rows from database.
@@ -44,7 +57,7 @@ public class Database {
 
     Then every row stored as a hashmap is added to arraylist which is returned as a list of rows.
      */
-    public static ArrayList runQuery(String query){
+    public static ArrayList<HashMap<String, String>> runQuery(String query){
         try {
             Statement statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(query);
@@ -69,13 +82,14 @@ public class Database {
         return null;
     }
 
-    public static void executeUpdate(String query){
+    public static int executeUpdate(String query){
         try {
             Statement statement = connection.createStatement();
-            statement.executeUpdate(query);
+            return statement.executeUpdate(query);
         } catch (Exception exception) {
             System.out.println("Database error: " + exception.getMessage());
         }
+        return -1;
     }
 
     public static void disconnect(){
