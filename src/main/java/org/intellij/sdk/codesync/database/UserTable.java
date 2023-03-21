@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync.database;
 
 import org.intellij.sdk.codesync.models.UserAccount;
+import org.intellij.sdk.codesync.utils.Queries;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,8 +32,7 @@ public class UserTable {
     }
 
     public static UserAccount getActiveUser(){
-        String query = "SELECT * FROM user WHERE is_active = 1";
-        ArrayList<HashMap<String, String>> usersArray = Database.runQuery(query);
+        ArrayList<HashMap<String, String>> usersArray = Database.runQuery(Queries.User.get_by_active_status(true));
 
         if(usersArray.size() > 0){
             UserAccount userAccount = new UserAccount((String) usersArray.get(0).get("EMAIL"));
@@ -52,10 +52,9 @@ public class UserTable {
     }
 
     public static UserAccount getByEmail(String email){
-        String query = String.format("SELECT * FROM user WHERE email = '%s'", email);
-        ArrayList<HashMap<String, String>> usersArray = Database.runQuery(query);
+        ArrayList<HashMap<String, String>> usersArray = Database.runQuery(Queries.User.get_by_email(email));
 
-        if(usersArray.size() > 0){
+        if(usersArray != null){
             UserAccount userAccount = new UserAccount((String) usersArray.get(0).get("EMAIL"));
             userAccount.setAccessToken((String) usersArray.get(0).getOrDefault("ACCESS_TOKEN", null));
             userAccount.setSecretKey((String) usersArray.get(0).getOrDefault("SECRET_KEY", null));

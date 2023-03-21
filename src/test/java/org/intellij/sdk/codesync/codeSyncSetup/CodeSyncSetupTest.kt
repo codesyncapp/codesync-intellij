@@ -1,35 +1,30 @@
 package org.intellij.sdk.codesync.codeSyncSetup
 
-import org.intellij.sdk.codesync.Constants
+import org.intellij.sdk.codesync.Helper
 import org.intellij.sdk.codesync.database.Database
-import org.jsoup.helper.Validate
+import org.intellij.sdk.codesync.utils.Queries
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.File
-import java.util.HashMap
 import kotlin.test.assertEquals
 
 class CodeSyncSetupTest {
 
-    var directory_path = ""
-    var database_file = ""
-
     @BeforeEach
     fun before() {
-        //1. Generate random base repo path
-        directory_path = System.getProperty("user.dir") + "\\src\\test\\java\\test_data"
-        database_file = "\\test.db"
         //2. Create directory
-        var file = File(directory_path)
+        var file = File(Helper.DIRECTORY_PATH)
         file.mkdir()
 
         //3. Connect to db created in step (2) above repo
-        var connectionString = "jdbc:sqlite:" + directory_path + database_file
-        Database.initiate(connectionString)
+        Database.initiate(Helper.CONNECTION_STRING)
 
         //4. Create user table
-        Database.executeUpdate(Constants.CREATE_USER_TABLE_QUERY)
+        Database.executeUpdate(Queries.CREATE_USER_TABLE)
+
+        //5. Add dummy user
+        Database.executeUpdate(Queries.User.insert("Dummy@gmail.com","ASDFC", null, null, false));
     }
 
     @AfterEach
@@ -38,18 +33,19 @@ class CodeSyncSetupTest {
         Database.disconnect()
 
         //2. Remove base repo
-        var file = File(directory_path + database_file)
+        var file = File(Helper.DIRECTORY_PATH + Helper.DATABASE_FILE)
         file.delete()
-        file = File(directory_path)
+        file = File(Helper.DIRECTORY_PATH)
         file.delete()
     }
 
     @Test
     fun validateSaveIamUserTest(){
-        CodeSyncSetup.saveIamUser("sample@gmail.com", "ACCESS", "SECRET")
-        var resultSet = Database.runQuery("SELECT * FROM user")
+        var email = "sample@gmail.com"
+        CodeSyncSetup.saveIamUser(email, "ACCESS", "SECRET")
+        var resultSet = Database.runQuery(Queries.User.get_by_email(email))
         var row : HashMap<String, String> = resultSet.get(0)
-        assertEquals("sample@gmail.com", row["EMAIL"])
+        assertEquals(email, row["EMAIL"])
         assertEquals("ACCESS", row["ACCESS_KEY"])
         assertEquals("SECRET", row["SECRET_KEY"])
     }

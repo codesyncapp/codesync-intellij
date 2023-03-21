@@ -2,6 +2,7 @@ package org.intellij.sdk.codesync.database;
 
 import com.intellij.openapi.application.ApplicationManager;
 import org.intellij.sdk.codesync.database.migrations.MigrateUser;
+import org.intellij.sdk.codesync.utils.Queries;
 
 import java.io.File;
 import java.sql.*;
@@ -15,23 +16,20 @@ public class Database {
     private static Connection connection = null;
 
     public static void initiate() {
-
-
-
         try{
             File file = new File(DATABASE_PATH);
             if(!file.exists()){
                 Class.forName("org.sqlite.JDBC");
                 String connectionString = CONNECTION_STRING;
                 connection = DriverManager.getConnection(connectionString);
-                executeUpdate(CREATE_USER_TABLE_QUERY);
+                executeUpdate(Queries.CREATE_USER_TABLE);
                 MigrateUser migrateUser = new MigrateUser();
                 migrateUser.migrateData();
             }else {
                 Class.forName("org.sqlite.JDBC");
                 String connectionString = CONNECTION_STRING;
                 connection = DriverManager.getConnection(connectionString);
-                executeUpdate(CREATE_USER_TABLE_QUERY);
+                executeUpdate(Queries.CREATE_USER_TABLE);
             }
 
         }catch (Exception exception) {
@@ -43,7 +41,6 @@ public class Database {
         try{
             Class.forName("org.sqlite.JDBC");
             connection = DriverManager.getConnection(connectionString);
-            executeUpdate(CREATE_USER_TABLE_QUERY);
         }catch (Exception exception) {
             System.out.println("Database connection error: " + exception.getMessage());
         }
@@ -72,6 +69,9 @@ public class Database {
                 }
                 dataSet.add(row);
             }
+
+            if(dataSet.size() == 0)
+                return null;
 
             return dataSet;
 
