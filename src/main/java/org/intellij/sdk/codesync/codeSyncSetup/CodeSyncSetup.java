@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -500,14 +501,20 @@ public class CodeSyncSetup {
         }
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         JSONObject payload = new JSONObject();
-        boolean isPublic = false;
         if (!isSyncingBranch) {
-            RepoPublicPrivateDialog repoPublicPrivateDialog = new RepoPublicPrivateDialog(project);
-            isPublic = repoPublicPrivateDialog.showAndGet();
+            CommonUtils.invokeAndWait(
+                () -> {
+                    RepoPublicPrivateDialog repoPublicPrivateDialog = new RepoPublicPrivateDialog(project);
+                    boolean isPublic = repoPublicPrivateDialog.showAndGet();
+                    payload.put("is_public", isPublic);
+
+                    return isPublic;
+                },
+                ModalityState.defaultModalityState()
+            );
         }
 
         payload.put("name", repoName);
-        payload.put("is_public", isPublic);
         payload.put("branch", branchName);
         payload.put("files_data", filesData.toJSONString());
         payload.put("source", DIFF_SOURCE);

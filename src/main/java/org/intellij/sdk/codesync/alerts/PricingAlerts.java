@@ -1,11 +1,13 @@
 package org.intellij.sdk.codesync.alerts;
 
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.files.AlertsFile;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.ui.dialogs.PricingAlertDialog;
 import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.json.simple.JSONObject;
 
 import static org.intellij.sdk.codesync.Constants.LockFileType;
@@ -23,9 +25,13 @@ public class PricingAlerts {
         // We only want to show notification once every 5 minutes, I have implemented that using locks with an expiry of
         // 5 minutes. So, skip the notification if lock is not acquired.
         acquirePricingLock();
-
-        PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(false, false, CODESYNC_PRICING_URL, project);
-        pricingAlertDialog.show();
+        CommonUtils.invokeAndWait(
+            () -> {
+                PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(false, false, CODESYNC_PRICING_URL, project);
+                return pricingAlertDialog.showAndGet();
+            },
+            ModalityState.defaultModalityState()
+        );
     }
 
     public static void setPlanLimitReached(String accessToken, int repoId) {
@@ -39,9 +45,13 @@ public class PricingAlerts {
             boolean isOrgRepo = (boolean) response.get("is_org_repo");
             boolean canAvailTrial = (boolean) response.get("can_avail_trial");
             String pricingUrl = (String) response.get("url");
-
-            PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(isOrgRepo, canAvailTrial, pricingUrl, project);
-            pricingAlertDialog.show();
+            CommonUtils.invokeAndWait(
+                () -> {
+                    PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(isOrgRepo, canAvailTrial, pricingUrl, project);
+                    return pricingAlertDialog.showAndGet();
+                },
+                ModalityState.defaultModalityState()
+            );
             AlertsFile.updateUpgradePlanActivity(CodeSyncDateUtils.getTodayInstant());
         } else {
             setPlanLimitReached(project);
