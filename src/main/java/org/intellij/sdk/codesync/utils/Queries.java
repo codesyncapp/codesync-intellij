@@ -1,11 +1,11 @@
 package org.intellij.sdk.codesync.utils;
 
-import javax.annotation.Nullable;
-
 public class Queries {
 
-    public static final String CREATE_USER_TABLE = "CREATE TABLE IF NOT EXISTS user (EMAIL TEXT PRIMARY KEY, ACCESS_TOKEN TEXT, SECRET_KEY TEXT, ACCESS_KEY TEXT, IS_ACTIVE INT)";
+    //TODO Turn this into multiline string.
+    public static final String CREATE_USER_TABLE = "CREATE TABLE IF NOT EXISTS user(EMAIL TEXT PRIMARY KEY, ACCESS_TOKEN TEXT, SECRET_KEY TEXT, ACCESS_KEY TEXT, IS_ACTIVE INT)";
     public static class User{
+
 
         public static final String TABLE_EXIST = Queries.table_exist("user");
         public static String get_all(){

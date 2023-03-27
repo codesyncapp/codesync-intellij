@@ -34,7 +34,7 @@ public class UserTable {
     public static UserAccount getActiveUser(){
         ArrayList<HashMap<String, String>> usersArray = Database.runQuery(Queries.User.get_by_active_status(true));
 
-        if(usersArray.size() > 0){
+        if(usersArray != null){
             UserAccount userAccount = new UserAccount((String) usersArray.get(0).get("EMAIL"));
             userAccount.setAccessKey((String) usersArray.get(0).getOrDefault("ACCESS_KEY", null));
             userAccount.setAccessToken((String) usersArray.get(0).getOrDefault("ACCESS_TOKEN", null));
