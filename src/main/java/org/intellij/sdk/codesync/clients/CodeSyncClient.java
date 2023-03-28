@@ -47,18 +47,22 @@ public class CodeSyncClient {
 
     @return  Pair<Boolean, User>  First item of the pair shows of token is valid and secod is the user instance.
      */
-    public Pair<Boolean, User> getUser(String accessToken) throws RequestError {
+    public Pair<Boolean, User> getUser(String repoPath, String accessToken) throws RequestError {
         JSONObject response;
         try {
             JSONResponse jsonResponse = ClientUtils.sendGet(API_USERS, accessToken);
             jsonResponse.raiseForStatus();
             response = jsonResponse.getJsonResponse();
         } catch (RequestError | InvalidJsonError error) {
+            PluginState pluginState = StateUtils.getState(repoPath);
+            pluginState.syncInProcess = false;
             CodeSyncLogger.error(
                 String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
             );
             throw new RequestError("Could not make a successful request to CodeSync server.");
         } catch (StatusCodeError error) {
+            PluginState pluginState = StateUtils.getState(repoPath);
+            pluginState.syncInProcess = false;
             CodeSyncLogger.error(
                 String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
             );
@@ -214,11 +218,13 @@ public class CodeSyncClient {
         }
     }
 
-    public JSONObject uploadRepo(String accessToken, JSONObject payload) {
+    public JSONObject uploadRepo(String repoPath, String accessToken, JSONObject payload) {
         JSONResponse jsonResponse;
         try {
             jsonResponse = ClientUtils.sendPost(API_INIT, payload, accessToken);
         } catch (RequestError | InvalidJsonError error) {
+            PluginState pluginState = StateUtils.getState(repoPath);
+            pluginState.syncInProcess = false;
             CodeSyncLogger.critical(String.format("Error while repo init, %s", error.getMessage()));
             return null;
         }

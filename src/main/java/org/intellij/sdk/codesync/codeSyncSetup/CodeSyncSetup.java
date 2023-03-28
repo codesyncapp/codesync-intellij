@@ -222,7 +222,7 @@ public class CodeSyncSetup {
         2. Validate access token is not expired by sending a request to the server.
         3. Validate that user's plan has not been exhausted.
     */
-    public static boolean validateAccessToken(String accessToken) throws InvalidAccessTokenError {
+    public static boolean validateAccessToken(String repoPath, String accessToken) throws InvalidAccessTokenError {
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         if (!codeSyncClient.isServerUp()) {
             NotificationManager.notifyError(Notification.SERVICE_NOT_AVAILABLE);
@@ -230,7 +230,7 @@ public class CodeSyncSetup {
         }
 
         try {
-            Pair<Boolean, User> userPair = codeSyncClient.getUser(accessToken);
+            Pair<Boolean, User> userPair = codeSyncClient.getUser(repoPath, accessToken);
             Boolean isTokenValid = userPair.component1();
 
             // If token is not valid then need to authenticate again.
@@ -270,7 +270,7 @@ public class CodeSyncSetup {
         // User already has access token, no need to proceed.
         if (accessToken != null) {
             try {
-                return validateAccessToken(accessToken);
+                return validateAccessToken(repoPath, accessToken);
             } catch (InvalidAccessTokenError invalidAccessTokenError) {
                 // no action needed, user will be prompted for authenticated later by default.
             }
@@ -527,7 +527,7 @@ public class CodeSyncSetup {
         payload.put("platform", CommonUtils.getOS());
 
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.PROCESS_RESPONSE);
-        JSONObject response = codeSyncClient.uploadRepo(accessToken, payload);
+        JSONObject response = codeSyncClient.uploadRepo(repoPath, accessToken, payload);
 
         if (response == null || response.containsKey("error")) {
             // Show error message.
