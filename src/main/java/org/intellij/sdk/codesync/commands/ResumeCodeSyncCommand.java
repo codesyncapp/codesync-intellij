@@ -41,7 +41,7 @@ public class ResumeCodeSyncCommand implements Command {
         String accessToken = UserFile.getAccessToken();
 
         try {
-            if (accessToken != null && CodeSyncSetup.validateAccessToken(accessToken)) {
+            if (accessToken != null && CodeSyncSetup.validateAccessToken(this.repoPath, accessToken)) {
                 CodeSyncLogger.debug("[INTELLIJ_AUTH]: Repo sync resumed after login.");
 
                 CodeSyncSetup.setupCodeSyncRepoAsync(project, this.repoPath, this.repoName, this.skipSyncPrompt, this.isSyncingBranch);
