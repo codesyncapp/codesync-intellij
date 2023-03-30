@@ -8,27 +8,16 @@ import java.util.HashMap;
 
 public class UserTable {
 
-    static String email;
-    static String access_token;
-    static String secret_key;
-    static String access_key;
-    static int is_active;
-
     public static void insertNewUser(UserAccount userAccount){
-        setValues(userAccount);
-        String query = String.format("INSERT INTO user VALUES(%s, %s, %s, %s, %d)", email, access_token, secret_key, access_key, is_active);
-        Database.executeUpdate(query);
+        Database.executeUpdate(Queries.User.insert(userAccount.getUserEmail(), userAccount.getAccessToken(), userAccount.getSecretKey(), userAccount.getAccessKey(), userAccount.getActive()));
     }
 
     public static int updateUser(UserAccount userAccount){
-        setValues(userAccount);
-        String query = String.format("UPDATE user SET access_token = %s, secret_key = %s, access_key = %s, is_active = %d WHERE email = %s", access_token, secret_key, access_key, is_active, email);
-        return Database.executeUpdate(query);
+        return Database.executeUpdate(Queries.User.update_by_email(userAccount.getAccessToken(), userAccount.getSecretKey(), userAccount.getAccessKey(), userAccount.getActive(), userAccount.getUserEmail()));
     }
 
     public static void updateAllUsersInActive(){
-        String query = "UPDATE user SET is_active = 0";
-        Database.executeUpdate(query);
+        Database.executeUpdate(Queries.User.update_all_by_active_status(false));
     }
 
     public static UserAccount getActiveUser(){
@@ -68,18 +57,6 @@ public class UserTable {
         }
 
         return null;
-    }
-
-    static void setValues(UserAccount userAccount){
-        email = userAccount.getUserEmail() != null? String.format("'%s'", userAccount.getUserEmail()) : "NULL";
-        access_token = userAccount.getAccessToken() != null? String.format("'%s'", userAccount.getAccessToken()) : "NULL";
-        secret_key = userAccount.getSecretKey() != null? String.format("'%s'", userAccount.getSecretKey()) : "NULL";
-        access_key = userAccount.getAccessKey() != null? String.format("'%s'", userAccount.getAccessKey()) : "NULL";
-        if(userAccount.getActive() != null){
-            is_active = userAccount.getActive()? 1 : 0;
-        }else{
-            is_active = 0;
-        }
     }
 
 }

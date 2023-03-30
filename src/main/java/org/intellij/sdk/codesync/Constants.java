@@ -50,7 +50,6 @@ public final class Constants {
     //Database queries and strings
     public static final String DATABASE_PATH = Paths.get(CODESYNC_ROOT, "codesyncdb.db").toString();
     public static final String CONNECTION_STRING = "jdbc:sqlite:" + DATABASE_PATH;
-    public static final String CREATE_USER_TABLE_QUERY = "CREATE TABLE IF NOT EXISTS user (EMAIL TEXT PRIMARY KEY, ACCESS_TOKEN TEXT, SECRET_KEY TEXT, ACCESS_KEY TEXT, IS_ACTIVE INT)";
 
     public static final String DEFAULT_TIMEZONE = ZoneId.systemDefault().getId();
     public static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS z";

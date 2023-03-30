@@ -21,10 +21,10 @@ class CodeSyncSetupTest {
         Database.initiate(Helper.CONNECTION_STRING)
 
         //4. Create user table
-        Database.executeUpdate(Queries.CREATE_USER_TABLE)
+        Database.executeUpdate(Queries.User.CREATE_TABLE)
 
         //5. Add dummy user
-        Database.executeUpdate(Queries.User.insert("Dummy@gmail.com","ASDFC", null, null, false));
+        Database.executeUpdate(Queries.User.insert("dummy@gmail.com","ASDFC", null, null, false));
     }
 
     @AfterEach

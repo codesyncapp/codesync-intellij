@@ -53,8 +53,7 @@ public class AuthAction extends AnAction {
             server =  CodeSyncAuthServer.getInstance();
             String targetURL = server.getAuthorizationUrl();
             if (pluginState.isAuthenticated) {
-                UserAccount userAccount;
-                userAccount = new UserAccount();
+                UserAccount userAccount = new UserAccount();
 
                 // Clear any cache that depends on user authentication status.
                 new ClearReposToIgnoreCache().execute();

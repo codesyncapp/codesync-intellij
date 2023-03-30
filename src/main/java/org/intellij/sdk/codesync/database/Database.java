@@ -1,6 +1,5 @@
 package org.intellij.sdk.codesync.database;
 
-import com.intellij.openapi.application.ApplicationManager;
 import org.intellij.sdk.codesync.database.migrations.MigrateUser;
 import org.intellij.sdk.codesync.utils.Queries;
 
@@ -22,14 +21,14 @@ public class Database {
                 Class.forName("org.sqlite.JDBC");
                 String connectionString = CONNECTION_STRING;
                 connection = DriverManager.getConnection(connectionString);
-                executeUpdate(Queries.CREATE_USER_TABLE);
+                executeUpdate(Queries.User.CREATE_TABLE);
                 MigrateUser migrateUser = new MigrateUser();
                 migrateUser.migrateData();
             }else {
                 Class.forName("org.sqlite.JDBC");
                 String connectionString = CONNECTION_STRING;
                 connection = DriverManager.getConnection(connectionString);
-                executeUpdate(Queries.CREATE_USER_TABLE);
+                executeUpdate(Queries.User.CREATE_TABLE);
             }
 
         }catch (Exception exception) {
@@ -76,7 +75,7 @@ public class Database {
             return dataSet;
 
         } catch (Exception exception) {
-            System.out.println("Database error: " + exception.getMessage());
+            System.out.println("DATABASE: [FETCH ERROR] " + exception.getMessage());
         }
 
         return null;
@@ -87,7 +86,7 @@ public class Database {
             Statement statement = connection.createStatement();
             return statement.executeUpdate(query);
         } catch (Exception exception) {
-            System.out.println("Database error: " + exception.getMessage());
+            System.out.println("DATABASE: [INSERTION ERROR] " + exception.getMessage());
         }
         return -1;
     }

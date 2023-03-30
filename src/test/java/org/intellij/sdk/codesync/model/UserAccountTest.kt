@@ -9,8 +9,9 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.File
-import java.util.*
-import kotlin.test.*
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class UserAccountTest {
 
@@ -25,7 +26,7 @@ class UserAccountTest {
         Database.initiate(Helper.CONNECTION_STRING)
 
         //4. Create user table
-        Database.executeUpdate(Queries.CREATE_USER_TABLE)
+        Database.executeUpdate(Queries.User.CREATE_TABLE)
 
         //5. Add dummy user
         Database.executeUpdate(Queries.User.insert("Dummy@gmail.com","ASDFC", null, null, false));
@@ -107,7 +108,6 @@ class UserAccountTest {
         UserTable.updateUser(userAccount1)
 
         userAccount1.setActiveUser("alpha@gmail.com", "alphaAccess")
-
         assertEquals("alpha@gmail.com", userAccount.getActiveUser().getUserEmail())
 
         userAccount1.setActiveUser("beta@gmail.com", "betaAccess")
