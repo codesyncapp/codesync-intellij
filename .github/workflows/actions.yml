@@ -35,7 +35,7 @@ jobs:
           csv_contents=$(cat path/to/your/csv/file.csv)
 
       - name: Create PR Comment
-        uses: unsplash/comment-on-pr@v1.5.0
+        uses: unsplash/comment-on-pr
         with:
           message: |
             **CSV Report**
