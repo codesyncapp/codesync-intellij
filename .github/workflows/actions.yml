@@ -33,3 +33,31 @@ jobs:
       - name: Display code coverage in console
         run: |
             cat build/reports/jacoco/test/html/index.html | grep 'span class="el_percent">Line</span>' -A 1 | tail -n 1 | sed -e 's/<[^>]*>//g'
+
+      - name: Post code coverage report as a check
+        uses: actions/github-script@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+              const { data } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number
+              });
+              
+              const reportUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/blob/${context.sha}/build/reports/jacoco/test/html/index.html`;
+              
+              await github.rest.checks.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'Code Coverage',
+                head_sha: context.sha,
+                status: 'completed',
+                conclusion: 'success',
+                output: {
+                  title: 'Code Coverage Report',
+                  summary: `Code coverage report: ${reportUrl}`,
+                  annotations: []
+                }
+              });
