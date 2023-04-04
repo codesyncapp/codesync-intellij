@@ -34,6 +34,13 @@ patchPluginXml {
   untilBuild = '231.*'
 }
 
+jacocoTestReport {
+  reports {
+    csv.enabled true
+    csv.destination file("$buildDir/reports/coverage/report.csv")
+  }
+}
+
 dependencies {
   implementation files('libs/diff_match_patch.jar')
   implementation files('libs/gitignore-file-filter-1.0.0.jar')
