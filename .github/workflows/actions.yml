@@ -32,7 +32,7 @@ jobs:
 
       - name: Display code coverage in console
         run: |
-          csv_contents=$(cat path/to/your/csv/file.csv)
+          csv_contents=$(cat build/reports/coverage/report.csv)
 
       - name: Create PR Comment
         uses: unsplash/comment-on-pr@v1.3.0
