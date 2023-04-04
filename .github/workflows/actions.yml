@@ -13,9 +13,6 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-      - name: Build with Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: build
-      - name: Print current working directory
-        run: pwd
+      - name: Run tests and generate test coverage report
+        run: ./gradlew test jacocoTestReport
+        working-directory: '/home/runner/work/codesync-intellij/codesync-intellij/'
