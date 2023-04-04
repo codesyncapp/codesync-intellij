@@ -4,6 +4,7 @@ plugins {
   id 'java'
   id 'org.jetbrains.intellij' version '0.6.5'
   id("org.jetbrains.kotlin.jvm") version "1.8.0"
+  id 'jacoco'
 }
 
 group 'com.codesync'
@@ -31,6 +32,25 @@ patchPluginXml {
   version = project.version
   sinceBuild = '201'
   untilBuild = '231.*'
+}
+
+jacoco {
+  toolVersion = "0.8.5"
+}
+
+task jacocoTestReport(type: JacocoReport, dependsOn: ['test']) {
+  reports {
+    xml.enabled true
+    html.enabled true
+  }
+  def excludes = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*']
+  classDirectories.setFrom(files("${project.rootDir}/build/intermediates/classes/debug"))
+  sourceDirectories.setFrom(files("${project.rootDir}/src/main/java"))
+  executionData.setFrom(files("${project.rootDir}/build/jacoco/testDebugUnitTest.exec"))
+  additionalSourceDirs.from(files("${project.rootDir}/src/test/java"))
+  additionalClassDirs.from(files("${project.rootDir}/build/intermediates/classes/test/debug"))
+  excludes = excludes + ['**/*Test*.class', '**/*$*$*.class']
+  exclude(excludes)
 }
 
 dependencies {
