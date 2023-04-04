@@ -13,6 +13,11 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-      - name: Run tests and generate test coverage report
-        run: ./gradlew test myJacocoTestReport
-        working-directory: '/home/runner/work/codesync-intellij/codesync-intellij/'
+      - name: Build and test with Cobertura
+        run: |
+          ./gradlew clean build cobertura
+      - name: Upload Cobertura report
+        uses: actions/upload-artifact@v2
+        with:
+          name: cobertura-report
+          path: build/reports/cobertura/xml/
