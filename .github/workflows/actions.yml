@@ -13,11 +13,13 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-      - name: Build and test with Cobertura
-        run: |
-          ./gradlew clean build cobertura
-      - name: Upload Cobertura report
+      - name: Run tests with Gradle
+        uses: actions/exec@v2
+        with:
+            command: ./gradlew test --info --stacktrace
+
+      - name: Upload code coverage report
         uses: actions/upload-artifact@v2
         with:
-          name: cobertura-report
-          path: build/reports/cobertura/xml/
+            name: code-coverage-report
+            path: build/reports/tests/test/index.html
