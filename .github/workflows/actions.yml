@@ -13,19 +13,7 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-      - name: Build with Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: build
-
-      - name: Generate JaCoCo badge
-        id: jacoco
-        uses: cicirello/jacoco-badge-generator@v2
-        with:
-          badges-directory: badges
-          generate-branches-badge: true
-          generate-summary: true
-
-      - name: Log coverage percentages to workflow output
+      - name: Run Coverage
         run: |
-          echo "coverage = ${{ steps.jacoco.outputs.coverage }}"
+          chmod +x gradlew
+          ./gradlew testCoverage
