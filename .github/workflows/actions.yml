@@ -29,3 +29,7 @@ jobs:
         with:
           name: code-coverage-report
           path: build/reports/jacoco/test/html/index.html
+
+      - name: Display code coverage in console
+        run: |
+            cat build/reports/jacoco/test/html/index.html | grep 'span class="el_percent">Line</span>' -A 1 | tail -n 1 | sed -e 's/<[^>]*>//g'
