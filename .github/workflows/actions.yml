@@ -32,4 +32,5 @@ jobs:
 
       - name: Display code coverage in console
         run: |
-            cat build/reports/jacoco/test/html/index.html | grep -oP '(?<=<td class="ctr2">).*?(?=%</td>)' | head -n1
+            COVERAGE=$(cat build/reports/jacoco/test/html/index.html | grep -oP '(?<=<td class="ctr2">).*?(?=%</td>)' | head -n1)
+            echo "The test coverage is: $COVERAGE %"
