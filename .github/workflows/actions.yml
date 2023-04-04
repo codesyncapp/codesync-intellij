@@ -32,4 +32,4 @@ jobs:
 
       - name: Display code coverage in console
         run: |
-            cat build/reports/jacoco/test/html/index.html | grep Total
+            cat build/reports/jacoco/test/html/index.html | grep -oP '(?<=<td class="ctr2">).*?(?=%</td>)' | head -n1
