@@ -32,7 +32,4 @@ jobs:
 
       - name: Display code coverage in console
         run: |
-          csv_contents=$(cat build/reports/coverage/report.csv)
-
-      - name: Print CSV data
-        run: echo ${csv_contents}
+          cat build/reports/coverage/report.csv
