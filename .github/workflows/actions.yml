@@ -34,15 +34,5 @@ jobs:
         run: |
           csv_contents=$(cat build/reports/coverage/report.csv)
 
-      - name: Create comment
-        uses: actions/github-script@v4
-        with:
-          script: |
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: 'Hello, world!'
-            })
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Print CSV data
+        run: echo ${csv_contents}
