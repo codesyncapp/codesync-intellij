@@ -30,6 +30,13 @@ jobs:
           name: coverage-report
           path: build/reports/coverage/report.csv
 
-      - name: Display code coverage in console
-        run: |
-          cat build/reports/coverage/report.csv
+      - name: Print CSV values as a comment in PR
+        uses: unsplash/comment-on-pr@v1
+        with:
+          message: |
+              CSV values:
+              ```
+              $(cat build/reports/coverage/report.csv)
+              ```
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
