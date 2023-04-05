@@ -37,7 +37,7 @@ jobs:
       - name: Create PR Comment
         uses: unsplash/comment-on-pr@v1.3.0
         with:
-          message: |
+          msg: |
             **CSV Report**
             ```
             $csv_contents
