@@ -31,7 +31,7 @@ jobs:
           path: build/reports/coverage/report.csv
 
       - name: Print CSV values as a comment in PR
-        uses: unsplash/comment-on-pr@v1
+        uses: unsplash/comment-on-pr@v1.3.0
         with:
           message: |
               CSV values:
