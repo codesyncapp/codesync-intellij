@@ -30,11 +30,7 @@ jobs:
           name: coverage-report
           path: build/reports/coverage/report.csv
 
-      - name: Add comment to pull request
-        uses: peter-evans/create-pull-request@v3.12.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'Add comment to PR'
-          title: 'Add comment to PR'
-          body: 'This is a comment added to the pull request!'
-          branch: 'comment-on-pr-${{ steps.pr_number.outputs.number }}'
+      - name: Comment on PR
+        run: echo "Hello World" | gh pr comment $(gh pr view --json url | jq -r .url)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
