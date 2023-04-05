@@ -32,8 +32,7 @@ jobs:
 
       - name: Print CSV values as a comment in PR
         run: |
-          CSV=$(cat build/reports/coverage/report.csv)
-          COMMENT="CSV values:\n\`\`\`$CSV\`\`\`"
+          COMMENT="Hello World!"
           PR_NUMBER=$(echo "$GITHUB_REF" | awk 'BEGIN { FS="/" } { print $3 }')
           URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments"
           curl --request POST --url "$URL" --header "authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" --header "content-type: application/json" --data "{\"body\": \"$COMMENT\"}"
