@@ -31,9 +31,8 @@ jobs:
           path: build/reports/coverage/report.csv
 
       - name: Print CSV values as a comment in PR
-        uses: thollander/actions-comment-pull-request@v1
         run: |
-          CSV=$(cat path/to/csv/file.csv)
+          CSV=$(cat build/reports/coverage/report.csv)
           COMMENT="CSV values:\n\`\`\`$CSV\`\`\`"
           PR_NUMBER=$(echo "$GITHUB_REF" | awk 'BEGIN { FS="/" } { print $3 }')
           URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments"
