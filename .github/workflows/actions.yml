@@ -31,6 +31,7 @@ jobs:
           path: build/reports/coverage/report.csv
 
       - name: Comment on PR
-        run: echo "Hello World" | gh pr comment $(gh pr view --json url | jq -r .url)
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          echo "Hello World" | gh pr comment $(gh pr view --json url | jq -r .url)
