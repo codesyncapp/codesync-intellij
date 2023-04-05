@@ -38,5 +38,5 @@ jobs:
               ```
               $(cat build/reports/coverage/report.csv)
               ```
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
