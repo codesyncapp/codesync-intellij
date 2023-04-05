@@ -33,7 +33,7 @@ jobs:
       - name: Print CSV values as a comment in PR
         uses: unsplash/comment-on-pr@v1.3.0
         with:
-          message: |
+          msg: |
               CSV values:
               ```
               $(cat build/reports/coverage/report.csv)
