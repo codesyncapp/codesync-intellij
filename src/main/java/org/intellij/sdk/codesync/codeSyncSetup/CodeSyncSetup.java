@@ -145,9 +145,8 @@ public class CodeSyncSetup {
     public static void setupCodeSyncRepo(Project project, String repoPath, String repoName, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipSyncPrompt, boolean isSyncingBranch) {
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
-            ConfigRepo configRepo = configFile.getRepo(repoPath);
 
-            if (configFile.isRepoDisconnected(repoPath) || !configRepo.isSuccessfullySyncedWithBranch()) {
+            if (!configFile.isRepoActive(repoPath)) {
                 String branchName = Utils.GetGitBranch(repoPath);
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CHECK_USER_ACCESS);
                 boolean hasAccessToken = checkUserAccess(project, repoPath, repoName, branchName, skipSyncPrompt, isSyncingBranch);
@@ -179,7 +178,7 @@ public class CodeSyncSetup {
                         syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, false);
                     }
                 }
-            } else if (!configFile.isRepoDisconnected(repoPath)) {
+            } else {
                 NotificationManager.notifyInformation(
                         String.format(Notification.REPO_IN_SYNC_MESSAGE, repoName),
                         project
@@ -440,7 +439,7 @@ public class CodeSyncSetup {
             filesData.put(relativeFilePath, item);
         }
         ConfigRepo configRepo;
-        if(configFile.isRepoDisconnected(repoPath)) {
+        if(!configFile.isRepoActive(repoPath)) {
             configRepo = new ConfigRepo(repoPath);
             configRepo.updateRepoBranch(branchName, new ConfigRepoBranch(branchName, branchFiles));
             configFile.updateRepo(repoPath, configRepo);

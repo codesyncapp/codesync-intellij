@@ -12,7 +12,9 @@ import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 
-import java.util.Arrays;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -87,9 +89,35 @@ public class ProjectUtils {
         return moduleContentRoot.getName();
     }
 
+    public static boolean isParent(String prospectiveParent, String prospectiveChild) {
+        Path parent = Paths.get(prospectiveParent);
+        Path child = Paths.get(prospectiveChild);
+        return child.startsWith(parent);
+    }
+
+    public static boolean isChild(String prospectiveChild, String prospectiveParent) {
+        Path parent = Paths.get(prospectiveParent);
+        Path child = Paths.get(prospectiveChild);
+        // We are assuming the path itself is not a child of self. but it is a parent of self.
+        return !child.equals(parent) && child.startsWith(parent);
+    }
+
     public static VirtualFile[] getAllContentRoots(Project project) {
-        VirtualFile[] contentRoots = ProjectRootManager.getInstance(project).getContentRootsFromAllModules();
-        return Arrays.stream(contentRoots).distinct().toArray(VirtualFile[]::new);
+        VirtualFile[] contentRoots = ProjectRootManager.getInstance(project).getContentRoots();
+
+        int index = 0;
+        while (index < contentRoots.length) {
+            VirtualFile contentRoot = contentRoots[index];
+
+            // Remove all the children of the `contentRoot`.
+            contentRoots = Arrays.stream(contentRoots).distinct().filter(
+                path -> !isChild(Objects.requireNonNull(path.getCanonicalPath()), contentRoot.getCanonicalPath())
+            ).toArray(VirtualFile[]::new);
+
+            index += 1;
+        }
+
+        return contentRoots;
     }
 
     public static PluginState getModuleState(VirtualFile virtualFile, Project project) throws FileNotInModuleError {

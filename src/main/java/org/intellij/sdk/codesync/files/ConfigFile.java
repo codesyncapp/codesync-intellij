@@ -146,13 +146,4 @@ public class ConfigFile extends CodeSyncYmlFile {
 
         return !repo.isDisconnected && !repo.branches.isEmpty() && repo.hasValidEmail() && repo.hasValidId();
     }
-
-    public boolean isRepoDisconnected(String repoPath) {
-        ConfigRepo repo = this.getRepo(repoPath);
-        if (repo == null) {
-            return true;
-        }
-
-        return repo.isDisconnected;
-    }
 }
