@@ -146,7 +146,7 @@ public class CodeSyncSetup {
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
 
-            if (!configFile.isRepoActive(repoPath)) {
+            if (!configFile.isRepoActive(repoPath) || isSyncingBranch) {
                 String branchName = Utils.GetGitBranch(repoPath);
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CHECK_USER_ACCESS);
                 boolean hasAccessToken = checkUserAccess(project, repoPath, repoName, branchName, skipSyncPrompt, isSyncingBranch);
@@ -176,9 +176,10 @@ public class CodeSyncSetup {
 
                     if (shouldSyncRepo) {
                         syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, false);
+                        reposBeingSynced.remove(repoPath);
                     }
                 }
-            } else {
+            } else if (!isSyncingBranch) {
                 NotificationManager.notifyInformation(
                         String.format(Notification.REPO_IN_SYNC_MESSAGE, repoName),
                         project
@@ -511,6 +512,8 @@ public class CodeSyncSetup {
                 },
                 ModalityState.defaultModalityState()
             );
+        } else {
+            payload.put("is_public", false);
         }
 
         payload.put("name", repoName);
