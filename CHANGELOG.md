@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.20.1] - 2023-04-09
+-  Fixed handling for multi-module projects in languages that support modules such as java. These were being considered as separate repo by the plugin.
+- Added fixes for sync prompt at the start, it was incorrectly prompting user to sync the repo if user creates a new branch offline for an already synced repo.
+- Fixed invalid payload issue for branch syncing process, specifically `is_public` was missing and causing an error.
+- Improved messaging of repo in sync message.
+
 ## [3.20.0] - 2023-03-23
 - Added support for latest intelliJ IDE version.
 - Added fixes for dialog related issues on some systems.

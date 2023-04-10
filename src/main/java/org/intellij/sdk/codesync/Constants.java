@@ -136,7 +136,7 @@ public final class Constants {
         public static final String BRANCH_INIT_FAILURE_MESSAGE = "Branch '%s' could not be initialized successfully, please try again later. If problem persists then contact support.";
 
         public static final String REPO_SYNC_IN_PROGRESS_MESSAGE = "Repo '%s' is being synced with CodeSync.";
-        public static final String REPO_IN_SYNC_MESSAGE = "Repo '%s' is synced with CodeSync.";
+        public static final String REPO_IN_SYNC_MESSAGE = "Repo '%s' is in sync with CodeSync.";
         public static final String REPO_ALREADY_IN_SYNC_MESSAGE = "Repo '%s' is already being synced with CodeSync.";
 
         public static final String LOGIN_REQUIRED_FOR_SYNC_MESSAGE = "You need to login to sync repo. Please login and then try again.";

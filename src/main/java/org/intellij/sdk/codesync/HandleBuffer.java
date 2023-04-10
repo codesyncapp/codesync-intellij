@@ -347,7 +347,7 @@ public class HandleBuffer {
             return;
         }
 
-        if (configFile.isRepoDisconnected(currentRepo)) {
+        if (!configFile.isRepoActive(currentRepo)) {
             CodeSyncLogger.info("Repo is disconnected so, skipping the diffs.");
             return;
         }
