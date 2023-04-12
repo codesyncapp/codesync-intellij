@@ -63,7 +63,7 @@ public class Authenticator extends HttpServlet {
         JSONObject jsonResponse;
 
         try {
-            jsonResponse = ClientUtils.sendPost(API_USERS, payload, accessToken).getJsonResponse();
+            jsonResponse = ClientUtils.sendPost(API_USERS, accessToken).getJsonResponse();
         } catch (RequestError | InvalidJsonError error) {
             CodeSyncLogger.critical(
                     String.format("[INTELLIJ_AUTH_ERROR]: Error while creating the user. access token: '%s'", accessToken)
