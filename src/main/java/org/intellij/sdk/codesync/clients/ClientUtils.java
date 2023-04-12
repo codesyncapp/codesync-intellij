@@ -74,6 +74,19 @@ public class ClientUtils {
         return httpPost;
     }
 
+    private static HttpPost getHttpPost(String url, String accessToken) throws InvalidJsonError {
+        HttpPost httpPost = new HttpPost(url);
+
+        // Make sure to mark all requests with content type "application/json".
+        httpPost.addHeader("content-type", "application/json");
+
+        if (accessToken != null) {
+            httpPost.addHeader("Authorization", String.format("Basic %s", accessToken));
+        }
+
+        return httpPost;
+    }
+
     private static HttpPatch getHttpPatch(String url, JSONObject JSONPayload, String accessToken) throws InvalidJsonError {
         HttpPatch httpPatch = new HttpPatch(url);
         httpPatch.setEntity(getStringEntityFromJSONObject(JSONPayload));
@@ -126,6 +139,25 @@ public class ClientUtils {
         } catch (IOException error) {
             throw new RequestError(
                 String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
+            );
+        }
+    }
+
+    public static JSONResponse sendPost(String url, String accessToken) throws RequestError, InvalidJsonError {
+        try (CloseableHttpClient httpClient = getHttpClientBuilder().build()) {
+            // Build HTTP POST request instance.
+            HttpPost httpPost = getHttpPost(url, accessToken);
+
+            try (CloseableHttpResponse httpResponse = httpClient.execute(httpPost)) {
+                return JSONResponse.from(httpResponse);
+            } catch (SocketTimeoutException | ConnectTimeoutException error) {
+                throw new RequestError("Request to CodeSync server timed out.");
+            } catch (IOException error) {
+                throw new RequestError("Could not make a successful request to CodeSync server.");
+            }
+        } catch (IOException error) {
+            throw new RequestError(
+                    String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
             );
         }
     }
