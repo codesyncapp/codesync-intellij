@@ -172,10 +172,6 @@ public class HandleBuffer {
         }
 
         CodeSyncClient client = new CodeSyncClient();
-        if (!client.isServerUp()) {
-            CodeSyncLogger.critical(CONNECTION_ERROR_MESSAGE);
-            return;
-        }
 
         diffFiles = Arrays.copyOfRange(
             diffFiles, 0, diffFiles.length >= DIFFS_PER_ITERATION ? DIFFS_PER_ITERATION : diffFiles.length
