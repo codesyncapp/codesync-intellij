@@ -32,7 +32,7 @@ public class ConfigFile extends CodeSyncYmlFile {
         try {
             this.contentsMap = this.readYml();
         } catch (InvalidYmlFileError e) {
-            ConfigFile.removeFileContents(this.getYmlFile());
+            CodeSyncYmlFile.removeFileContents(this.getYmlFile());
             StateUtils.reloadState(StateUtils.getGlobalState().project);
             CodeSyncLogger.error("Removed contents of the config file after facing invalid yaml error.");
         } catch (FileNotFoundException e) {
@@ -108,16 +108,19 @@ public class ConfigFile extends CodeSyncYmlFile {
         this.repos.remove(repoPath);
     }
 
+    @Override
     public void writeYml() throws FileNotFoundException, InvalidYmlFileError, FileLockedError {
-        // This is a temporary fic to wait till the file contents are flushed before writing content of the next call.
-        if (fileWriteLockExpiry != null && fileWriteLockExpiry.isAfter(Instant.now())) {
+        // This is a temporary fix to wait till the file contents are flushed before writing content of the next call.
+        if (fileWriteLockExpiry != null) {
             try {
-                Thread.sleep(
-                    fileWriteLockExpiry.until(Instant.now(), ChronoUnit.MILLIS)
-                );
+                long waitInMillis = Instant.now().until(fileWriteLockExpiry, ChronoUnit.MILLIS);
+                if (waitInMillis > 0) {
+                    Thread.sleep(waitInMillis);
+                }
             } catch (InterruptedException e) {
                 // Ignore the exception.
                 CodeSyncLogger.error("Error calling Thread.sleep to handle config file locking.");
+                Thread.currentThread().interrupt();
             }
         }
 
