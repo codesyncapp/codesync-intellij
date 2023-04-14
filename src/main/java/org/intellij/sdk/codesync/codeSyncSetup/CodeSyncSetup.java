@@ -693,6 +693,9 @@ public class CodeSyncSetup {
         ConfigRepoBranch configRepoBranch = new ConfigRepoBranch(branchName, filePathAndIds);
         configRepo.id = repoId;
         configRepo.email = userEmail;
+        configRepo.isDisconnected = false;
+        configRepo.isDeleted = false;
+        configRepo.pauseNotification = false;
 
         try {
             configRepo.updateRepoBranch(branchName, configRepoBranch);

@@ -30,7 +30,10 @@ public class ConfigFile extends CodeSyncYmlFile {
 
         try {
             this.contentsMap = this.readYml();
-        } catch (FileNotFoundException | InvalidYmlFileError e) {
+        } catch (InvalidYmlFileError e) {
+            ConfigFile.removeFileContents(this.getYmlFile());
+            CodeSyncLogger.error("Removed contents of the config file after facing invalid yaml error.");
+        } catch (FileNotFoundException e) {
             throw new InvalidConfigFileError(e.getMessage());
         }
 
@@ -170,6 +173,6 @@ public class ConfigFile extends CodeSyncYmlFile {
             return false;
         }
 
-        return !repo.isDisconnected && !repo.branches.isEmpty() && repo.hasValidEmail() && repo.hasValidId();
+        return repo.isActive();
     }
 }

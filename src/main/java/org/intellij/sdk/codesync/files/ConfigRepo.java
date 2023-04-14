@@ -89,6 +89,13 @@ public class ConfigRepo {
     }
 
     /*
+        Check if the repo is actively being synced with the server.
+    */
+    public boolean isActive() {
+        return !isDisconnected && isSynced() && hasValidId() && hasValidEmail();
+    }
+
+    /*
     Make sure the current branch is successfully synced with the server.
      */
     public boolean isSuccessfullySyncedWithBranch() {

@@ -12,6 +12,8 @@ import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 /*
@@ -27,15 +29,15 @@ abstract public class CodeSyncYmlFile {
 
     public Map<String, Object> readYml() throws FileNotFoundException, InvalidYmlFileError {
         Yaml yaml = new Yaml();
-        InputStream inputStream;
-        inputStream = new FileInputStream(this.getYmlFile());
-        String text = null;
+        Path filePath = this.getYmlFile().toPath();
 
-        try (Reader reader = new InputStreamReader(inputStream)) {
-            text = CharStreams.toString(reader);
+        try (Reader reader = new InputStreamReader(Files.newInputStream(filePath))) {
+            String text = CharStreams.toString(reader);
             return yaml.load(text);
-        } catch (IOException | YAMLException e) {
+        } catch (YAMLException e) {
             throw new InvalidYmlFileError(e.getMessage());
+        } catch (IOException e) {
+            throw new FileNotFoundException(e.getMessage());
         }
     }
 
@@ -122,6 +124,8 @@ abstract public class CodeSyncYmlFile {
         try {
             FileWriter writer = new FileWriter(ymlFile);
             writer.write("{}");
+            writer.flush();
+            writer.close();
         } catch (IOException | YAMLException e) {
             // Ignore errors
             CodeSyncLogger.error(String.format(

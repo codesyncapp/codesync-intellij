@@ -183,13 +183,8 @@ public class PopulateBuffer {
             String repoName = Paths.get(repoPath).getFileName().toString();
             ConfigRepo configRepo = configRepoEntry.getValue();
 
-            if (configRepo.isDisconnected) {
-                // No need to check updates for this repo.
-                continue;
-            }
-
-            if (!configRepo.hasValidEmail()) {
-                // Repo does not have a correct email address, skipping this as well.
+            if (!configRepo.isActive()) {
+                // Repo is not active so no need to check updates for this repo.
                 continue;
             }
 
@@ -276,7 +271,7 @@ public class PopulateBuffer {
                 ));
             }
 
-            if (!populateBuffer.configRepo.isDisconnected) {
+            if (populateBuffer.configRepo.isActive()) {
                 if (populateBuffer.isModifiedSinceLastSync()) {
                     diffsForFileUpdates = populateBuffer.getDiffsForFileUpdates();
                 }
