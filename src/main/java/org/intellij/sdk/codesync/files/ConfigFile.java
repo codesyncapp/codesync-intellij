@@ -1,9 +1,12 @@
 package org.intellij.sdk.codesync.files;
 
 import java.io.*;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
@@ -13,6 +16,8 @@ public class ConfigFile extends CodeSyncYmlFile {
     File configFile;
     Map<String, Object> contentsMap;
     public Map<String, ConfigRepo> repos = new HashMap<>();
+
+    private static Instant fileWriteLockExpiry = null;
 
     public ConfigFile(String filePath) throws InvalidConfigFileError {
         File configFile = new File(filePath);
@@ -96,6 +101,27 @@ public class ConfigFile extends CodeSyncYmlFile {
     }
     public void deleteRepo(String repoPath) {
         this.repos.remove(repoPath);
+    }
+
+    public void writeYml() throws FileNotFoundException, InvalidYmlFileError, FileLockedError {
+        // This is a temporary fic to wait till the file contents are flushed before writing content of the next call.
+        if (fileWriteLockExpiry != null && fileWriteLockExpiry.isAfter(Instant.now())) {
+            try {
+                Thread.sleep(
+                    fileWriteLockExpiry.until(Instant.now(), ChronoUnit.MILLIS)
+                );
+            } catch (InterruptedException e) {
+                // Ignore the exception.
+                CodeSyncLogger.error("Error calling Thread.sleep to handle config file locking.");
+            }
+        }
+
+        // Set the expiry to 5 seconds into the future.
+        fileWriteLockExpiry = Instant.now().plus(5, ChronoUnit.SECONDS);
+        super.writeYml();
+
+        // Clear the lock
+        fileWriteLockExpiry = null;
     }
 
     public void publishRepoUpdate (ConfigRepo updatedRepo) throws InvalidConfigFileError {

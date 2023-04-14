@@ -69,10 +69,12 @@ public class DiffUtils {
         FileWriter writer = null;
         try {
             writer = new FileWriter(diffFilePath.toFile());
+            yaml.dump(data, writer);
+            writer.flush();
+            writer.close();
         } catch (IOException e) {
             CodeSyncLogger.error(String.format("Error writing to diff file. Error: %s", e.getMessage()));
             e.printStackTrace();
         }
-        yaml.dump(data, writer);
     }
 }

@@ -55,6 +55,8 @@ abstract public class CodeSyncYmlFile {
         try {
             FileWriter writer = new FileWriter(ymlFile);
             yaml.dump(yamlConfig, writer);
+            writer.flush();
+            writer.close();
         } catch (IOException | YAMLException e) {
             throw new InvalidYmlFileError(e.getMessage());
         }
