@@ -61,6 +61,30 @@ public class ConfigFile extends CodeSyncYmlFile {
         return configFile;
     }
 
+    private static void acquireLock() {
+        // This is a temporary fix to wait till the file contents are flushed before writing content of the next call.
+        if (fileWriteLockExpiry != null) {
+            try {
+                long waitInMillis = Instant.now().until(fileWriteLockExpiry, ChronoUnit.MILLIS);
+                if (waitInMillis > 0) {
+                    Thread.sleep(waitInMillis);
+                }
+            } catch (InterruptedException e) {
+                // Ignore the exception.
+                CodeSyncLogger.error("Error calling Thread.sleep to handle config file locking.");
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        // Set the expiry to 5 seconds into the future.
+        fileWriteLockExpiry = Instant.now().plus(5, ChronoUnit.SECONDS);
+    }
+
+    private static void releaseLock() {
+        // Clear the lock
+        fileWriteLockExpiry = null;
+    }
+
     private void reloadFromFile() throws InvalidConfigFileError {
         try {
             this.contentsMap = this.readYml();
@@ -108,66 +132,54 @@ public class ConfigFile extends CodeSyncYmlFile {
         this.repos.remove(repoPath);
     }
 
-    @Override
-    public void writeYml() throws FileNotFoundException, InvalidYmlFileError, FileLockedError {
-        // This is a temporary fix to wait till the file contents are flushed before writing content of the next call.
-        if (fileWriteLockExpiry != null) {
-            try {
-                long waitInMillis = Instant.now().until(fileWriteLockExpiry, ChronoUnit.MILLIS);
-                if (waitInMillis > 0) {
-                    Thread.sleep(waitInMillis);
-                }
-            } catch (InterruptedException e) {
-                // Ignore the exception.
-                CodeSyncLogger.error("Error calling Thread.sleep to handle config file locking.");
-                Thread.currentThread().interrupt();
-            }
-        }
-
-        // Set the expiry to 5 seconds into the future.
-        fileWriteLockExpiry = Instant.now().plus(5, ChronoUnit.SECONDS);
-        super.writeYml();
-
-        // Clear the lock
-        fileWriteLockExpiry = null;
-    }
-
     public void publishRepoUpdate (ConfigRepo updatedRepo) throws InvalidConfigFileError {
+        acquireLock();
         this.reloadFromFile();
         this.updateRepo(updatedRepo.repoPath, updatedRepo);
         try {
             this.writeYml();
+            releaseLock();
         } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
+            releaseLock();
             throw new InvalidConfigFileError(e.getMessage());
         }
     }
 
     public void publishRepoRemoval (String repoPath) throws InvalidConfigFileError {
+        acquireLock();
         this.reloadFromFile();
         this.deleteRepo(repoPath);
         try {
             this.writeYml();
+            releaseLock();
         } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
+            releaseLock();
             throw new InvalidConfigFileError(e.getMessage());
         }
     }
 
     public void publishBranchUpdate (ConfigRepo updatedRepo, ConfigRepoBranch updatedBranch) throws InvalidConfigFileError {
+        acquireLock();
         this.reloadFromFile();
         this.getRepo(updatedRepo.repoPath).updateRepoBranch(updatedBranch.branchName, updatedBranch);
         try {
             this.writeYml();
+            releaseLock();
         } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
+            releaseLock();
             throw new InvalidConfigFileError(e.getMessage());
         }
     }
 
     public void publishBranchRemoval (ConfigRepo configRepo, String branchName) throws InvalidConfigFileError {
+        acquireLock();
         this.reloadFromFile();
         this.getRepo(configRepo.repoPath).deleteRepoBranch(branchName);
         try {
             this.writeYml();
+            releaseLock();
         } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
+            releaseLock();
             throw new InvalidConfigFileError(e.getMessage());
         }
     }
