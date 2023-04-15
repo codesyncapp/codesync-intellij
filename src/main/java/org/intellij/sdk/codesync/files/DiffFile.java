@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Date;
 
 
+import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
@@ -13,6 +14,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.scanner.ScannerException;
 
 import static org.intellij.sdk.codesync.Constants.DIFF_SIZE_LIMIT;
 
@@ -28,9 +30,14 @@ public class DiffFile {
     public DiffFile(@NotNull File originalDiffFile) {
         this.originalDiffFile = originalDiffFile;
         this.contents = FileUtils.readFileToString(originalDiffFile);
-
+        Map<String, Object> obj;
         Yaml yaml = new Yaml();
-        Map<String, Object> obj = yaml.load(this.contents);
+        try {
+            obj = yaml.load(this.contents);
+        } catch (ScannerException e) {
+            CodeSyncLogger.debug(String.format("Invalid diff file. File Contents: %s", this.contents));
+            return;
+        }
 
         this.diff = (String) obj.get("diff");
         this.branch = (String) obj.get("branch");

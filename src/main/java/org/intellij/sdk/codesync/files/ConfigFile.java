@@ -1,18 +1,24 @@
 package org.intellij.sdk.codesync.files;
 
 import java.io.*;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
+import org.intellij.sdk.codesync.state.StateUtils;
 
 
 public class ConfigFile extends CodeSyncYmlFile {
     File configFile;
     Map<String, Object> contentsMap;
     public Map<String, ConfigRepo> repos = new HashMap<>();
+
+    private static Instant fileWriteLockExpiry = null;
 
     public ConfigFile(String filePath) throws InvalidConfigFileError {
         File configFile = new File(filePath);
@@ -25,7 +31,11 @@ public class ConfigFile extends CodeSyncYmlFile {
 
         try {
             this.contentsMap = this.readYml();
-        } catch (FileNotFoundException | InvalidYmlFileError e) {
+        } catch (InvalidYmlFileError e) {
+            CodeSyncYmlFile.removeFileContents(this.getYmlFile());
+            StateUtils.reloadState(StateUtils.getGlobalState().project);
+            CodeSyncLogger.error("Removed contents of the config file after facing invalid yaml error.");
+        } catch (FileNotFoundException e) {
             throw new InvalidConfigFileError(e.getMessage());
         }
 
@@ -98,6 +108,30 @@ public class ConfigFile extends CodeSyncYmlFile {
         this.repos.remove(repoPath);
     }
 
+    @Override
+    public void writeYml() throws FileNotFoundException, InvalidYmlFileError, FileLockedError {
+        // This is a temporary fix to wait till the file contents are flushed before writing content of the next call.
+        if (fileWriteLockExpiry != null) {
+            try {
+                long waitInMillis = Instant.now().until(fileWriteLockExpiry, ChronoUnit.MILLIS);
+                if (waitInMillis > 0) {
+                    Thread.sleep(waitInMillis);
+                }
+            } catch (InterruptedException e) {
+                // Ignore the exception.
+                CodeSyncLogger.error("Error calling Thread.sleep to handle config file locking.");
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        // Set the expiry to 5 seconds into the future.
+        fileWriteLockExpiry = Instant.now().plus(5, ChronoUnit.SECONDS);
+        super.writeYml();
+
+        // Clear the lock
+        fileWriteLockExpiry = null;
+    }
+
     public void publishRepoUpdate (ConfigRepo updatedRepo) throws InvalidConfigFileError {
         this.reloadFromFile();
         this.updateRepo(updatedRepo.repoPath, updatedRepo);
@@ -144,6 +178,6 @@ public class ConfigFile extends CodeSyncYmlFile {
             return false;
         }
 
-        return !repo.isDisconnected && !repo.branches.isEmpty() && repo.hasValidEmail() && repo.hasValidId();
+        return repo.isActive();
     }
 }

@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.20.2] - 2023-04-14
+- Added synchronization logic for writes to config files, a locking mechanism would allow multiple threads write to the config file.
+- Added handling for invalid config files, config file will be emptied if its contents are not valid.
+- Changes for inactive repositories would be ignored now, previously diff files were being created causing buffer size increase.
+- Offline changes for inactive repositories will be ignored.
+- Updated logic to use correct initial values for fields such as `isDisconnected`, `pauseNotification` and `isDeleted` for newly synced repos.
+
 ## [3.20.1] - 2023-04-09
 -  Fixed handling for multi-module projects in languages that support modules such as java. These were being considered as separate repo by the plugin.
 - Added fixes for sync prompt at the start, it was incorrectly prompting user to sync the repo if user creates a new branch offline for an already synced repo.

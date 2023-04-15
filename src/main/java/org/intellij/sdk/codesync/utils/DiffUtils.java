@@ -65,14 +65,15 @@ public class DiffUtils {
 
         Yaml yaml = new Yaml(options);
         Path diffFilePath = Paths.get(DIFFS_REPO, String.format("%s.yml", System.currentTimeMillis()));
-        // Write diff file
-        FileWriter writer = null;
         try {
-            writer = new FileWriter(diffFilePath.toFile());
+            // Write diff file
+            FileWriter writer = new FileWriter(diffFilePath.toFile());
+            yaml.dump(data, writer);
+            writer.flush();
+            writer.close();
         } catch (IOException e) {
             CodeSyncLogger.error(String.format("Error writing to diff file. Error: %s", e.getMessage()));
             e.printStackTrace();
         }
-        yaml.dump(data, writer);
     }
 }
