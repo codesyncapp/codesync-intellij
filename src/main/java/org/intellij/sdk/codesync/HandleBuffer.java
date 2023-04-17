@@ -122,6 +122,9 @@ public class HandleBuffer {
                     HandleBuffer.handleBuffer(project);
                 } catch (Exception e) {
                     CodeSyncLogger.error(String.format("handleBuffer exited with error: %s", e.getMessage()));
+                    if(e.getMessage().contains("Connection failed")){
+                        CodeSyncLogger.critical(CONNECTION_ERROR_MESSAGE);
+                    }
                 }
 
                 bufferHandler(timer, project);
