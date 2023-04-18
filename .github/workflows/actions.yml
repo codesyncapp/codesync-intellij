@@ -18,14 +18,19 @@ jobs:
       - name: Build and run tests with JaCoCo
         run: ./gradlew clean build jacocoTestReport --stacktrace
 
-      - name: Upload test reports
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-reports
-          path: build/test-results/test
-
-      - name: Upload code coverage report
-        uses: actions/upload-artifact@v2
-        with:
-          name: coverage-report
-          path: build/reports/coverage/report.csv
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#      - name: Upload test reports
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: test-reports
+#          path: build/test-results/test
+#
+#      - name: Upload code coverage report
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: coverage-report
+#          path: build/reports/coverage/report.csv
