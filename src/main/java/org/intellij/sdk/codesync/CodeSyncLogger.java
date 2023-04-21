@@ -144,6 +144,11 @@ public class CodeSyncLogger {
                 accessKey = PLUGIN_USER_ACCESS_KEY;
                 secretKey = PLUGIN_USER_SECRET_KEY;
             }
+
+            if (accessKey == null || secretKey == null) {
+                System.out.println("Plugin is not able communicate with the server. Please check your internet connection.");
+                return;
+            }
         } else {
             streamName = user.getUserEmail();
             accessKey = user.getAccessKey();
