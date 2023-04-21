@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.20.3] - 2023-04-21
+- Added tests for config file updates, updated logic so that async writes and locking wait do not cause the loss of data added in previous writes.
+- Added more error handling for cloud watch logs so that it gracefully handles errors and does not interrupt users.
+
 ## [3.20.2] - 2023-04-14
 - Added synchronization logic for writes to config files, a locking mechanism would allow multiple threads write to the config file.
 - Added handling for invalid config files, config file will be emptied if its contents are not valid.

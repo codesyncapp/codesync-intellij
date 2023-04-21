@@ -154,12 +154,34 @@ public class CodeSyncLogger {
             logMessageToCloudWatch(
                     CLIENT_LOGS_GROUP_NAME, streamName, accessKey, secretKey, message, type
             );
-        } catch (CloudWatchException e) {
+        } catch (UnrecognizedClientException error) {
+            String errorMessage = String.format(
+                "Error publishing message to cloudwatch. Error: %s%nOriginal Message: %s", error.getMessage(), message
+            );
             if (retryCount > 10) {
                 // Do not try more than 10 times.
                 retryCount = 0;
+                System.out.printf("[ERROR]: Could not log the message to cloud watch. Error: %s%n", error.getMessage());
+            } else {
+                retryCount += 1;
+
+                logMessageToCloudWatch(
+                    CLIENT_LOGS_GROUP_NAME,
+                    PLUGIN_USER_LOG_STREAM,
+                    PLUGIN_USER_ACCESS_KEY == null ? configuration.getPluginUserAccessKey(): PLUGIN_USER_ACCESS_KEY,
+                    PLUGIN_USER_SECRET_KEY == null ? configuration.getPluginUserSecretKey(): PLUGIN_USER_SECRET_KEY,
+                    errorMessage,
+                    type
+                );
+            }
+        } catch (CloudWatchException | CloudWatchLogsException  e) {
+            if (retryCount > 10) {
+                // Do not try more than 10 times.
+                retryCount = 0;
+                System.out.printf("[ERROR]: Could not log the message to cloud watch. Error: %s%n", e.getMessage());
             } else {
                 // try again.
+                retryCount += 1;
                 logEvent(message, userEmail, type);
             }
         }

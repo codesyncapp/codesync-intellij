@@ -1,0 +1,11 @@
+repos:
+  /Users/codesync/dev/test-repo:
+    pause_notification: false
+    is_deleted: false
+    is_disconnected: false
+    id: 1
+    branches:
+      test-branch:
+        test.txt: 2
+    email: test@codesync.com
+  invalid-content
