@@ -122,6 +122,9 @@ public class HandleBuffer {
                     HandleBuffer.handleBuffer(project);
                 } catch (Exception e) {
                     CodeSyncLogger.error(String.format("handleBuffer exited with error: %s", e.getMessage()));
+                    if(e.getMessage().contains("Connection failed")){
+                        CodeSyncLogger.critical(CONNECTION_ERROR_MESSAGE);
+                    }
                 }
 
                 bufferHandler(timer, project);
@@ -171,10 +174,6 @@ public class HandleBuffer {
         }
 
         CodeSyncClient client = new CodeSyncClient();
-        if (!client.isServerUp()) {
-            CodeSyncLogger.critical(CONNECTION_ERROR_MESSAGE);
-            return;
-        }
 
         diffFiles = Arrays.copyOfRange(
             diffFiles, 0, diffFiles.length >= DIFFS_PER_ITERATION ? DIFFS_PER_ITERATION : diffFiles.length

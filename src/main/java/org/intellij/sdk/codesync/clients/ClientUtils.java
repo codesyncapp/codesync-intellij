@@ -130,6 +130,10 @@ public class ClientUtils {
         }
     }
 
+    public static JSONResponse sendPost(String url, String accessToken) throws RequestError, InvalidJsonError {
+        return sendPost(url, new JSONObject(), accessToken);
+    }
+
     public static JSONResponse sendPost(String url, JSONObject payload) throws RequestError, InvalidJsonError {
         return sendPost(url, payload, null);
     }
