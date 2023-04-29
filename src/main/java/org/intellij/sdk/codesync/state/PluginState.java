@@ -8,4 +8,5 @@ public class PluginState {
     public boolean isRepoInSync;
     public String repoPath;
     public String userEmail = null;
+    public boolean syncInProcess = false;
 }

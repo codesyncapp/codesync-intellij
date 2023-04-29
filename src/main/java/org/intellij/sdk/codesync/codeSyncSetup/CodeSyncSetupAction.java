@@ -12,6 +12,8 @@ import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.intellij.sdk.codesync.exceptions.base.BaseException;
 import org.intellij.sdk.codesync.exceptions.base.BaseNetworkException;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
+import org.intellij.sdk.codesync.state.PluginState;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +45,11 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                     presentation.setText("Connect Repo");
                     presentation.setDescription("Connect repo with codeSync");
                 }
+
+                String repoPath = ProjectUtils.getRepoPath(project);
+                PluginState pluginState = StateUtils.getState(repoPath);
+                e.getPresentation().setEnabled(!pluginState.syncInProcess);
+
             } catch (AssertionError | FileNotInModuleError error) {
                 e.getPresentation().setEnabled(false);
             }
@@ -58,6 +65,11 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                 presentation.setText("Connect Repo");
                 presentation.setDescription("Connect repo with codeSync");
             }
+
+            String repoPath = ProjectUtils.getRepoPath(project);
+            PluginState pluginState = StateUtils.getState(repoPath);
+            e.getPresentation().setEnabled(!pluginState.syncInProcess);
+
         } else {
             e.getPresentation().setEnabled(false);
         }
