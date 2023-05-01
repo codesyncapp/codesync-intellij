@@ -181,7 +181,7 @@ public class CodeSyncSetup {
                         reposBeingSynced.remove(repoPath);
                     }
                 }
-            } else if (!isSyncingBranch) {
+            } else {
                 NotificationManager.notifyInformation(
                         String.format(Notification.REPO_IN_SYNC_MESSAGE, repoName),
                         project
@@ -338,6 +338,11 @@ public class CodeSyncSetup {
         if (wasUploadSuccessful) {
             // Remove originals repo if it was uploaded successfully.
             originalsRepoManager.delete();
+
+            if (!Objects.equals(repoPath, project.getBasePath()) && isSyncingBranch) {
+                // Skip messaging as we are syncing offline branch for non-opened project.
+                return;
+            }
 
             // Show success message and update state
             if (!isSyncingBranch){
