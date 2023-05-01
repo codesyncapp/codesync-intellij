@@ -635,8 +635,6 @@ public class CodeSyncSetup {
             codeSyncProgressIndicator.setMileStone(InitRepoMilestones.UPLOAD_FILES);
             // Upload file to S3.
             uploadToS3(repoPath, branchName, accessToken, email, repoId, fileUrls);
-            ReloadStateCommand reloadStateCommand = new ReloadStateCommand(project);
-            reloadStateCommand.execute();
         } catch (ClassCastException | JsonProcessingException err) {
             CodeSyncLogger.critical(
                 String.format("Error parsing the response of /init endpoint. Error: %s", err.getMessage()),

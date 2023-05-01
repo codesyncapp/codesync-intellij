@@ -269,6 +269,7 @@ public class PopulateBuffer {
                     "[NON_IDE_EVENTS] Could not populate for missed events, because config file for repo '%s' could not be opened.",
                     repoPath
                 ));
+                continue;
             }
 
             if (populateBuffer.configRepo.isActive()) {
