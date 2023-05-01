@@ -143,4 +143,11 @@ public class DiffFile {
     public void setDiff(String diff)  {
         this.diff = diff;
     }
+
+    /*
+    Helper method to check if diff content is empty or null.
+     */
+    public boolean isEmptyDiff() {
+        return this.diff == null || this.diff.length() == 0;
+    }
 }

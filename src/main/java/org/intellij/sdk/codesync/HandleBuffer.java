@@ -293,7 +293,7 @@ public class HandleBuffer {
                 }
             }
 
-            if (!diffFile.isBinary && !diffFile.isDeleted && diffFile.diff.length() == 0) {
+            if (!diffFile.isBinary && !diffFile.isDeleted && diffFile.isEmptyDiff()) {
                 System.out.printf("Empty diff found in file: %s. Removing...\n", diffFile.fileRelativePath);
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                 // Delete empty diff files.
