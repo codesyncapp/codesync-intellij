@@ -32,6 +32,8 @@ public final class Constants {
     public static final String DELETED_REPO = Paths.get(CODESYNC_ROOT, ".deleted").toString();
     public static final String SHADOW_REPO = Paths.get(CODESYNC_ROOT, ".shadow").toString();
     public static final String CONFIG_PATH = Paths.get(CODESYNC_ROOT, "config.yml").toString();
+
+    //TODO: User file will be removed
     public static final String USER_FILE_PATH = Paths.get(CODESYNC_ROOT, "user.yml").toString();
     public static final String ALERTS_FILE_PATH = Paths.get(CODESYNC_ROOT, "alerts.yml").toString();
     public static final String SEQUENCE_TOKEN_FILE_PATH = Paths.get(CODESYNC_ROOT, "sequence_token.yml").toString();
@@ -44,6 +46,10 @@ public final class Constants {
     public static final Integer DELAY_BETWEEN_BUFFER_TASKS = 5000;
     public static final Integer DELAY_BETWEEN_ACTIVITY_ALERT_TASKS = 10 * 60 * 1000; // 10 minutes wait.
     public static final Integer DELAY_BETWEEN_BUFFER_TASKS_IN_SECONDS = 5;
+
+    //Database queries and strings
+    public static final String DATABASE_PATH = Paths.get(CODESYNC_ROOT, "codesyncdb.db").toString();
+    public static final String CONNECTION_STRING = "jdbc:sqlite:" + DATABASE_PATH;
 
     public static final String DEFAULT_TIMEZONE = ZoneId.systemDefault().getId();
     public static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS z";

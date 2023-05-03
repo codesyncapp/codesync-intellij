@@ -11,6 +11,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import kotlin.Pair;
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.database.Database;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
@@ -23,6 +24,7 @@ import org.intellij.sdk.codesync.exceptions.network.RepoUpdateError;
 import org.intellij.sdk.codesync.exceptions.network.ServerConnectionError;
 import org.intellij.sdk.codesync.exceptions.repo.RepoNotActive;
 import org.intellij.sdk.codesync.files.*;
+import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.ui.dialogs.RepoPublicPrivateDialog;
@@ -39,7 +41,6 @@ import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -55,7 +56,7 @@ public class CodeSyncSetup {
     /*
     This can be called to disconnect an already connected repo.
      */
-    public static void disconnectRepo(Project project, String repoPath, String repoName) throws InvalidConfigFileError, RepoNotActive, UserFileError, ServerConnectionError, RepoUpdateError {
+    public static void disconnectRepo(Project project, String repoPath, String repoName) throws InvalidConfigFileError, RepoNotActive, UserFileError, ServerConnectionError, RepoUpdateError, SQLiteDBConnectionError, SQLiteDataError {
         // Show confirmation message.
         boolean shouldDisconnect = CodeSyncMessages.showYesNoMessage(
                 "Are you sure?",
@@ -70,29 +71,28 @@ public class CodeSyncSetup {
             if (!configFile.isRepoActive(repoPath)) {
                throw new RepoNotActive(String.format("Repo '%s' is not active and can not be disconnected.", repoName));
             };
-            UserFile userFile;
-
+            UserAccount userAccount;
             try {
-                userFile = new UserFile(USER_FILE_PATH);
-            } catch (FileNotFoundException | InvalidYmlFileError e) {
-                throw new UserFileError(
-                    String.format(
-                        "Repo '%s' could not be disconnected because there was an error trying to read user file. Error: %s",
-                        repoName, e.getMessage()
-                    )
+                userAccount = new UserAccount();
+            } catch (SQLiteDBConnectionError e) {
+                throw new SQLiteDBConnectionError(
+                        String.format(
+                                "Repo '%s' could not be disconnected because there was an SQLite database error. Error: %s",
+                                repoName, e.getMessage()
+                        )
                 );
             }
             ConfigRepo configRepo = configFile.getRepo(repoPath);
-            UserFile.User user = userFile.getUser(configRepo.email);
-            if (user == null) {
-                throw new UserFileError(
+            userAccount = userAccount.getUser(configRepo.email);
+            if (userAccount == null) {
+                throw new SQLiteDataError(
                     String.format(
-                        "Repo '%s' could not be disconnected because user data is missing from user file.",
+                        "Repo '%s' could not be disconnected because user data is missing from SQLite database.",
                         repoName
                     )
                 );
             }
-            String accessToken = user.getAccessToken();
+            String accessToken = userAccount.getAccessToken();
             CodeSyncClient codeSyncClient = new CodeSyncClient();
 
             if (!codeSyncClient.isServerUp()) {
@@ -210,6 +210,7 @@ public class CodeSyncSetup {
                 CodeSyncYmlFile.createFile(systemFilePath);
             }
         }
+        Database.initiate();
     }
 
     /*
@@ -252,10 +253,9 @@ public class CodeSyncSetup {
     public static boolean checkUserAccess(Project project, String repoPath, String repoName, String branchName, boolean skipSyncPrompt, boolean isSyncingBranch) {
         String accessToken;
         try {
-            UserFile userFile = new UserFile(USER_FILE_PATH);
-            accessToken = userFile.getActiveAccessToken();
-        } catch (FileNotFoundException | InvalidYmlFileError error) {
-            // Set access token to null to trigger user signup.
+            UserAccount userAccount = new UserAccount();
+            accessToken = userAccount.getActiveAccessToken();
+        } catch (SQLiteDBConnectionError e) {
             accessToken = null;
         }
 
@@ -486,7 +486,7 @@ public class CodeSyncSetup {
             }
         }
 
-        String accessToken = UserFile.getAccessToken();
+        String accessToken = UserAccount.getAccessTokenByEmail();
         if (accessToken == null) {
             // Show error message.
             if (!isSyncingBranch) {
@@ -653,34 +653,28 @@ public class CodeSyncSetup {
     }
 
     public static void saveIamUser(String email, String iamAccessKey, String iamSecretKey) {
-        UserFile userFile;
+        //TODO
+        //Previously user file was being created if did not exist, should we do same for database file?
+        //DB File and table will be created anyways on startup.
+        UserAccount userAccount;
         try {
-            userFile = new UserFile(USER_FILE_PATH, true);
-        } catch (FileNotFoundException e) {
+            userAccount = new UserAccount();
+        } catch (SQLiteDBConnectionError e) {
             CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: auth file not found. Error: %s", e.getMessage())
-            );
-            return;
-        } catch (InvalidYmlFileError error) {
-            error.printStackTrace();
-            CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: Invalid auth file. Error: %s", error.getMessage())
-            );
-            // Could not read user file.
-            return;
-        } catch (FileNotCreatedError error) {
-            CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: Could not create user auth file. Error %s", error.getMessage())
+                    String.format("[INTELLI_REPO_INIT_ERROR]: auth SQLite Database error. Error: %s", e.getMessage())
             );
             return;
         }
 
-        userFile.setActiveUser(email, iamAccessKey, iamSecretKey);
         try {
-            userFile.writeYml();
-        } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError error) {
+            userAccount.setActiveUser(email, iamAccessKey, iamSecretKey);
+        } catch (SQLiteDBConnectionError e) {
             CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: Could not write to user auth file. Error %s", error.getMessage())
+                    String.format("[INTELLI_REPO_INIT_ERROR]: Could not write user to database due to database connection error. Error %s", e.getMessage())
+            );
+        } catch (SQLiteDataError e) {
+            CodeSyncLogger.critical(
+                    String.format("[INTELLI_REPO_INIT_ERROR]: Could not write user to database due to SQL error file. Error %s", e.getMessage())
             );
         }
     }

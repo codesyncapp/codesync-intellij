@@ -6,6 +6,7 @@ import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.clients.CodeSyncWebSocketClient;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.files.*;
+import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
@@ -206,7 +207,7 @@ public class HandleBuffer {
             }
 
             ConfigRepo configRepo = configFile.getRepo(diffFile.repoPath);
-            String accessToken = UserFile.getAccessToken(configRepo.email);
+            String accessToken = UserAccount.getAccessToken(configRepo.email);
 
             if (accessToken == null) {
                 CodeSyncLogger.critical(String.format(
@@ -353,7 +354,7 @@ public class HandleBuffer {
         // Send Diffs in a single request.
 
         ConfigRepo configRepo = configFile.getRepo(currentRepo);
-        String accessToken = UserFile.getAccessToken(configRepo.email);
+        String accessToken = UserAccount.getAccessToken(configRepo.email);
         if (accessToken ==  null) {
             CodeSyncLogger.warning(String.format(
                     "Access token for user '%s' not present so skipping diffs for repo '%s'.",

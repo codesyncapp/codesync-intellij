@@ -3,19 +3,17 @@ package org.intellij.sdk.codesync.state;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
-import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
+import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
-import org.intellij.sdk.codesync.files.UserFile;
+import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.intellij.sdk.codesync.Constants.CONFIG_PATH;
-import static org.intellij.sdk.codesync.Constants.USER_FILE_PATH;
 
 public class StateUtils {
     private static final Map<String, PluginState> projectStateMap = new HashMap<>();
@@ -32,15 +30,16 @@ public class StateUtils {
         globalState.project = project;
 
         try {
-            UserFile userFile = new UserFile(USER_FILE_PATH);
-            UserFile.User user = userFile.getActiveUser();
-            globalState.isAuthenticated = user != null;
-            if (user != null) {
-                globalState.userEmail = user.getUserEmail();
+            UserAccount userAccount = new UserAccount();
+            userAccount = userAccount.getActiveUser();
+            globalState.isAuthenticated = userAccount != null;
+            if (userAccount != null) {
+                globalState.userEmail = userAccount.getUserEmail();
             }
-        } catch (FileNotFoundException | InvalidYmlFileError error) {
+        } catch (SQLiteDBConnectionError error) {
             globalState.isAuthenticated = false;
         }
+
     }
 
     static public void populateState (Project project) {

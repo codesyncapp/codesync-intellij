@@ -58,6 +58,9 @@ dependencies {
     exclude group: 'org.slf4j'
   }
 
+  // https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
+  implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.40.0.0'
+
   implementation 'org.eclipse.jetty:jetty-server:9.4.3.v20170317'
   implementation 'org.eclipse.jetty:jetty-servlet:9.4.3.v20170317'
 

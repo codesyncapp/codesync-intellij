@@ -6,7 +6,7 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.Constants;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.files.AlertsFile;
-import org.intellij.sdk.codesync.files.UserFile;
+import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.ui.dialogs.ActivityAlertDialog;
 import org.intellij.sdk.codesync.utils.CommonUtils;
@@ -86,8 +86,8 @@ public class ActivityAlerts {
         }
         CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Activity alert lock acquired.");
 
-        String accessToken = UserFile.getAccessToken();
-        String email = UserFile.getEmail();
+        String accessToken = UserAccount.getAccessTokenByEmail();
+        String email = UserAccount.getEmail();
 
         if (accessToken == null) {
             ActivityAlerts.remindLater(5);

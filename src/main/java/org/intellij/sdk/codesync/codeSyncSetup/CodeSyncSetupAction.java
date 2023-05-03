@@ -9,6 +9,7 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.actions.BaseModuleAction;
 import org.intellij.sdk.codesync.alerts.PricingAlerts;
+import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.base.BaseException;
 import org.intellij.sdk.codesync.exceptions.base.BaseNetworkException;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
@@ -17,6 +18,8 @@ import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
+
+import java.sql.SQLException;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -100,7 +103,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                 if (this.isRepoInSync(virtualFile, project)) {
                     try {
                         CodeSyncSetup.disconnectRepo(project, repoPath, repoName);
-                    } catch (BaseException | BaseNetworkException error) {
+                    } catch (BaseException | BaseNetworkException | SQLException error) {
                         NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
                         NotificationManager.notifyError(error.getMessage(), project);
                         CodeSyncLogger.critical(
@@ -132,7 +135,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
             if (this.isRepoInSync(contentRoot)) {
                 try {
                     CodeSyncSetup.disconnectRepo(project, repoPath, repoName);
-                } catch (BaseException | BaseNetworkException error) {
+                } catch (BaseException | BaseNetworkException | SQLException error) {
                     NotificationManager.notifyError(Notification.REPO_UNSYNC_FAILED, project);
                     NotificationManager.notifyError(error.getMessage(), project);
                     CodeSyncLogger.critical(

@@ -9,16 +9,12 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.commands.ClearReposToIgnoreCache;
 import org.intellij.sdk.codesync.commands.ReloadStateCommand;
-import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
-import org.intellij.sdk.codesync.files.UserFile;
+import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
+import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
+import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.FileNotFoundException;
-
-import static org.intellij.sdk.codesync.Constants.*;
-
 
 public class AuthAction extends AnAction {
     @Override
@@ -59,44 +55,42 @@ public class AuthAction extends AnAction {
             server =  CodeSyncAuthServer.getInstance();
             String targetURL = server.getAuthorizationUrl();
             if (pluginState.isAuthenticated) {
-                UserFile userFile;
-                try {
-                    userFile = new UserFile(USER_FILE_PATH);
-                } catch (FileNotFoundException error) {
+                UserAccount userAccount;
+                try{
+                    userAccount = new UserAccount();
+                }catch (SQLiteDBConnectionError error){
                     NotificationManager.notifyError(
                             "An error occurred trying to logout the user, please tyr again later.", project
                     );
                     CodeSyncLogger.error(
-                            String.format("[INTELLIJ_AUTH_ERROR]: auth file not found. Error: %s", error.getMessage())
+                            String.format("[INTELLIJ_AUTH_ERROR]:  SQLite Database Connection Error, %s", error.getMessage())
                     );
-                    return;
-                } catch (InvalidYmlFileError error) {
-                    error.printStackTrace();
-                    NotificationManager.notifyError(
-                            "An error occurred trying to logout the user, please tyr again later.", project
-                    );
-                    CodeSyncLogger.critical(
-                            String.format("[INTELLIJ_AUTH_ERROR]: Invalid auth file. Error: %s", error.getMessage()),
-                            pluginState.userEmail
-                    );
-                    // Could not read user file.
                     return;
                 }
-                userFile.makeAllUsersInActive();
 
                 // Clear any cache that depends on user authentication status.
                 new ClearReposToIgnoreCache().execute();
-                try {
-                    userFile.writeYml();
-                } catch (FileNotFoundException | InvalidYmlFileError error) {
+
+                try{
+                    userAccount.makeAllUsersInActive();
+                } catch (SQLiteDBConnectionError error){
                     NotificationManager.notifyError(
                             "An error occurred trying to logout the user, please tyr again later.", project
                     );
                     CodeSyncLogger.error(
-                            String.format("[INTELLIJ_AUTH_ERROR]: Could write to auth file. Error: %s", error.getMessage())
+                            String.format("[INTELLIJ_AUTH_ERROR]: Could not write to database due to database connection error. Error: %s", error.getMessage())
+                    );
+                    return;
+                } catch (SQLiteDataError error){
+                    NotificationManager.notifyError(
+                            "An error occurred trying to logout the user, please tyr again later.", project
+                    );
+                    CodeSyncLogger.error(
+                            String.format("[INTELLIJ_AUTH_ERROR]: Could not write to database due to SQL error. Error: %s", error.getMessage())
                     );
                     return;
                 }
+
                 // Reload the state now.
                 StateUtils.reloadState(project);
 
