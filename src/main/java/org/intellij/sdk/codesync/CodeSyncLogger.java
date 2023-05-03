@@ -5,6 +5,7 @@ import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.json.simple.JSONObject;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.model.CloudWatchException;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
@@ -91,6 +92,9 @@ public class CodeSyncLogger {
                 nextSequenceToken = error.expectedSequenceToken();
             } catch (DataAlreadyAcceptedException error) {
                 nextSequenceToken = error.expectedSequenceToken();
+            } catch (SdkClientException error){
+                System.out.println("Network Error: " + error.getMessage());
+                return;
             }
 
             logConsoleMessage("Successfully put CloudWatch log event");
