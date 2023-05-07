@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.21.0] - 2023-04-25 (NOT DEPLOYED)
+## [3.21.0] - 2023-04-25
 - Disable Connect Repo button when repository is in process of being connected and uploaded.
 - Skip Healthcheck Test and when server is down shows connection error in bufferHandler catch block.
 - Don't send user data on post request in Authenticator as token is already provided.
