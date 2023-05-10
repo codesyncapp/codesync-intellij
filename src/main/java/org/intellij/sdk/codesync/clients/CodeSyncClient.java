@@ -8,9 +8,7 @@ import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.DiffFile;
 import static org.intellij.sdk.codesync.Constants.*;
-import org.intellij.sdk.codesync.models.User;
 
-import org.intellij.sdk.codesync.models.UserPlan;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
@@ -43,11 +41,11 @@ public class CodeSyncClient {
     }
 
     /*
-    Get the user associated with the access token and validate if token is valid or not.
+    Get the user email associated with the access token and validate if token is valid or not.
 
-    @return  Pair<Boolean, User>  First item of the pair shows of token is valid and secod is the user instance.
+    @return  Pair<Boolean, String>  First item of the pair shows of token is valid and second is the user email.
      */
-    public Pair<Boolean, User> getUser(String accessToken) throws RequestError {
+    public Pair<Boolean, String> getUser(String accessToken) throws RequestError {
         JSONObject response;
         try {
             JSONResponse jsonResponse = ClientUtils.sendGet(API_USERS, accessToken);
@@ -73,19 +71,9 @@ public class CodeSyncClient {
             return new Pair<>(false, null);
         }
 
-        try { JSONObject userPlanObject = (JSONObject) response.get("plan");
-            UserPlan userPlan = new UserPlan(
-                (Long) userPlanObject.get("SIZE"),
-                (Long) userPlanObject.get("FILE_COUNT"),
-                (Long) userPlanObject.get("REPO_COUNT")
-            );
-            User user = new User(
-                (String) response.get("email"),
-                (Long) response.get("repo_count"),
-                userPlan
-            );
-
-            return new Pair<>(true, user);
+        try {
+            String userEmail = (String) response.get("email");
+            return new Pair<>(true, userEmail);
         } catch (ClassCastException err) {
             CodeSyncLogger.critical(String.format(
                 "Error parsing the response of /users endpoint. Error: %s", err.getMessage()

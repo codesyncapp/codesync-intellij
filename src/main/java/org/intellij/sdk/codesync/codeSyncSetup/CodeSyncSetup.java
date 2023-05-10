@@ -27,7 +27,6 @@ import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.ui.dialogs.RepoPublicPrivateDialog;
 import org.intellij.sdk.codesync.ui.messages.CodeSyncMessages;
-import org.intellij.sdk.codesync.models.User;
 import org.intellij.sdk.codesync.ui.progress.CodeSyncProgressIndicator;
 import org.intellij.sdk.codesync.ui.progress.InitRepoMilestones;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
@@ -229,18 +228,12 @@ public class CodeSyncSetup {
         }
 
         try {
-            Pair<Boolean, User> userPair = codeSyncClient.getUser(accessToken);
+            Pair<Boolean, String> userPair = codeSyncClient.getUser(accessToken);
             Boolean isTokenValid = userPair.component1();
 
             // If token is not valid then need to authenticate again.
             if (!isTokenValid) {
                 throw new InvalidAccessTokenError("Invalid access token, needs to be refreshed.");
-            }
-
-            User user = userPair.component2();
-            if (user.repoCount >= user.plan.repoCount) {
-                NotificationManager.notifyError(Notification.UPGRADE_PLAN);
-                return false;
             }
 
             // User has access to repo sync, and can proceed.
