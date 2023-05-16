@@ -181,7 +181,7 @@ public class CodeSyncSetup {
                         reposBeingSynced.remove(repoPath);
                     }
                 }
-            } else if (!isSyncingBranch) {
+            } else {
                 NotificationManager.notifyInformation(
                         String.format(Notification.REPO_IN_SYNC_MESSAGE, repoName),
                         project
@@ -338,6 +338,11 @@ public class CodeSyncSetup {
         if (wasUploadSuccessful) {
             // Remove originals repo if it was uploaded successfully.
             originalsRepoManager.delete();
+
+            if (!Objects.equals(repoPath, project.getBasePath()) && isSyncingBranch) {
+                // Skip messaging as we are syncing offline branch for non-opened project.
+                return;
+            }
 
             // Show success message and update state
             if (!isSyncingBranch){
@@ -635,8 +640,6 @@ public class CodeSyncSetup {
             codeSyncProgressIndicator.setMileStone(InitRepoMilestones.UPLOAD_FILES);
             // Upload file to S3.
             uploadToS3(repoPath, branchName, accessToken, email, repoId, fileUrls);
-            ReloadStateCommand reloadStateCommand = new ReloadStateCommand(project);
-            reloadStateCommand.execute();
         } catch (ClassCastException | JsonProcessingException err) {
             CodeSyncLogger.critical(
                 String.format("Error parsing the response of /init endpoint. Error: %s", err.getMessage()),
