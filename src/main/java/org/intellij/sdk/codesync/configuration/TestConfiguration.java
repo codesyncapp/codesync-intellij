@@ -34,8 +34,10 @@ public class TestConfiguration implements Configuration {
      */
     private void fetchCredentials() {
         JSONObject jsonObject = FileUtils.readURLToJson(this.CREDENTIALS_URL);
-        this.PLUGIN_USER_ACCESS_KEY = (String) jsonObject.getOrDefault("IAM_ACCESS_KEY", null);
-        this.PLUGIN_USER_SECRET_KEY = (String) jsonObject.getOrDefault("IAM_SECRET_KEY", null);
+        if(jsonObject != null){
+            this.PLUGIN_USER_ACCESS_KEY = (String) jsonObject.getOrDefault("IAM_ACCESS_KEY", null);
+            this.PLUGIN_USER_SECRET_KEY = (String) jsonObject.getOrDefault("IAM_SECRET_KEY", null);
+        }
     }
 
     @Override
