@@ -4,17 +4,16 @@ import com.auth0.jwt.interfaces.Claim;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.commands.ClearReposToIgnoreCache;
-import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
-import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.exceptions.RequestError;
-import org.intellij.sdk.codesync.files.UserFile;
+import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
+import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
+import org.intellij.sdk.codesync.models.UserAccount;
 import org.json.simple.JSONObject;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
 
@@ -77,45 +76,33 @@ public class Authenticator extends HttpServlet {
             );
             return false;
         }
-        UserFile userFile;
+        //TODO
+        //Previously user file was being created if did not exist, should we do same for database file?
+        //DB File and table will be created anyways on startup.
+        UserAccount userAccount;
         try {
-            userFile = new UserFile(USER_FILE_PATH);
-        } catch (FileNotFoundException e) {
-            if(UserFile.createFile(USER_FILE_PATH)){
-                try {
-                    userFile = new UserFile(USER_FILE_PATH);
-                } catch (FileNotFoundException | InvalidYmlFileError error) {
-                    CodeSyncLogger.error(
-                        String.format("[INTELLIJ_AUTH_ERROR]: Error opening auth file. Error: %s", error.getMessage())
-                    );
-                    // Could not open user file.
-                    return false;
-                }
-            } else {
-                // Could not create user file.
-                return false;
-            }
-            CodeSyncLogger.error(
-                String.format("[INTELLIJ_AUTH_ERROR]: auth file not found. Error: %s", e.getMessage())
-            );
-        } catch (InvalidYmlFileError error) {
+            userAccount = new UserAccount();
+        } catch (SQLiteDBConnectionError error) {
             error.printStackTrace();
             CodeSyncLogger.critical(
-                String.format("[INTELLIJ_AUTH_ERROR]: Invalid auth file. Error: %s", error.getMessage())
+                    String.format("[INTELLIJ_AUTH_ERROR]: SQLite Database Connection Error. Error: %s", error.getMessage())
             );
-            // Could not read user file.
             return false;
         }
         String userEmail = claims.get("email").asString();
-        userFile.setActiveUser(userEmail, accessToken);
 
         // Clear any cache that depends on user authentication status.
         new ClearReposToIgnoreCache().execute();
         try {
-            userFile.writeYml();
-        } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
+            userAccount.setActiveUser(userEmail, accessToken);
+        } catch (SQLiteDBConnectionError e) {
             CodeSyncLogger.error(
-                String.format("[INTELLIJ_AUTH_ERROR]: Could not write to auth file. Error: %s", e.getMessage())
+                    String.format("[INTELLIJ_AUTH_ERROR]: Could not write due to SQLite Connection Error. Error: %s", e.getMessage())
+            );
+            return false;
+        } catch (SQLiteDataError e) {
+            CodeSyncLogger.error(
+                    String.format("[INTELLIJ_AUTH_ERROR]: Could not write due to SQL Error. Error: %s", e.getMessage())
             );
             return false;
         }

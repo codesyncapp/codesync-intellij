@@ -6,7 +6,7 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.exceptions.InvalidAccessTokenError;
-import org.intellij.sdk.codesync.files.UserFile;
+import org.intellij.sdk.codesync.models.UserAccount;
 
 /*
 This command first checks the existence of access token in user.yml file and if it is present
@@ -38,7 +38,7 @@ public class ResumeCodeSyncCommand implements Command {
     }
 
     public void execute() {
-        String accessToken = UserFile.getAccessToken();
+        String accessToken = UserAccount.getAccessTokenByEmail();
 
         try {
             if (accessToken != null && CodeSyncSetup.validateAccessToken(accessToken)) {
