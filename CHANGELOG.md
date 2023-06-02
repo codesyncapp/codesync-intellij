@@ -4,8 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.22.1] - 2023-06-02
+- Fixed diffs not being sent to server after getting online when synced projects has started without internet.
+
 ## [3.22.0] - 2023-05-25
 - Removed UserPlan and User class and their usages.
+- Fixed synced project not opening when internet connection is not available.
 - Migrated to SQLite implementation for User info from user.yml files.
 
 ## [3.21.0] - 2023-04-25
