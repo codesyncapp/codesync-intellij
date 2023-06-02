@@ -152,6 +152,11 @@ public class HandleBuffer {
             return;
         }
 
+        CodeSyncClient codeSyncClient = new CodeSyncClient();
+        if (!codeSyncClient.isServerUp()) {
+            return;
+        }
+
         try {
             configFile = new ConfigFile(CONFIG_PATH);
         } catch (InvalidConfigFileError error) {
