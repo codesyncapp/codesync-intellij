@@ -154,6 +154,7 @@ public class HandleBuffer {
 
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         if (!codeSyncClient.isServerUp()) {
+            diffFilesBeingProcessed.clear();
             return;
         }
 
