@@ -141,6 +141,7 @@ public class HandleBuffer {
     public static void handleBuffer(Project project) {
         ConfigFile configFile;
         HashSet<String> newFiles = new HashSet<>();
+        int diffsSize = 0;
 
         boolean canRunDaemon = ProjectUtils.canRunDaemon(
             LockFileType.HANDLE_BUFFER_LOCK,
@@ -200,9 +201,17 @@ public class HandleBuffer {
                 System.out.printf("Skipping diff file: %s.\n", diffFile.originalDiffFile.getPath());
                 // Skip this file.
                 continue;
-            } else {
-                diffFilesBeingProcessed.add(diffFile.originalDiffFile.getPath());
             }
+
+            if(diffFile.diff != null)
+                diffsSize += diffFile.diff.length();
+
+            if(diffsSize > DIFF_SIZE_LIMIT){
+                CodeSyncLogger.info("Limit reached for diff batch size, remaining diffs will be processed in next request.");
+                break;
+            }
+
+            diffFilesBeingProcessed.add(diffFile.originalDiffFile.getPath());
 
             System.out.printf("Processing diff file: %s.\n", diffFile.originalDiffFile.getPath());
 
