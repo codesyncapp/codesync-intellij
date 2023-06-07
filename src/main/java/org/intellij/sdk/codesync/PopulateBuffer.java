@@ -443,13 +443,13 @@ public class PopulateBuffer {
             if (!diff.isEmpty() || isNewFile) {
                 Map<String, Object> diffContentMap = new HashMap<>();
                 Map<String, Object> fileInfo = this.fileInfoMap.get(relativeFilePath);
-                Date createdAt = CodeSyncDateUtils.parseDate((String) fileInfo.get("creationTime"));
+                Date modifiedTime = CodeSyncDateUtils.parseDate((String) fileInfo.get("modifiedTime"));
 
                 diffContentMap.put("diff", diff);
                 diffContentMap.put("is_rename", isRename);
                 diffContentMap.put("is_new_file", isNewFile);
                 diffContentMap.put("is_binary", isBinary);
-                diffContentMap.put("created_at", CodeSyncDateUtils.formatDate(createdAt, DATE_TIME_FORMAT));
+                diffContentMap.put("created_at", CodeSyncDateUtils.formatDate(modifiedTime, DATE_TIME_FORMAT));
 
                 diffs.put(relativeFilePath, diffContentMap);
             }
