@@ -10,11 +10,7 @@ import java.util.Map;
 
 public class UserAccount {
 
-    public UserAccount() throws SQLiteDBConnectionError {
-        if(!Database.isConnected()){
-            throw new SQLiteDBConnectionError("SQLite database connection error!");
-        }
-    }
+    public UserAccount() throws SQLiteDBConnectionError {}
 
     String userEmail, accessKey = null, secretKey = null, accessToken = null;
     Boolean isActive = false;

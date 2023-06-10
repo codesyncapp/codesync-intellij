@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync.database.migrations;
 
 import com.google.common.io.CharStreams;
+import com.intellij.openapi.application.ApplicationManager;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.database.UserTable;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
@@ -11,15 +12,29 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.intellij.sdk.codesync.Constants.USER_FILE_PATH;
 public class MigrateUser {
 
-    File userFile = new File(USER_FILE_PATH);
-    public Map<String, Object> contentsMap;
-    public Map<String, UserAccount> users = new HashMap<>();
+    private File userFile;
+    private Map<String, Object> contentsMap;
+    private Map<String, UserAccount> users;
+
+    public MigrateUser(){
+        if(ApplicationManager.getApplication() == null){
+            Path testDirPath = Paths.get(System.getProperty("user.dir"), "test_data").toAbsolutePath();
+            Path userTestFile = Paths.get(testDirPath.toString(), "userTest.yml").toAbsolutePath();
+            this.userFile = new File(userTestFile.toString());
+        }else{
+            this.userFile = new File(USER_FILE_PATH);
+        }
+
+        this.users = new HashMap<>();
+    }
 
     private void readYml() throws FileNotFoundException, InvalidYmlFileError {
         Yaml yaml = new Yaml();

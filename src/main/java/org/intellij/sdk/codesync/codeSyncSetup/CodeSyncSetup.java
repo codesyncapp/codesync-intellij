@@ -210,7 +210,6 @@ public class CodeSyncSetup {
                 CodeSyncYmlFile.createFile(systemFilePath);
             }
         }
-        Database.initiate();
     }
 
     /*
