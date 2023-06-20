@@ -1,6 +1,5 @@
 package org.intellij.sdk.codesync.models;
 
-import org.intellij.sdk.codesync.database.Database;
 import org.intellij.sdk.codesync.database.UserTable;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;

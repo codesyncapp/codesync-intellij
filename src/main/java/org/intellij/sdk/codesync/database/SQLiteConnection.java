@@ -18,12 +18,11 @@ public class SQLiteConnection {
 
     private SQLiteConnection(){
 
-        boolean UnitTestMode = ApplicationManager.getApplication() == null;
+        boolean unitTestMode = ApplicationManager.getApplication() == null;
 
         try{
             Class.forName("org.sqlite.JDBC");
-            if(UnitTestMode){
-                //TODO Test files/paths should also be accessed from configuration files.
+            if(unitTestMode){
                 Path testDirPath = Paths.get(System.getProperty("user.dir"), "test_data").toAbsolutePath();
                 Path userTestFile = Paths.get(testDirPath.toString(), "test.db").toAbsolutePath();
                 connection = DriverManager.getConnection("jdbc:sqlite:" + userTestFile);
