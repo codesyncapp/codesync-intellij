@@ -3,8 +3,9 @@ import com.intellij.openapi.util.io.FileUtil
 import java.nio.file.Paths
 
 object CodeSyncTestUtils {
+    //TODO Test files/paths should also be accessed from configuration files.
     private val DIRECTORY_PATH = Paths.get(System.getProperty("user.dir"), "test_data").toAbsolutePath()
-    private val DATABASE_FILE = Paths.get(DIRECTORY_PATH.toString(), "file.db").toAbsolutePath()
+    private val DATABASE_FILE = Paths.get(DIRECTORY_PATH.toString(), "test.db").toAbsolutePath()
 
     fun getTestDataPath(): String {
         return DIRECTORY_PATH.toString();

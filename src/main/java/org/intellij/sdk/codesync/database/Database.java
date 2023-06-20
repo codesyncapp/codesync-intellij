@@ -11,50 +11,28 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static org.intellij.sdk.codesync.Constants.*;
-
 public class Database {
 
-    private static Connection connection = null;
+    public static void setupDbFilesAndTables(String databasePath){
 
-    public static boolean isConnected(){
-        return connection != null;
-    }
+        /*
+            This method will make sure to create db file and required tables,
+            make migration from files to db if necessary.
+        */
 
-    public static void initiate() {
-        try{
-            File file = new File(DATABASE_PATH);
-            if(!file.exists()){
-                Class.forName("org.sqlite.JDBC");
-                connection = DriverManager.getConnection(CONNECTION_STRING);
-                executeUpdate(Queries.User.CREATE_TABLE);
-                MigrateUser migrateUser = new MigrateUser();
-                migrateUser.migrateData();
-            } else {
-                Class.forName("org.sqlite.JDBC");
-                connection = DriverManager.getConnection(CONNECTION_STRING);
-                executeUpdate(Queries.User.CREATE_TABLE);
-            }
-
-        } catch (ClassNotFoundException e) {
-            CodeSyncLogger.critical("[DATABASE] JDBC library error while initiating SQLite database connection. Error: " + e.getMessage());
-            connection = null;
-        } catch (SQLException e) {
-            CodeSyncLogger.critical("[DATABASE] SQL error while initiating SQLite database connection. Error: " + e.getMessage());
-            connection = null;
+        File file = new File(databasePath);
+        if(file.exists()){
+           return;
         }
-    }
 
-    public static void initiate(String connectionString) {
-        try{
-            Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection(connectionString);
-        } catch (ClassNotFoundException e) {
-            System.out.println("[DATABASE] JDBC library error while initiating SQLite database connection. Error: " + e.getMessage());
-            connection = null;
-        } catch (SQLException e) {
-            System.out.println("[DATABASE] SQL error while initiating SQLite database connection. Error: " + e.getMessage());
-            connection = null;
+        try {
+            executeUpdate(Queries.User.CREATE_TABLE);
+            MigrateUser migrateUser = new MigrateUser();
+            migrateUser.migrateData();
+        } catch (SQLiteDBConnectionError e) {
+            CodeSyncLogger.error("[DATABASE] SQLite db connection error while making migration/creating db file first time " + e.getMessage());
+        } catch (SQLiteDataError e) {
+            CodeSyncLogger.error("[DATABASE] SQLite db data error while making migration/creating db file first time " + e.getMessage());
         }
     }
 
@@ -70,8 +48,7 @@ public class Database {
 
         ArrayList<HashMap<String, String>> dataSet = new ArrayList<>();
 
-        try{
-            Statement statement = connection.createStatement();
+        try(Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()){
             ResultSet rs = statement.executeQuery(query);
             ResultSetMetaData md = rs.getMetaData();
 
@@ -93,8 +70,7 @@ public class Database {
 
     public static void executeUpdate(String query) throws SQLiteDBConnectionError, SQLiteDataError{
 
-        try{
-            Statement statement = connection.createStatement();
+        try(Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()){
             statement.executeUpdate(query);
         } catch (NullPointerException e){
             throw new SQLiteDBConnectionError("SQLite Database Connection error: " + e.getMessage());
@@ -103,16 +79,6 @@ public class Database {
         }
 
 
-    }
-
-    public static void disconnect(){
-        try {
-            connection.close();
-        } catch (NullPointerException e) {
-            CodeSyncLogger.critical("[DATABASE] Database connection error disconnecting SQLite database connection. Error: " + e.getMessage());
-        } catch (SQLException e) {
-            CodeSyncLogger.critical("[DATABASE] SQL error disconnecting SQLite database connection. Error: " + e.getMessage());
-        }
     }
 
 }

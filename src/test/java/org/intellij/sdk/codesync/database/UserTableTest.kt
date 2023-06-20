@@ -14,24 +14,17 @@ class UserTableTest {
 
     @BeforeEach
     fun before() {
-        //2. Create directory
-        var file = File(CodeSyncTestUtils.getTestDataPath())
-        file.mkdir()
-
-        //3. Connect to db created in step (2) above repo
-        Database.initiate(CodeSyncTestUtils.getTestConnectionString())
-
-        //4. Create user table
+        //1. Create user table
         Database.executeUpdate(Queries.User.CREATE_TABLE)
 
-        //5. Add dummy user
+        //2. Add dummy user
         Database.executeUpdate(Queries.User.insert("dummy@gmail.com","ASDFC", null, null, false));
     }
 
     @AfterEach
     fun after() {
         //1. Disconnect database
-        Database.disconnect()
+        SQLiteConnection.getInstance().disconnect()
 
         //2. Remove test db file
         var file = File(CodeSyncTestUtils.getTestDBFilePath())

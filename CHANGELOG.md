@@ -4,8 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.22.2] - 2023-06-08 (NOT DEPLOYED)
+## [3.22.2] - 2023-06-20
 - Put check for batch size of diffs being sent in a request should not exceed 16mb.
+- Implemented Singleton design pattern for SQLite connection which fixed the bug of connection getting closed when switching between projects or multiple projects opened.
 
 ## [3.22.1] - 2023-06-07
 - Fixed diffs not being sent to server after getting online when synced projects has started without internet.

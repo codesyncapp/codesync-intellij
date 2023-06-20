@@ -23,6 +23,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.intellij.sdk.codesync.alerts.ActivityAlerts;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.database.Database;
+import org.intellij.sdk.codesync.database.SQLiteConnection;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.state.StateUtils;
@@ -31,6 +32,7 @@ import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -61,6 +63,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     }
     // Create system directories required by the plugin.
     createSystemDirectories();
+    Database.setupDbFilesAndTables(DATABASE_PATH);
     String repoDirPath = ProjectUtils.getRepoPath(project);
     CodeSyncLock codeSyncProjectLock = new CodeSyncLock(
         LockFileType.PROJECT_LOCK,
@@ -192,7 +195,13 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
   }
 
   public void disposeProjectListeners(Project project) {
-    Database.disconnect();
+
+    try{
+      SQLiteConnection.getInstance().disconnect();
+    } catch (SQLException e){
+      CodeSyncLogger.error("Error while disconnecting database: " + e.getMessage());
+    }
+
     // Release all the locks acquired by this project.
     CodeSyncLock.releaseAllLocks(LockFileType.PROJECT_LOCK, project.getName());
     CodeSyncLock.releaseAllLocks(LockFileType.HANDLE_BUFFER_LOCK, project.getName());
