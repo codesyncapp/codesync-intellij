@@ -74,6 +74,28 @@ class DatabaseTest {
     }
 
     @Test
+    fun validateReconnectingDB(){
+        var email = "sample@gmail.com"
+        var access_token = "ACCESS TOKEN"
+
+        SQLiteConnection.getInstance().disconnect()
+
+        Database.executeUpdate(Queries.User.insert(email, access_token, null, null, true));
+
+        SQLiteConnection.getInstance().disconnect()
+
+        var resultSet = Database.runQuery(Queries.User.get_by_email(email))
+
+        var row : HashMap<String, String> = resultSet.get(0)
+        assertEquals(1, resultSet.size, "1 row exist.")
+        assertEquals(email, row["EMAIL"])
+        assertEquals(access_token, row["ACCESS_TOKEN"])
+        assertNull(row["SECRET_KEY"])
+        assertNull(row["ACCESS_KEY"])
+        assertEquals(1, Integer.parseInt(row["IS_ACTIVE"]))
+    }
+
+    @Test
     fun userTableCreation(){
         var resultSet = Database.runQuery(Queries.User.TABLE_EXIST)
         assertNotNull(resultSet)

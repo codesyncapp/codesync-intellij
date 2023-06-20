@@ -48,8 +48,7 @@ public class Database {
 
         ArrayList<HashMap<String, String>> dataSet = new ArrayList<>();
 
-        try{
-            Statement statement = SQLiteConnection.getInstance().getConnection().createStatement();
+        try(Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()){
             ResultSet rs = statement.executeQuery(query);
             ResultSetMetaData md = rs.getMetaData();
 
@@ -71,8 +70,7 @@ public class Database {
 
     public static void executeUpdate(String query) throws SQLiteDBConnectionError, SQLiteDataError{
 
-        try{
-            Statement statement = SQLiteConnection.getInstance().getConnection().createStatement();
+        try(Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()){
             statement.executeUpdate(query);
         } catch (NullPointerException e){
             throw new SQLiteDBConnectionError("SQLite Database Connection error: " + e.getMessage());
