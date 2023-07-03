@@ -32,9 +32,9 @@ public class ClientUtils {
             .setConnectionRequestTimeout(120 * 1000)
             .build();
     }
-    private static HttpClientBuilder getHttpClientBuilder() {
+    public static HttpClientBuilder getHttpClientBuilder() {
         RequestConfig requestConfig = getRequestConfig();
-        return HttpClientBuilder.create().setDefaultRequestConfig(requestConfig);
+            return HttpClientBuilder.create().setDefaultRequestConfig(requestConfig);
     }
 
     private static StringEntity getStringEntityFromJSONObject(JSONObject payload) throws InvalidJsonError {
