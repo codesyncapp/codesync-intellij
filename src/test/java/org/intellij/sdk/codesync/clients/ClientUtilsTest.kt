@@ -18,41 +18,62 @@ import kotlin.test.assertEquals
 class ClientUtilsTest {
 
     @Test
-    fun sendPost(){
+    fun testSendPost(){
         
         val httpClientBuilder : HttpClientBuilder = mock(HttpClientBuilder::class.java)
         val httpClient : CloseableHttpClient = mock(CloseableHttpClient::class.java)
-        val httpResponse: CloseableHttpResponse = getHttpResponse()
-        val expectedJSONResponse = "{\"user\":{\"access_token\":\"Unit Test Mode\",\"name\":\"Unit Test Name\",\"id\":\"Unit Test ID\",\"email\":\"Unit Test Email\"}}"
 
-        mockStatic(ClientUtils::class.java, Answers.CALLS_REAL_METHODS).use {
+        val successfullyHttpResponse: CloseableHttpResponse = getHttpResponse(200)
+        val failedHttpResponse: CloseableHttpResponse = getHttpResponse(401)
 
-            mocked -> mocked.`when`<Any>{ClientUtils.getHttpClientBuilder()}.thenReturn(httpClientBuilder)
-            `when`(httpClientBuilder.build()).thenReturn(httpClient)
-            `when`(httpClient.execute(any())).thenReturn(httpResponse)
+        val successfullyExpectedJSONResponse = "{\"user\":{\"access_token\":\"Unit Test Mode\",\"name\":\"Unit Test Name\",\"id\":\"Unit Test ID\",\"email\":\"Unit Test Email\"}}"
+        val failedExpectedJSONResponse = "{\"error\":{\"message\":\"Token verification failed\"}}"
+
+        mockStatic(ClientUtils::class.java, Answers.CALLS_REAL_METHODS).use { mocked -> mocked.
+
+            //Mocking for multiple calls of same methods.
+            `when`<Any>{ClientUtils.getHttpClientBuilder()}.thenReturn(httpClientBuilder).thenReturn(httpClientBuilder)
+            `when`(httpClientBuilder.build()).thenReturn(httpClient).thenReturn(httpClient)
+            `when`(httpClient.execute(any())).thenReturn(successfullyHttpResponse).thenReturn(failedHttpResponse)
 
             val API = String.format("%s/users?&source=%s&v=%s", "https://api.example.com/v1", "intellij", "unknown")
-            val actualResponse = ClientUtils.sendPost(API, "ACCESS_TOKEN")
 
-            assertEquals(expectedJSONResponse, actualResponse.jsonResponse.toString())
+            //First call resulting in successfully request.
+            var actualResponse = ClientUtils.sendPost(API, "ACCESS_TOKEN")
+            assertEquals(successfullyExpectedJSONResponse, actualResponse.jsonResponse.toString())
             assertEquals(200, actualResponse.statusCode)
+
+            //Second call resulting in failed request.
+            actualResponse = ClientUtils.sendPost(API, "ACCESS_TOKEN")
+            assertEquals(failedExpectedJSONResponse, actualResponse.jsonResponse.toString())
+            assertEquals(401, actualResponse.statusCode)
+
         }
 
         // Don't forget to close the response when done
-        httpResponse.close()
+        successfullyHttpResponse.close()
+        failedHttpResponse.close()
     }
 
-    private fun getHttpResponse(): CloseableHttpResponse {
+    private fun getHttpResponse(statusCode : Int): CloseableHttpResponse {
+
         val userJSON = JSONObject()
-        userJSON.put("access_token", "Unit Test Mode")
-        userJSON.put("name", "Unit Test Name")
-        userJSON.put("id", "Unit Test ID")
-        userJSON.put("email", "Unit Test Email")
         val responseJSON = JSONObject()
-        responseJSON.put("user", userJSON)
+
+        if(statusCode == 200){
+            userJSON.put("access_token", "Unit Test Mode")
+            userJSON.put("name", "Unit Test Name")
+            userJSON.put("id", "Unit Test ID")
+            userJSON.put("email", "Unit Test Email")
+            responseJSON.put("user", userJSON)
+        }else if(statusCode == 401){
+            userJSON.put("message", "Token verification failed")
+            responseJSON.put("error", userJSON)
+        }
+
 
         val protocolVersion = ProtocolVersion("HTTP", 1, 1)
-        val statusLine: StatusLine = BasicStatusLine(protocolVersion, 200, "OK")
+        val statusLine: StatusLine = BasicStatusLine(protocolVersion, statusCode, "OK")
 
         val httpEntity: HttpEntity = StringEntity(responseJSON.toString())
 
