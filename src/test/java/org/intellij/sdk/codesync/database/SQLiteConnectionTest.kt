@@ -1,9 +1,9 @@
 package org.intellij.sdk.codesync.database
 
+import CodeSyncTestUtils
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import java.io.File
-import java.sql.Connection
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
