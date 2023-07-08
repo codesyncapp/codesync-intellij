@@ -26,6 +26,14 @@ public class CodeSyncWebSocketClient {
     boolean isConnected = false;
     String token = null;
 
+    boolean isConnected(){
+        if(isConnected && this.webSocketClientEndpoint.userSession != null){
+            return true;
+        }
+
+        return false;
+    }
+
     public CodeSyncWebSocketClient(String token, String uri) {
         try {
             this.token = token;
@@ -43,7 +51,7 @@ public class CodeSyncWebSocketClient {
             return;
         }
 
-        if (!this.isConnected) {
+        if (!this.isConnected()) {
             this.webSocketClientEndpoint = new WebSocketClientEndpoint(this.uri);
             this.authenticate(isAuthenticated -> {
                 this.isConnected = isAuthenticated;
@@ -91,7 +99,7 @@ public class CodeSyncWebSocketClient {
     }
 
     public void sendDiff(DiffFile diffFile, Integer fileId, DataTransmissionHandler dataTransmissionHandler) throws WebSocketConnectionError {
-        if (!this.isConnected) {
+        if (!this.isConnected()) {
             throw new WebSocketConnectionError(
                 String.format("Failed to connect to the websocket endpoint at '%s'.}", this.uri.toString())
             );
@@ -142,7 +150,7 @@ public class CodeSyncWebSocketClient {
     }
 
     public void sendDiffs(ArrayList<Pair<Integer, DiffFile>> diffsToSend, DataTransmissionHandler dataTransmissionHandler) throws WebSocketConnectionError {
-        if (!this.isConnected) {
+        if (!this.isConnected()) {
             throw new WebSocketConnectionError(
                 String.format("Failed to connect to the websocket endpoint at '%s'.", this.uri.toString())
             );
