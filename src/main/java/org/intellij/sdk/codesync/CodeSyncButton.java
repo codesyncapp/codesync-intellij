@@ -35,7 +35,7 @@ public class CodeSyncButton implements ToolWindowFactory, DumbAware {
         private final JPanel leftPanel = new JPanel();
         private final JPanel rightPanel = new JPanel();
 
-        private final static String connectRepo = "Connect Repo";
+        private final static String CONNECT_REPO = "Connect Repo";
 
         public CodeSyncButtons(ToolWindow toolWindow) {
             contentPanel.setLayout(new BorderLayout(0, 20));
@@ -68,14 +68,14 @@ public class CodeSyncButton implements ToolWindowFactory, DumbAware {
             JButton viewFilePlaybackButton = new JButton("View File Playback");
             JButton viewRepoPlaybackButton = new JButton("View Repo Playback");
             JButton viewDashboardButton = new JButton("View Dashboard");
-            JButton connectToolWindowButton = new JButton(connectRepo);
+            JButton connectToolWindowButton = new JButton(CONNECT_REPO);
             connectToolWindowButton.addActionListener(
                     e -> {
-                            if(connectToolWindowButton.getText() == connectRepo){
+                            if(connectToolWindowButton.getText().equals(CONNECT_REPO)){
                                 connectToolWindowButton.setText("Disconnect Repo");
                                 toolWindow.setIcon(CodeSyncIcons.getCodeSyncIcon());
                             }else{
-                                connectToolWindowButton.setText(connectRepo);
+                                connectToolWindowButton.setText(CONNECT_REPO);
                                 toolWindow.setIcon(AllIcons.Toolwindows.Problems);
                             }
                         }
