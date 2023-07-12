@@ -11,4 +11,4 @@ Simply install the plugin in your IDE and follow the steps. CodeSync supports bo
 
 ### Example View (Replaying your changes)
 
-![Example View (Replaying your changes)](https://codesync-images.s3.amazonaws.com/codesync-intro.gif)
+![Example View (Replaying your changes)](https://codesync-images.s3.amazonaws.com/playback-dark-theme.gif)
