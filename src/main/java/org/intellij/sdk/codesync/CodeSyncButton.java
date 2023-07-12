@@ -1,11 +1,16 @@
 package org.intellij.sdk.codesync;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
+import com.intellij.ui.Colors;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import com.intellij.util.io.Compressor;
+import com.twelvemonkeys.imageio.metadata.jpeg.JPEG;
+import icons.CodeSyncIcons;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jdom.Element;
@@ -19,84 +24,83 @@ public class CodeSyncButton implements ToolWindowFactory, DumbAware {
 
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        CalendarToolWindowContent toolWindowContent = new CalendarToolWindowContent(toolWindow);
+        CodeSyncButtons toolWindowContent = new CodeSyncButtons(toolWindow);
         Content content = ContentFactory.SERVICE.getInstance().createContent(toolWindowContent.getContentPanel(), "", false);
         toolWindow.getContentManager().addContent(content);
     }
 
-    private static class CalendarToolWindowContent {
-
-        private static final String CALENDAR_ICON_PATH = "/icons/Calendar-icon.png";
-        private static final String TIME_ZONE_ICON_PATH = "/icons/Time-zone-icon.png";
-        private static final String TIME_ICON_PATH = "/icons/Time-icon.png";
+    private static class CodeSyncButtons {
 
         private final JPanel contentPanel = new JPanel();
-        private final JLabel currentDate = new JLabel();
-        private final JLabel timeZone = new JLabel();
-        private final JLabel currentTime = new JLabel();
+        private final JPanel leftPanel = new JPanel();
+        private final JPanel rightPanel = new JPanel();
 
-        public CalendarToolWindowContent(ToolWindow toolWindow) {
+        public CodeSyncButtons(ToolWindow toolWindow) {
             contentPanel.setLayout(new BorderLayout(0, 20));
-            contentPanel.setBorder(BorderFactory.createEmptyBorder(40, 0, 0, 0));
-            contentPanel.add(createCalendarPanel(), BorderLayout.PAGE_START);
-            contentPanel.add(createControlsPanel(toolWindow), BorderLayout.CENTER);
-            updateCurrentDateTime();
-        }
+            contentPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-        @NotNull
-        private JPanel createCalendarPanel() {
-            JPanel calendarPanel = new JPanel();
-            setIconLabel(currentDate, CALENDAR_ICON_PATH);
-            setIconLabel(timeZone, TIME_ZONE_ICON_PATH);
-            setIconLabel(currentTime, TIME_ICON_PATH);
-            calendarPanel.add(currentDate);
-            calendarPanel.add(timeZone);
-            calendarPanel.add(currentTime);
-            return calendarPanel;
-        }
+            leftPanel.setLayout(new BorderLayout());
+            rightPanel.setLayout(new BorderLayout());
 
-        private void setIconLabel(JLabel label, String imagePath) {
-            label.setIcon(new ImageIcon(Objects.requireNonNull(getClass().getResource(imagePath))));
+            leftPanel.setBackground(Color.BLACK);
+
+            leftPanel.setPreferredSize(new Dimension((int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.8), 0));
+            rightPanel.setPreferredSize(new Dimension((int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.2), 0));
+
+            contentPanel.add(leftPanel, BorderLayout.WEST);
+            contentPanel.add(rightPanel, BorderLayout.CENTER);
+
+            JPanel controlsPanel = createControlsPanel(toolWindow);
+
+            rightPanel.add(controlsPanel, BorderLayout.CENTER);
         }
 
         @NotNull
         private JPanel createControlsPanel(ToolWindow toolWindow) {
             JPanel controlsPanel = new JPanel();
-            JButton refreshDateAndTimeButton = new JButton("Refresh");
-            refreshDateAndTimeButton.addActionListener(e -> updateCurrentDateTime());
-            controlsPanel.add(refreshDateAndTimeButton);
-            JButton hideToolWindowButton = new JButton("Hide");
-            hideToolWindowButton.addActionListener(e -> toolWindow.hide(null));
-            controlsPanel.add(hideToolWindowButton);
+            controlsPanel.setLayout(new GridBagLayout());
+
+            JPanel buttonListPanel = new JPanel();
+            buttonListPanel.setLayout(new BoxLayout(buttonListPanel, BoxLayout.Y_AXIS));
+
+            JButton viewFilePlaybackButton = new JButton("View File Playback");
+            JButton viewRepoPlaybackButton = new JButton("View Repo Playback");
+            JButton viewDashboardButton = new JButton("View Dashboard");
+
+            JButton connectToolWindowButton = new JButton("Connect Repo");
+            connectToolWindowButton.addActionListener(
+                    e -> {
+                            if(connectToolWindowButton.getText() == "Connect Repo"){
+                                connectToolWindowButton.setText("Disconnect Repo");
+                                toolWindow.setIcon(CodeSyncIcons.getCodeSyncIcon());
+                            }else{
+                                connectToolWindowButton.setText("Connect Repo");
+                                toolWindow.setIcon(AllIcons.Toolwindows.Problems);
+                            }
+                        }
+                    );
+
+
+            JButton logoutToolWindowButton = new JButton("Logout");
+            logoutToolWindowButton.addActionListener(e -> toolWindow.hide(null));
+
+            viewFilePlaybackButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            viewRepoPlaybackButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            viewDashboardButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            connectToolWindowButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            logoutToolWindowButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            buttonListPanel.add(viewFilePlaybackButton);
+            buttonListPanel.add(viewRepoPlaybackButton);
+            buttonListPanel.add(viewDashboardButton);
+            buttonListPanel.add(connectToolWindowButton);
+            buttonListPanel.add(logoutToolWindowButton);
+
+            buttonListPanel.setAlignmentY(Component.CENTER_ALIGNMENT);
+
+            controlsPanel.add(buttonListPanel);
+
             return controlsPanel;
-        }
-
-        private void updateCurrentDateTime() {
-            Calendar calendar = Calendar.getInstance();
-            currentDate.setText(getCurrentDate(calendar));
-            timeZone.setText(getTimeZone(calendar));
-            currentTime.setText(getCurrentTime(calendar));
-        }
-
-        private String getCurrentDate(Calendar calendar) {
-            return calendar.get(Calendar.DAY_OF_MONTH) + "/"
-                    + (calendar.get(Calendar.MONTH) + 1) + "/"
-                    + calendar.get(Calendar.YEAR);
-        }
-
-        private String getTimeZone(Calendar calendar) {
-            long gmtOffset = calendar.get(Calendar.ZONE_OFFSET); // offset from GMT in milliseconds
-            String gmtOffsetString = String.valueOf(gmtOffset / 3600000);
-            return (gmtOffset > 0) ? "GMT + " + gmtOffsetString : "GMT - " + gmtOffsetString;
-        }
-
-        private String getCurrentTime(Calendar calendar) {
-            return getFormattedValue(calendar, Calendar.HOUR_OF_DAY) + ":" + getFormattedValue(calendar, Calendar.MINUTE);
-        }
-
-        private String getFormattedValue(Calendar calendar, int calendarField) {
-            int value = calendar.get(calendarField);
-            return StringUtils.leftPad(Integer.toString(value), 2, "0");
         }
 
         public JPanel getContentPanel() {
