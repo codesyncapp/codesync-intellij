@@ -35,7 +35,7 @@ public class CodeSyncButton implements ToolWindowFactory, DumbAware {
         private final JPanel leftPanel = new JPanel();
         private final JPanel rightPanel = new JPanel();
 
-        private final static String CONNECT_REPO = "Connect Repo";
+        private static final String CONNECT_REPO = "Connect Repo";
 
         public CodeSyncButtons(ToolWindow toolWindow) {
             contentPanel.setLayout(new BorderLayout(0, 20));
