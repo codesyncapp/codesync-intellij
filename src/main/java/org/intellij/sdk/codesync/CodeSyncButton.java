@@ -5,20 +5,13 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
-import com.intellij.ui.Colors;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
-import com.intellij.util.io.Compressor;
-import com.twelvemonkeys.imageio.metadata.jpeg.JPEG;
 import icons.CodeSyncIcons;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jdom.Element;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Calendar;
-import java.util.Objects;
 
 public class CodeSyncButton implements ToolWindowFactory, DumbAware {
 
@@ -27,6 +20,7 @@ public class CodeSyncButton implements ToolWindowFactory, DumbAware {
         CodeSyncButtons toolWindowContent = new CodeSyncButtons(toolWindow);
         Content content = ContentFactory.SERVICE.getInstance().createContent(toolWindowContent.getContentPanel(), "", false);
         toolWindow.getContentManager().addContent(content);
+        toolWindow.setSplitMode(false, null);
     }
 
     private static class CodeSyncButtons {
@@ -49,8 +43,8 @@ public class CodeSyncButton implements ToolWindowFactory, DumbAware {
             leftPanel.setPreferredSize(new Dimension((int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.8), 0));
             rightPanel.setPreferredSize(new Dimension((int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.2), 0));
 
-            contentPanel.add(leftPanel, BorderLayout.WEST);
-            contentPanel.add(rightPanel, BorderLayout.CENTER);
+            contentPanel.add(leftPanel, BorderLayout.CENTER);
+            contentPanel.add(rightPanel, BorderLayout.WEST);
 
             JPanel controlsPanel = createControlsPanel(toolWindow);
 
@@ -88,6 +82,13 @@ public class CodeSyncButton implements ToolWindowFactory, DumbAware {
             viewDashboardButton.setAlignmentX(Component.CENTER_ALIGNMENT);
             connectToolWindowButton.setAlignmentX(Component.CENTER_ALIGNMENT);
             logoutToolWindowButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            Dimension buttonSize = new Dimension(200, 50);
+            viewFilePlaybackButton.setMaximumSize(buttonSize);
+            viewRepoPlaybackButton.setMaximumSize(buttonSize);
+            viewDashboardButton.setMaximumSize(buttonSize);
+            connectToolWindowButton.setMaximumSize(buttonSize);
+            logoutToolWindowButton.setMaximumSize(buttonSize);
 
             buttonListPanel.add(viewFilePlaybackButton);
             buttonListPanel.add(viewRepoPlaybackButton);
