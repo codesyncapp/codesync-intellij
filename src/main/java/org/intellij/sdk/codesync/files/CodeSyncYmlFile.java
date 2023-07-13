@@ -124,7 +124,6 @@ abstract public class CodeSyncYmlFile {
         try {
             FileWriter writer = new FileWriter(ymlFile);
             writer.write("{}");
-            writer.flush();
             writer.close();
         } catch (IOException | YAMLException e) {
             // Ignore errors
