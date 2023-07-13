@@ -105,12 +105,7 @@ abstract public class CodeSyncYmlFile {
                     ));
                 }
             }
-            RandomAccessFile randomAccessFile = new RandomAccessFile(ymlFile, "rw");
-            FileChannel fileChannel = randomAccessFile.getChannel();
-            FileLock fileLock = fileChannel.tryLock();
-            if (fileLock != null) {
-                writeEmptyDictToFile(ymlFile, fileLock);
-            }
+            writeEmptyDictToFile(ymlFile, "{}");
         } catch (IOException | OverlappingFileLockException e) {
             // Ignore errors
             CodeSyncLogger.error(String.format(
@@ -120,10 +115,10 @@ abstract public class CodeSyncYmlFile {
         }
     }
 
-    private static void writeEmptyDictToFile(File ymlFile, FileLock fileLock) throws IOException {
+    private static void writeEmptyDictToFile(File ymlFile, String fileContents) throws IOException {
         try {
             FileWriter writer = new FileWriter(ymlFile);
-            writer.write("{}");
+            writer.write(fileContents);
             writer.flush();
             writer.close();
         } catch (IOException | YAMLException e) {
@@ -132,8 +127,6 @@ abstract public class CodeSyncYmlFile {
                     "Error while writing empty dict to the yml file with name '%s'. Error: %s",
                     ymlFile.getPath(), e.getMessage()
             ));
-        } finally {
-            fileLock.release();
         }
     }
 }
