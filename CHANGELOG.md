@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.22.3] - 2023-07-05 (NOT DEPLOYED)
 - Implemented Mocking for testing static method calls in getOS and sendPost methods.
 - Updated Git workflows to build and test on all three operating systems Windows, MacOS and Linux
+- Update playback picture on GitHub repository in README.md file.
 
 ## [3.22.2] - 2023-06-20
 - Put check for batch size of diffs being sent in a request should not exceed 16mb.
