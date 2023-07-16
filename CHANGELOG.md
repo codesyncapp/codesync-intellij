@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Git workflows to build and test on all three operating systems Windows, MacOS and Linux
 - Update playback picture on GitHub repository in README.md file.
 - Fixed websocket was getting null when server was restarting.
+- Fixed writeEmptyDictToFile method issue in by closing the lock after writing so file can be flushed and closed.
 
 ## [3.22.2] - 2023-06-20
 - Put check for batch size of diffs being sent in a request should not exceed 16mb.
