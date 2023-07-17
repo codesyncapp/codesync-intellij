@@ -81,8 +81,7 @@ class ConfigFileTest {
                 // Verify content was removed.
                 contents = FileUtils.readFileToString(configFile.path)
                 assert(contents != invalidContent)
-                //TODO Resolve the locking issue in writeEmptyDictToFile()
-                //assert(contents == "{}")
+                assert(contents == "{}")
             }
         }
     }
