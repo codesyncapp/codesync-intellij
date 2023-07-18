@@ -38,6 +38,8 @@ abstract public class CodeSyncYmlFile {
             throw new InvalidYmlFileError(e.getMessage());
         } catch (IOException e) {
             throw new FileNotFoundException(e.getMessage());
+        } catch (NullPointerException e){
+            throw new FileNotFoundException(e.getMessage());
         }
     }
 
