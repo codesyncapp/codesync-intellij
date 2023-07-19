@@ -470,7 +470,7 @@ public class PopulateBuffer {
 
         String fileContents = FileUtils.readFileToString(filePath);
 
-        if (fileContents.isEmpty()) {
+        if (fileContents == null || fileContents.isEmpty()) {
             renameResult.put("isRename", false);
             renameResult.put("shadowFilePath", matchingFilePath);
 

@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.23.1] - 2023-07-16 (NOT DEPLOYED)
 - Fixed writeEmptyDictToFile method issue in by closing the lock after writing so file can be flushed and closed.
 - Put check for LockFile expiry getting null and text getting null while reading YML file
-- fileContents variable should return empty value in case of file reading exception instead of null
+- put check for fileContent variable if it is null
 
 ## [3.23.0] - 2023-07-14
 - Implemented Mocking for testing static method calls in getOS and sendPost methods.
