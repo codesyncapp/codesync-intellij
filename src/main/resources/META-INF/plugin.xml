@@ -76,6 +76,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup icon="CodeSyncIcons.codeSyncIcon" id="CodeSync Notifications" displayType="BALLOON" key="codesync.notification"/>
     <toolWindow id="CodeSync" secondary="true" icon="AllIcons.Toolwindows.Problems" anchor="bottom"
-                doNotActivateOnStart="false" factoryClass="org.intellij.sdk.codesync.CodeSyncButton"/>
+                doNotActivateOnStart="false" factoryClass="org.intellij.sdk.codesync.toolWindow.CodeSyncToolWindowButton"/>
   </extensions>
 </idea-plugin>
