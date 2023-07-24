@@ -9,7 +9,6 @@ public class CodeSyncMenu extends JPanel {
         JPanel controlsPanel = new JPanel();
         controlsPanel.setLayout(new GridBagLayout());
         controlsPanel.add(new ButtonList());
-
         this.add(controlsPanel);
     }
 
