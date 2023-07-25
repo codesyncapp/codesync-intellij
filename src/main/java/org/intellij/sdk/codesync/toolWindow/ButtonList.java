@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync.toolWindow;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.util.messages.MessageBus;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CommonUtils;
@@ -13,7 +14,7 @@ public class ButtonList extends JPanel {
 
     static boolean userLoggedIn = false;
     static boolean repoConnected = false;
-    static boolean needToAvailTrail = false;
+    static boolean needToAvailTrail = true;
     static boolean needToUpgradeToPro = false;
     static boolean isNestedRepo = false;
     static boolean isIgnoredNestedRepo = true;
@@ -21,7 +22,7 @@ public class ButtonList extends JPanel {
     CodeSyncLabel loginMessage = new CodeSyncLabel("Login and connect the repository to start streaming your code.");
     CodeSyncLabel connectRepoMessage = new CodeSyncLabel("Great! Now just connect the repository to start streaming your code.");
     CodeSyncLabel userCanStreamMessage = new CodeSyncLabel("Your repository is in sync.");
-    CodeSyncLabel tryProForFreeMessage = new CodeSyncLabel("Your repository size is exceeding the free limit. \n Try Pro for free to continue using CodeSync.");
+    CodeSyncLabel tryProForFreeMessage = new CodeSyncLabel("Your repository size is exceeding the free limit. \n <a href=''>Try Pro for free</a> to continue using CodeSync.");
     CodeSyncLabel upgradeToProMessage = new CodeSyncLabel("Your free trial of CodeSync has ended. \n Please upgrade your plan to continue using CodeSync, or contact sales.");
     CodeSyncLabel nestedDirMessage = new CodeSyncLabel("This file is ignored by .syncignore and is not in sync with CodeSync.");
     CodeSyncLabel nestedIgnoredDirMessage = new CodeSyncLabel("Current directory is ignored by a parent directory for streaming. \n To include this directory/file, remove it from the .syncignore file.");
@@ -41,10 +42,6 @@ public class ButtonList extends JPanel {
 
     public ButtonList(){
         this.addingActionListeners();
-        paint();
-    }
-
-    private void paint(){
         this.removeAll();
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 

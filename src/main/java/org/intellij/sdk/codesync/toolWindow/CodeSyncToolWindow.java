@@ -1,5 +1,9 @@
 package org.intellij.sdk.codesync.toolWindow;
 
+import com.intellij.util.messages.MessageBus;
+import org.intellij.sdk.codesync.eventBus.CodeSyncEventBus;
+import org.intellij.sdk.codesync.utils.CommonUtils;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -28,6 +32,9 @@ public class CodeSyncToolWindow extends JPanel {
     public static void updateMenu(){
         leftPanel.removeAll();
         leftPanel.add(new CodeSyncMenu(), BorderLayout.CENTER);
+        MessageBus messageBus = CommonUtils.getCurrentProject().getMessageBus();
+        CodeSyncEventBus eventBus = messageBus.syncPublisher(CodeSyncEventBus.TOPIC);
+        eventBus.onEvent(); // Notify subscribers about the event
     }
 
     public JPanel getContentPanel() {
