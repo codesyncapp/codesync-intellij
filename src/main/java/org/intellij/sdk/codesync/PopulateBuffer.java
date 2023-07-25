@@ -470,9 +470,13 @@ public class PopulateBuffer {
 
         String fileContents = FileUtils.readFileToString(filePath);
 
-        if (fileContents.isEmpty()) {
+        if (fileContents == null || fileContents.isEmpty()) {
             renameResult.put("isRename", false);
             renameResult.put("shadowFilePath", matchingFilePath);
+
+            if(fileContents == null){
+                CodeSyncLogger.error(String.format("File content was returned as null for file: %s", filePath));
+            }
 
             return renameResult;
         }
