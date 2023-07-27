@@ -7,26 +7,28 @@ import org.intellij.sdk.codesync.utils.CommonUtils;
 import javax.swing.*;
 import java.awt.*;
 
-public class CodeSyncToolWindow extends JPanel {
+public class CodeSyncToolWindow {
 
     private static JPanel contentPanel = new JPanel();
     private static JPanel rightPanel = new JPanel();
     private static JPanel leftPanel = new JPanel();
 
-    public CodeSyncToolWindow() {
+    public static void createToolWindow() {
         contentPanel.setLayout(new BorderLayout(0, 20));
         contentPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
         rightPanel.setLayout(new BorderLayout());
         leftPanel.setLayout(new BorderLayout());
 
-        rightPanel.setPreferredSize(new Dimension((int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.8), 0));
-        leftPanel.setPreferredSize(new Dimension((int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.2), 0));
+        rightPanel.setPreferredSize(new Dimension((int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.7), 0));
+        leftPanel.setPreferredSize(new Dimension((int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.3), 0));
+
+        rightPanel.setBackground(Color.PINK);
 
         contentPanel.add(rightPanel, BorderLayout.CENTER);
         contentPanel.add(leftPanel, BorderLayout.WEST);
 
-        leftPanel.add(new CodeSyncMenu(), BorderLayout.CENTER);
+        leftPanel.add(new ButtonList(), BorderLayout.CENTER);
     }
 
     public static void updateMenu(){
@@ -37,7 +39,8 @@ public class CodeSyncToolWindow extends JPanel {
         eventBus.onEvent(); // Notify subscribers about the event
     }
 
-    public JPanel getContentPanel() {
+    public static JPanel getContentPanel() {
+        createToolWindow();
         return contentPanel;
     }
 }

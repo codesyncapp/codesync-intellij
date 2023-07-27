@@ -14,19 +14,21 @@ public class ButtonList extends JPanel {
 
     static boolean userLoggedIn = false;
     static boolean repoConnected = false;
-    static boolean needToAvailTrail = true;
-    static boolean needToUpgradeToPro = false;
+    static boolean needToAvailTrail = false;
+    static boolean needToUpgradeToPro = true;
     static boolean isNestedRepo = false;
     static boolean isIgnoredNestedRepo = true;
 
     CodeSyncLabel loginMessage = new CodeSyncLabel("Login and connect the repository to start streaming your code.");
     CodeSyncLabel connectRepoMessage = new CodeSyncLabel("Great! Now just connect the repository to start streaming your code.");
     CodeSyncLabel userCanStreamMessage = new CodeSyncLabel("Your repository is in sync.");
-    CodeSyncLabel tryProForFreeMessage = new CodeSyncLabel("Your repository size is exceeding the free limit. \n <a href=''>Try Pro for free</a> to continue using CodeSync.");
-    CodeSyncLabel upgradeToProMessage = new CodeSyncLabel("Your free trial of CodeSync has ended. \n Please upgrade your plan to continue using CodeSync, or contact sales.");
+    CodeSyncLabel tryProForFreeMessage = new CodeSyncLabel("Your repository size is exceeding the free limit.");
+    CodeSyncLabel tryProForFreeMessage2 = new CodeSyncLabel("<a href=''>Try Pro for free</a> to continue using CodeSync.");
+    CodeSyncLabel upgradeToProMessage = new CodeSyncLabel("Your free trial of CodeSync has ended.");
+    CodeSyncLabel upgradeToProMessage2 = new CodeSyncLabel("Please upgrade your plan to continue using CodeSync, or contact sales.");
     CodeSyncLabel nestedDirMessage = new CodeSyncLabel("This file is ignored by .syncignore and is not in sync with CodeSync.");
-    CodeSyncLabel nestedIgnoredDirMessage = new CodeSyncLabel("Current directory is ignored by a parent directory for streaming. \n To include this directory/file, remove it from the .syncignore file.");
-
+    CodeSyncLabel nestedIgnoredDirMessage = new CodeSyncLabel("Current directory is ignored by a parent directory for streaming.");
+    CodeSyncLabel nestedIgnoredDirMessage2 = new CodeSyncLabel("To include this directory/file, remove it from the .syncignore file.");
 
     CodeSyncButton login = new CodeSyncButton("Login");
     CodeSyncButton logout = new CodeSyncButton("Logout");
@@ -43,7 +45,6 @@ public class ButtonList extends JPanel {
     public ButtonList(){
         this.addingActionListeners();
         this.removeAll();
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         Project project = CommonUtils.getCurrentProject();
         String repoPath = ProjectUtils.getRepoPath(project);
@@ -67,8 +68,6 @@ public class ButtonList extends JPanel {
         }else {
             userCanStream();
         }
-
-        this.setAlignmentX(Component.CENTER_ALIGNMENT);
     }
 
     private void addingActionListeners(){
@@ -158,6 +157,7 @@ public class ButtonList extends JPanel {
 
     private void userNeedToAvailTrail(){
         this.add(tryProForFreeMessage);
+        this.add(tryProForFreeMessage2);
         this.add(viewFilePlayback);
         this.add(viewDashboard);
         this.add(tryProForFree);
@@ -167,6 +167,7 @@ public class ButtonList extends JPanel {
 
     private void userNeedToUpgradeToPro(){
         this.add(upgradeToProMessage);
+        this.add(upgradeToProMessage2);
         this.add(viewFilePlayback);
         this.add(viewDashboard);
         this.add(upgradeToPro);
@@ -176,6 +177,7 @@ public class ButtonList extends JPanel {
 
     private void syncIgnoredNestedDirOpen(){
         this.add(nestedIgnoredDirMessage);
+        this.add(nestedIgnoredDirMessage2);
         this.add(openSyncIgnoreFile);
         this.add(viewParentRepositoryOnWeb);
         this.add(unsyncParentRepository);

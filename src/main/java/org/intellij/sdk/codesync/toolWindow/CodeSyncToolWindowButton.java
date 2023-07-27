@@ -10,6 +10,7 @@ import org.intellij.sdk.codesync.eventBus.CodeSyncEventBus;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class CodeSyncToolWindowButton implements ToolWindowFactory, DumbAware {
 
@@ -17,8 +18,7 @@ public class CodeSyncToolWindowButton implements ToolWindowFactory, DumbAware {
 
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        toolWindowContent = new CodeSyncToolWindow();
-        Content content = ContentFactory.SERVICE.getInstance().createContent(toolWindowContent.getContentPanel(), "", false);
+        Content content = ContentFactory.SERVICE.getInstance().createContent(CodeSyncToolWindow.getContentPanel(), "", false);
         toolWindow.getContentManager().addContent(content);
         toolWindow.setSplitMode(false, null);
 
@@ -31,6 +31,5 @@ public class CodeSyncToolWindowButton implements ToolWindowFactory, DumbAware {
                 toolWindowContent.getContentPanel().repaint();
             });
         });
-
     }
 }
