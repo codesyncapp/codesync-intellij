@@ -1,7 +1,6 @@
 package org.intellij.sdk.codesync;
 
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
-import org.intellij.sdk.codesync.files.SequenceTokenFile;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.json.simple.JSONObject;
@@ -12,15 +11,23 @@ import software.amazon.awssdk.services.cloudwatch.model.CloudWatchException;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
 import software.amazon.awssdk.services.cloudwatchlogs.model.*;
 
-import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.models.UserAccount;
 import static org.intellij.sdk.codesync.Constants.*;
 
-import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.Date;
 
 public class CodeSyncLogger {
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_BLACK = "\u001B[30m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String ANSI_BLUE = "\u001B[34m";
+    public static final String ANSI_PURPLE = "\u001B[35m";
+    public static final String ANSI_CYAN = "\u001B[36m";
+    public static final String ANSI_WHITE = "\u001B[37m";
+
     public static void logConsoleMessage(String message) {
         logConsoleMessage(message, LogMessageType.INFO);
     }
@@ -30,7 +37,27 @@ public class CodeSyncLogger {
     This is useful only with local debugging or special cases when we can get log file from the client.
      */
     public static void logConsoleMessage(String message, String level) {
-        System.out.printf("[CODESYNC] [%s] [%s]: %s%n", new Date(), level, message);
+        String color = null;
+        switch (level) {
+            case LogMessageType.CRITICAL:
+            case LogMessageType.ERROR:
+                color = ANSI_RED;
+                break;
+            case LogMessageType.WARNING:
+                color = ANSI_YELLOW;
+                break;
+            case LogMessageType.INFO:
+            case LogMessageType.DEBUG:
+                color = ANSI_CYAN;
+                break;
+        }
+
+        // Using null check here to use default colors according to user's theme in case color is not set.
+        if (color != null) {
+            System.out.printf("%s[CODESYNC] [%s] [%s]: %s%n%s", color, new Date(), level, message, ANSI_RESET);
+        } else {
+            System.out.printf("[CODESYNC] [%s] [%s]: %s%n", new Date(), level, message);
+        }
     }
 
     private static Integer retryCount = 0;
@@ -44,18 +71,6 @@ public class CodeSyncLogger {
                     .region(Region.US_EAST_1)
                     .credentialsProvider(() -> AwsBasicCredentials.create(accessKey, secretKey))
                     .build();
-
-            String sequenceToken = null;
-
-            try {
-                SequenceTokenFile sequenceTokenFile = new SequenceTokenFile(SEQUENCE_TOKEN_FILE_PATH);
-                SequenceTokenFile.SequenceToken sequenceTokenInstance = sequenceTokenFile.getSequenceToken(streamName);
-                if (sequenceTokenInstance != null) {
-                    sequenceToken = sequenceTokenInstance.getTokenString();
-                }
-            } catch (FileNotFoundException | InvalidYmlFileError e) {
-                // Ignore
-            }
 
             String version = ProjectUtils.getPluginVersion();
 
@@ -74,49 +89,25 @@ public class CodeSyncLogger {
                     .build();
 
             // Specify the request parameters.
-            // Sequence token is required so that the log can be written to the
-            // latest location in the stream.
             PutLogEventsRequest.Builder putLogEventsRequestBuilder = PutLogEventsRequest.builder()
                     .logEvents(Collections.singletonList(inputLogEvent))
                     .logGroupName(logGroupName)
                     .logStreamName(streamName);
-            if (sequenceToken != null) {
-                putLogEventsRequestBuilder = putLogEventsRequestBuilder.sequenceToken(sequenceToken);
-            }
             PutLogEventsRequest putLogEventsRequest = putLogEventsRequestBuilder.build();
 
-            String nextSequenceToken;
             try {
-                PutLogEventsResponse putLogEventsResponse = logsClient.putLogEvents(putLogEventsRequest);
-                nextSequenceToken = putLogEventsResponse.nextSequenceToken();
-            } catch (InvalidSequenceTokenException error) {
-                nextSequenceToken = error.expectedSequenceToken();
-            } catch (DataAlreadyAcceptedException error) {
-                nextSequenceToken = error.expectedSequenceToken();
+                logsClient.putLogEvents(putLogEventsRequest);
             } catch (SdkClientException error){
-                System.out.println("Network Error: " + error.getMessage());
-                return;
+                logConsoleMessage("Network Error: " + error.getMessage(), LogMessageType.ERROR);
             }
 
-            logConsoleMessage("Successfully put CloudWatch log event");
-            // Update sequence token file for other plugins and daemon
-            try {
-                SequenceTokenFile sequenceTokenFile = new SequenceTokenFile(SEQUENCE_TOKEN_FILE_PATH);
-
-                // user email is the streamName.
-                sequenceTokenFile.publishNewSequenceToken(streamName, nextSequenceToken);
-            } catch (FileNotFoundException | InvalidYmlFileError e) {
-                // skip update to sequence file if not found;
-                return;
-            }
-        } catch (CloudWatchException e) {
-            e.printStackTrace();
-            throw e;
+        } catch (CloudWatchException error) {
+            logConsoleMessage(
+                String.format("Cloudwatch exception while logging message: '%s'", error.getMessage()),
+                LogMessageType.ERROR
+            );
+            throw error;
         }
-    }
-
-    private static void logEvent(String message, String type) {
-        logEvent(message, null, type);
     }
 
     private static void logEvent(String message, String userEmail, String type) {
@@ -150,7 +141,10 @@ public class CodeSyncLogger {
             }
 
             if (accessKey == null || secretKey == null) {
-                System.out.println("Plugin is not able communicate with the server. Please check your internet connection.");
+                logConsoleMessage(
+                    "Plugin is not able communicate with the server. Please check your internet connection.",
+                    LogMessageType.CRITICAL
+                );
                 return;
             }
         } else {
@@ -161,7 +155,7 @@ public class CodeSyncLogger {
 
         try {
             logMessageToCloudWatch(
-                    CLIENT_LOGS_GROUP_NAME, streamName, accessKey, secretKey, message, type
+                CLIENT_LOGS_GROUP_NAME, streamName, accessKey, secretKey, message, type
             );
         } catch (UnrecognizedClientException error) {
             String errorMessage = String.format(
@@ -170,7 +164,10 @@ public class CodeSyncLogger {
             if (retryCount > 10) {
                 // Do not try more than 10 times.
                 retryCount = 0;
-                System.out.printf("[ERROR]: Could not log the message to cloud watch. Error: %s%n", error.getMessage());
+                logConsoleMessage(
+                    String.format("Could not log the message to cloud watch. Error: %s%n", error.getMessage()),
+                    LogMessageType.CRITICAL
+                );
             } else {
                 retryCount += 1;
 
@@ -183,11 +180,14 @@ public class CodeSyncLogger {
                     type
                 );
             }
-        } catch (CloudWatchException | CloudWatchLogsException  e) {
+        } catch (CloudWatchException | CloudWatchLogsException error) {
             if (retryCount > 10) {
                 // Do not try more than 10 times.
                 retryCount = 0;
-                System.out.printf("[ERROR]: Could not log the message to cloud watch. Error: %s%n", e.getMessage());
+                logConsoleMessage(
+                    String.format("Could not log the message to cloud watch. Error: %s%n", error.getMessage()),
+                    LogMessageType.CRITICAL
+                );
             } else {
                 // try again.
                 retryCount += 1;
