@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.23.3] - 2023-08-01
+- Removed sequence token file and sequence token from the payload to cloud watch API calls.
+
 ## [3.23.2] - 2023-07-29
 - Updated unitBuild value so plugin can run on latest Intellij version.
 
