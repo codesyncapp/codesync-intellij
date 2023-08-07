@@ -51,6 +51,10 @@ public class ButtonList extends JPanel {
         PluginState pluginState = StateUtils.getState(repoPath);
         PluginState globalState = StateUtils.getGlobalState();
 
+        setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+        setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        add(Box.createVerticalGlue());
         if(!userLoggedIn){   //Replace it with !globalState.isAuthenticated
             userNotLoggedIn();
         }else if(isNestedRepo){
@@ -68,6 +72,7 @@ public class ButtonList extends JPanel {
         }else {
             userCanStream();
         }
+        add(Box.createVerticalGlue());
     }
 
     private void addingActionListeners(){

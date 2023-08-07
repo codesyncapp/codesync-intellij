@@ -23,11 +23,10 @@ public class CodeSyncToolWindow {
         rightPanel.setPreferredSize(new Dimension((int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.7), 0));
         leftPanel.setPreferredSize(new Dimension((int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.3), 0));
 
-        rightPanel.setBackground(Color.PINK);
-
         contentPanel.add(rightPanel, BorderLayout.CENTER);
         contentPanel.add(leftPanel, BorderLayout.WEST);
 
+        rightPanel.add(new RightSide());
         leftPanel.add(new ButtonList(), BorderLayout.CENTER);
     }
 
