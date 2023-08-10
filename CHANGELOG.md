@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.23.3] - 2023-08-01
 - Removed sequence token file and sequence token from the payload to cloud watch API calls.
+- Added dependabot.yml file to automate update dependencies update.
 
 ## [3.23.2] - 2023-07-29
 - Updated unitBuild value so plugin can run on latest Intellij version.
