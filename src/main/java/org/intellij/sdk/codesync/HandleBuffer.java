@@ -450,6 +450,10 @@ public class HandleBuffer {
             CodeSyncLogger.error(String.format("Error while uploading a new file '%s'. \n%s", diffFile.fileRelativePath, error.getMessage()));
             error.printStackTrace();
             return false;
+        } catch (InvalidUsage e){
+            System.out.println(e.getMessage());
+            // We can not process this file because so we need to remove the diff and mark this a successful upload.
+            return true;
         }
         return true;
     }

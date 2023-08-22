@@ -92,7 +92,7 @@ public class CodeSyncClient {
         }
     }
 
-    public Integer uploadFile(String accessToken, ConfigRepo configRepo, DiffFile diffFile, File originalsFile) throws FileInfoError, InvalidJsonError, RequestError {
+    public Integer uploadFile(String accessToken, ConfigRepo configRepo, DiffFile diffFile, File originalsFile) throws FileInfoError, InvalidJsonError, RequestError, InvalidUsage {
         JSONObject payload = new JSONObject();
         Map<String, Object> fileInfo;
         try {
@@ -121,6 +121,11 @@ public class CodeSyncClient {
         try {
             jsonResponse.raiseForStatus();
         } catch (StatusCodeError statusCodeError) {
+
+            if (statusCodeError.getStatusCode() == ErrorCodes.INVALID_USAGE) {
+                throw new InvalidUsage(statusCodeError.getMessage());
+            }
+
             if (statusCodeError.getStatusCode()  == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
                 PluginState pluginState = StateUtils.getState(configRepo.repoPath);
                 PricingAlerts.setPlanLimitReached(
