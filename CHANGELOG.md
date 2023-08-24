@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.24.0] - 2023-09-01
+- Fixed single individual file opened should not be allowed to be Synced.
+
 ## [3.23.4] - 2023-08-22
 - Gracefully handling error 400 which is being returned when file is in syncignore.
 - Updated playback gif on plugin.xml file for plugin page.

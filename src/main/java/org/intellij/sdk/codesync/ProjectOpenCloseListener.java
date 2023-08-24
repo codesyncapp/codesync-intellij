@@ -105,6 +105,11 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       // Populate state for all the opened modules. Module is the term used for projects opened using "Attach" option
       // in the IDE open dialog box.
       for (VirtualFile contentRoot: contentRoots) {
+
+        if(Utils.isIndividualFileOpen(contentRoot.getPath())){
+          continue;
+        }
+
         String repoPath = FileUtils.normalizeFilePath(contentRoot.getPath());
         String repoName = contentRoot.getName();
         CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, false, false);
