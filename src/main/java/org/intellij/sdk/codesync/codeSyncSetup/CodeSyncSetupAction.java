@@ -7,9 +7,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
+import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.actions.BaseModuleAction;
 import org.intellij.sdk.codesync.alerts.PricingAlerts;
-import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.base.BaseException;
 import org.intellij.sdk.codesync.exceptions.base.BaseNetworkException;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
@@ -33,7 +33,21 @@ public class CodeSyncSetupAction extends BaseModuleAction {
             e.getPresentation().setEnabled(false);
             return;
         }
+
         VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
+
+        VirtualFile contentRoot = null;
+        if (contentRoots.length > 1) {
+            contentRoot = e.getRequiredData(CommonDataKeys.PSI_FILE).getVirtualFile();
+        } else if (contentRoots.length == 1) {
+            contentRoot = contentRoots[0];
+        }
+
+        if (contentRoot != null && Utils.isIndividualFileOpen(contentRoot.getPath())) {
+            e.getPresentation().setEnabled(false);
+            return;
+        }
+
         if (contentRoots.length > 1) {
             // If more than one module are present in the project then a file must be open to show repo setup action
             // this is needed because without the file we can not determine the correct repo sync.

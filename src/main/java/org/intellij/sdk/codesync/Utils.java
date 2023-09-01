@@ -45,6 +45,11 @@ public class Utils {
         }
     }
 
+    public static boolean isIndividualFileOpen(String contentRootPath) {
+        File file = new File(contentRootPath);
+        return file.isFile();
+    }
+
     public static String GetGitBranch(String repoPath) {
         String branch = DEFAULT_BRANCH;
 
