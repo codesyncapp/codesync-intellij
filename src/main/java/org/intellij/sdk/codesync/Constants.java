@@ -111,6 +111,9 @@ public final class Constants {
     public static final String ACTIVITY_ALERT_DAEMON_LOCK_KEY = "activity_alerts_daemon";
     public static final String PRICING_ALERT_LOCK_KEY = "pricing_alert";
     public static final String ACTIVITY_ALERT_LOCK_KEY = "activity_alerts";
+    public static final String VIEW_ACTIVITY = "View Activity";
+    public static final String REMIND_LATER = "Remind Later";
+    public static final String SKIP_TODAY = "Skip Today";
 
     public static final class PlatformIdentifier {
         private PlatformIdentifier() {
@@ -161,7 +164,7 @@ public final class Constants {
 
         // Team alert related notification messages
         public static final String ACTIVITY_ALERT_HEADER_MESSAGE = "CodeSync | Check your activity!";
-        public static final String ACTIVITY_ALERT_MESSAGE = "Hope you had a great day! Shall we review today's code playback?";
+        public static final String ACTIVITY_ALERT_MESSAGE = "Let’s take a minute to review today’s coding!";
         public static final String ACTIVITY_ALERT_SECONDARY_MESSAGE =
             "If you are not available right now then you can either skip for today or review later by clicking the correct button below.";
         public static final String TEAM_ACTIVITY_ALERT_HEADER_MESSAGE = "CodeSync | Check your team's activity!";
