@@ -42,6 +42,7 @@
     <h2>Bug Fixes</h2>
       <ul>
         <li>Fixed repeated activity alert being shown to some users.</li>
+        <li>Fixed populateBuffer issue for unopened synced project with new branch.</li>
       </ul>
     ]]>
   </change-notes>

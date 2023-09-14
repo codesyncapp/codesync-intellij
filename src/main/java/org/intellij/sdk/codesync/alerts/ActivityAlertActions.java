@@ -19,6 +19,7 @@ public class ActivityAlertActions extends NotificationAction {
     // Intellij does not have event for closing notification using X button.
     // We only have callback for when notification gets expired, it can be either through
     // programmatically or x button. To differentiate that we are using this toggle.
+    //TODO Remove the usage of following variable with better solution.
     static boolean closedUsingX = true;
 
     public ActivityAlertActions(String actionName, Project project, String email, String teamActivityURL) {
