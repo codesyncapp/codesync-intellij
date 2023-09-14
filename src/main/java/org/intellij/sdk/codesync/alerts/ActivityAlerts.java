@@ -12,6 +12,7 @@ import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.json.simple.JSONObject;
 
+import javax.swing.*;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -126,6 +127,38 @@ public class ActivityAlerts {
         Timer timer = new Timer(true);
         CodeSyncLogger.debug("[CODESYNC_DAEMON]: Starting activity alert daemon.");
         activityDaemon(timer, project);
+    }
+
+    public static void updateActivityAlert(String actionName, String email){
+        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                boolean hasUserChecked = actionName.equals(VIEW_ACTIVITY) || actionName.equals(SKIP_TODAY);
+                CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Activity alert dialog shown to the user.");
+                CodeSyncLogger.debug(String.format("[CODESYNC_DAEMON] [ACTIVITY_ALERT]. User responded with '%s' status", hasUserChecked));
+                Instant checkedFor;
+                Instant now = CodeSyncDateUtils.getTodayInstant();
+
+                // if activity is shown before 4 PM then it was for yesterday's activity,
+                // and we need to show another notification after 4:30 PM today.
+                if (now.atZone(ZoneId.systemDefault()).getHour() < 16) {
+                    checkedFor = CodeSyncDateUtils.getYesterdayInstant();
+                } else {
+                    checkedFor = CodeSyncDateUtils.getTodayInstant();
+                }
+                if (email != null && hasUserChecked) {
+                    CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Updating team activity yml file.");
+                    AlertsFile.updateTeamActivity(
+                            email,
+                            CodeSyncDateUtils.getTodayInstant(),
+                            checkedFor,
+                            CodeSyncDateUtils.getTodayInstant()
+                    );
+                }
+                return null;
+            }
+        };
+        worker.execute();
     }
 
     /*

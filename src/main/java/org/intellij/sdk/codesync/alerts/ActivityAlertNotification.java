@@ -16,20 +16,26 @@ public class ActivityAlertNotification {
 
     public static void showAlert(String teamActivityURL, Project project, String email) {
 
-        if(notification != null){
-            notification.expire();
-            notification = null;
+        if(notification != null && !notification.isExpired()){
+            return;
         }
 
         ArrayList<ActivityAlertActions> actions = new ArrayList<>();
         actions.add(new ActivityAlertActions(VIEW_ACTIVITY, project, email, teamActivityURL));
         actions.add(new ActivityAlertActions(REMIND_LATER, project, email, teamActivityURL));
         actions.add(new ActivityAlertActions(SKIP_TODAY, project, email, teamActivityURL));
+        ActivityAlertActions.closedUsingX = true;
 
         notification = NotificationGroupManager.getInstance()
                 .getNotificationGroup("CodeSync Daily Digest")
                 .createNotification(Constants.Notification.ACTIVITY_ALERT_MESSAGE, NotificationType.INFORMATION)
-                .setTitle("CodeSync Daily Digest");
+                .setTitle("CodeSync Daily Digest")
+                .whenExpired(() -> {
+                    if(ActivityAlertActions.closedUsingX){
+                        ActivityAlerts.skipToday();
+                        ActivityAlerts.updateActivityAlert(SKIP_TODAY, email);
+                    }
+                });
 
         notification.addActions(actions);
         notification.notify(project);

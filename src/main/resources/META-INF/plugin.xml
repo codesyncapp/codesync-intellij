@@ -34,6 +34,18 @@
     ]]>
     </description>
 
+  <change-notes><![CDATA[
+    <h2>New Features</h2>
+      <ul>
+        <li>Replaced Activity Alert Dialog with a Notification Balloon which is non-blocking.</li>
+      </ul>
+    <h2>Bug Fixes</h2>
+      <ul>
+        <li>Fixed repeated activity alert being shown to some users.</li>
+      </ul>
+    ]]>
+  </change-notes>
+
   <!-- Text to display as company information on Preferences/Settings | Plugin page -->
   <vendor email="hello@codesync.com" url="https://www.codesync.com">CodeSync</vendor>
 
