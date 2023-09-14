@@ -93,4 +93,18 @@ public class StateUtils {
 
         projectStateMap.put(repoPath, pluginState);
     }
+
+    public static void setSyncInProgress(String repoPath){
+        PluginState pluginState = getState(repoPath);
+        if(pluginState != null){
+            pluginState.syncInProcess = true;
+        }
+    }
+
+    public static void unsetSyncInProgress(String repoPath){
+        PluginState pluginState = getState(repoPath);
+        if(pluginState != null){
+            pluginState.syncInProcess = false;
+        }
+    }
 }

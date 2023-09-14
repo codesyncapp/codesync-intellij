@@ -5,14 +5,7 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
-import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.files.AlertsFile;
-import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.time.Instant;
-import java.time.ZoneId;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -22,6 +15,12 @@ public class ActivityAlertActions extends NotificationAction {
     Project project;
     String email;
     String teamActivityURL;
+
+    // Intellij does not have event for closing notification using X button.
+    // We only have callback for when notification gets expired, it can be either through
+    // programmatically or x button. To differentiate that we are using this toggle.
+    //TODO Remove the usage of following variable with better solution.
+    static boolean closedUsingX = true;
 
     public ActivityAlertActions(String actionName, Project project, String email, String teamActivityURL) {
         super(actionName);
@@ -33,12 +32,9 @@ public class ActivityAlertActions extends NotificationAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-
-        notification.expire();
-
         switch(actionName){
             case VIEW_ACTIVITY:
-                BrowserUtil.browse(this.teamActivityURL);
+                BrowserUtil.browse(teamActivityURL);
                 // User has already been redirected to the activity page, we can now skip subsequent alerts.
                 ActivityAlerts.skipToday();
                 break;
@@ -52,34 +48,9 @@ public class ActivityAlertActions extends NotificationAction {
                 return;
         }
 
-        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-            @Override
-            protected Void doInBackground() throws Exception {
-                boolean hasUserChecked = actionName.equals(VIEW_ACTIVITY) || actionName.equals(REMIND_LATER);
-                CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Activity alert dialog shown to the user.");
-                CodeSyncLogger.debug(String.format("[CODESYNC_DAEMON] [ACTIVITY_ALERT]. User responded with '%s' status", hasUserChecked));
-                Instant checkedFor;
-                Instant now = CodeSyncDateUtils.getTodayInstant();
+        ActivityAlerts.updateActivityAlert(actionName, email);
+        closedUsingX = false;
+        notification.expire();
 
-                // if activity is shown before 4 PM then it was for yesterday's activity,
-                // and we need to show another notification after 4:30 PM today.
-                if (now.atZone(ZoneId.systemDefault()).getHour() < 16) {
-                    checkedFor = CodeSyncDateUtils.getYesterdayInstant();
-                } else {
-                    checkedFor = CodeSyncDateUtils.getTodayInstant();
-                }
-                if (email != null && hasUserChecked) {
-                    CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Updating team activity yml file.");
-                    AlertsFile.updateTeamActivity(
-                            email,
-                            CodeSyncDateUtils.getTodayInstant(),
-                            checkedFor,
-                            CodeSyncDateUtils.getTodayInstant()
-                    );
-                }
-                return null;
-            }
-        };
-        worker.execute();
     }
 }
