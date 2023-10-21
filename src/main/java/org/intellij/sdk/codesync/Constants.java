@@ -83,9 +83,9 @@ public final class Constants {
     public static final String API_HEALTHCHECK = String.format("%s/healthcheck?source=%s&v=%s", CODESYNC_HOST, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String CODESYNC_AUTHORIZE_URL = String.format("%s/authorize", CODESYNC_HOST);
     public static final String CODESYNC_LOGOUT_URL = String.format("%s/auth-logout", CODESYNC_HOST);
-    public static final String CODESYNC_PRICING_URL = String.format("%s/pricing?%s&source=%s&v=%s", CODESYNC_HOST, GA4_PARAMS, DIFF_SOURCE, PLUGIN_VERSION);
 
     public static final String WEBAPP_DASHBOARD_URL = String.format("%s/?%s", WEB_APP_URL, GA4_PARAMS);
+    public static final String CODESYNC_PRICING_URL = String.format("%s/pricing", WEB_APP_URL);
     public static final String PLANS_URL = String.format("%s/plans?%s", WEB_APP_URL, GA4_PARAMS);
     public static final String REPO_PLAYBACK_LINK = String.format("%s/repos", WEB_APP_URL) + "/%s/playback?" + GA4_PARAMS;
     public static final String FILE_PLAYBACK_LINK = String.format("%s/files", WEB_APP_URL) + "/%s/history?" + GA4_PARAMS;
@@ -157,7 +157,7 @@ public final class Constants {
         // Pricing plan related notification messages
         public static final String UPGRADE = "CodeSync | Free tier limit reached";
         public static final String PRICING_LIMIT_REACHED_MESSAGE = "We hope you've found CodeSync useful! You've hit the limit of the Free tier.";
-        public static final String UPGRADE_PRICING_PLAN = "To continue, please sign up for Pro.";
+        public static final String UPGRADE_PRICING_PLAN = "To continue, please upgrade your plan.";
         public static final String UPGRADE_ORG_PRICING_PLAN = "To continue, please sign your organization up for the Team plan.";
         public static final String TRY_PRO_FOR_FREE = "To continue, please sign up for a 30-day free trial of Pro.";
         public static final String TRY_ORG_PRO_FOR_FREE = "To continue, please sign your organization up for a 30-day free trial of the Team plan.";
