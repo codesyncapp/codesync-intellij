@@ -1,6 +1,5 @@
 package org.intellij.sdk.codesync.files;
 
-import org.apache.commons.lang.time.DateUtils;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
@@ -9,7 +8,8 @@ import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
-import java.util.Calendar;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -140,10 +140,10 @@ public class AlertsFile extends CodeSyncYmlFile{
         if (checkedForInstant != null) {
             Instant todayInstant = CodeSyncDateUtils.getTodayInstant();
             // Truncate time information.
-            todayInstant = DateUtils.truncate(Date.from(todayInstant), Calendar.DATE).toInstant();
+            todayInstant = todayInstant.truncatedTo(ChronoUnit.DAYS);
 
             // Return true if alert was checked either yesterday or after that
-            return checkedForInstant.equals(todayInstant);
+            return checkedForInstant.atZone(ZoneId.systemDefault()).equals(todayInstant.atZone(ZoneId.systemDefault()));
         }
 
         return false;
