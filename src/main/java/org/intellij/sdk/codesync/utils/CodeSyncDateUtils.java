@@ -122,8 +122,8 @@ public class CodeSyncDateUtils {
 
     public static Instant getTodayInstant() {
         ZoneId timeZone = ZoneId.systemDefault();
-        LocalDateTime yesterdayDateTime = LocalDateTime.now(timeZone);
-        ZonedDateTime zonedDateTime = ZonedDateTime.of(yesterdayDateTime, timeZone);
+        LocalDateTime todayDateTime = LocalDateTime.now(timeZone);
+        ZonedDateTime zonedDateTime = ZonedDateTime.of(todayDateTime, timeZone);
 
         return zonedDateTime.toInstant();
     }
