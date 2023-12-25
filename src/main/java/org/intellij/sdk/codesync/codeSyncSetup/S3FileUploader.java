@@ -44,12 +44,13 @@ public class S3FileUploader {
     /*
     Pre-Process and validate yml data. return `true` of we are good to proceed, `false` otherwise.
     */
-    public boolean validate () {
+    public boolean is_valid () {
         if (!this.s3UploadQueueFile.hasFiles()){
             return false;
         }
 
-        return true;
+        // If previous 3 attempts have resulted in failures then do not try again.
+        return this.failedCount <= 3;
     }
 
     public void uploadToS3(String repoPath, String branchName, Map<String, Object> fileUrls) {
@@ -102,6 +103,10 @@ public class S3FileUploader {
     }
 
     public void triggerAsyncTask(Project project) {
+        if (!this.is_valid()) {
+            this.s3UploadQueueFile.removeFile();
+            return;
+        }
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Syncing files") {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {

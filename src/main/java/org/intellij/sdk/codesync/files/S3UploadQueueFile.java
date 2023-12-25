@@ -5,6 +5,7 @@ import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,8 +38,8 @@ public class S3UploadQueueFile extends CodeSyncYmlFile {
     /*
     Constructor to load an existing file.
      */
-    public S3UploadQueueFile (String ymlFilePath) throws InvalidYmlFileError, FileNotFoundException {
-        this.ymlFile = new File(ymlFilePath);
+    public S3UploadQueueFile (File ymlFilePath) throws InvalidYmlFileError, FileNotFoundException {
+        this.ymlFile = ymlFilePath;
 
         if (!this.ymlFile.isFile()) {
             throw new InvalidYmlFileError("S3 Upload Queue file path must be absolute path pointing to a file.");

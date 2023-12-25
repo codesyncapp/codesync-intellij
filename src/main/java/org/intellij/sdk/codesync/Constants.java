@@ -116,6 +116,8 @@ public final class Constants {
     public static final String REMIND_LATER = "Remind Later";
     public static final String SKIP_TODAY = "Skip Today";
 
+    public static final String S3_FILE_UPLOAD_LOCK_KEY = "s3_file_upload";
+
     public static final Integer S3_UPLOAD_TIMEOUT = 5 * 60 * 1000; // 1000 is for ms
     public static final Integer S3_UPLOAD_RETRY_AFTER = 5 * 60 * 1000; // 1000 is for ms
 
