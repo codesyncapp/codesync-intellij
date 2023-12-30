@@ -13,24 +13,81 @@
 
   <!-- Text to display as description on Preferences/Settings | Plugin page -->
   <description><![CDATA[
-    <p>Stream your code in real-time to the cloud, allowing you to review the entire history of the codebase on <a href="https://www.codesync.com">codesync.com</a>.</p>
-
-    <ul>
-      <li><span><b>Coding Performance: </b></span><span>Track your performance every day. What did you actually write today?</span></li>
-      <li><span><b>Team Collaboration: </b></span><span>Don't wait for the Pull Request. Align with your team on changes as they happen. </span></li>
-      <li><span><b>Never Lose Code Again: </b></span><span>All code changes are saved. "Rewind" to see all history.</span></li>
-      <li><span><b>Social Coding: </b></span><span>Watch developers around the world as they code, in real time.</span></li>
-    </ul>
-    <br/>
-    <b>Getting Started</b>
-    <ol>
-      <li>Install the CodeSync plugin</li>
-      <li>The plugin will guide you to log in or sign up, and connect your repo</li>
-      <li>Visit to <a href="https://www.codesync.com">codesync.com</a> to view your playback, or your team\'s changes!</li>
-    </ol>
-    <br/>
-    <p><b>Content View (Replaying your changes)</b></p>
-    <img src="https://codesync-images.s3.amazonaws.com/playback-dark-theme.gif" alt="Demo of repo playback"/>
+<p>CodeSync: Unravel the Story of Your Code in a Glance. CodeSync for JetBrains IDEs uniquely blends the power of playback technology with the convenience of modern IDEs, offering a groundbreaking approach to code management and review. Our advanced playback feature allows developers to navigate through the history of code changes visually, providing an unparalleled understanding of code evolution and enhancing the quality of code reviews.</p>
+<p>
+  <strong>Key Features</strong>
+</p>
+<ul>
+  <li>
+    <strong>Innovative Code Playback</strong>: Witness the progression of your codebase with our dynamic playback feature, visualizing each change in a user-friendly timeline.
+  </li>
+  <li>
+    <strong>Collaboration Boost</strong>: Facilitate team discussions and education by sharing visual code histories, promoting better understanding and teamwork.
+  </li>
+  <li>
+    <strong>GitHub Pull Request Integration</strong>: Elevate code reviews by replaying GitHub Pull Requests, gaining insight into the developer&#39;s reasoning and approach.
+  </li>
+  <li>
+    <strong>Seamless IDE Integration</strong>: Effortlessly merge CodeSync into your JetBrains IDE environment, complementing and enriching your existing coding workflow.
+  </li>
+  <li>
+    <strong>Flexible Hosting Options</strong>: Adapt CodeSync to your team&#39;s needs with cloud-based hosting or self-hosted options on your AWS account.
+  </li>
+</ul>
+<p>
+  <strong>Getting Started</strong>
+</p>
+<ol>
+  <li>
+    <strong>Effortless Installation</strong>: Click &#39;Install&#39; to integrate CodeSync into your JetBrains IDE.
+  </li>
+  <li>
+    <strong>Customize Your Experience</strong>: Choose your preferred hosting method and configure settings to suit your workflow.
+  </li>
+  <li>
+    <strong>Revitalize Code Reviews</strong>: If you’re part of a team, utilize the GitHub PR integration and playback feature for more insightful and efficient code analysis.
+  </li>
+</ol>
+<p>
+  <strong>Documentation and Support</strong>
+</p>
+<ul>
+  <li>Detailed <a href="https://www.codesync.com/install">User Guides</a>
+  </li>
+  <li>Helpful <a href="https://www.codesync.com/install">Tutorials and FAQs</a>
+  </li>
+  <li>Responsive <a href="https://calendly.com/codesync/codesync-demo">Customer Support</a>
+  </li>
+</ul>
+<p>
+  <strong>User Testimonials</strong>
+</p>
+<p>&quot;CodeSync&#39;s playback feature has revolutionized how we approach code reviews and retrospectives.&quot; - <em>
+    <em>Laura Nguyen, Software Engineer</em>
+  </em>
+</p>
+<p>&quot;Being able to visually track our code&#39;s evolution has greatly enhanced our team&#39;s understanding and collaboration.&quot; - <em>
+    <em>Ryan Patel, DevOps Manager</em>
+  </em>
+</p>
+<p>
+  <strong>Stay Informed</strong>
+</p>
+<ul>
+  <li>Connect with us on <a href="https://discord.com/invite/3daCMNZNTa">Discord</a> and <a href="https://www.linkedin.com/company/codesyncapp/">LinkedIn</a>. </li>
+  <li>Reach out with questions, comments or feedback at <a href="hello@codesync.com"></a></a>. </li>
+</ul>
+<p>
+  <strong>Visuals</strong>
+</p>
+<p>
+  <img src="https://codesync-images.s3.amazonaws.com/playback-dark-theme.gif" alt="Repo Playback (Replaying your changes)">
+</p>
+<p>
+  <em>
+    <em>Discover the power of visual code analysis with CodeSync. Install now for a transformative coding experience!</em>
+  </em>
+</p>
     ]]>
     </description>
 
