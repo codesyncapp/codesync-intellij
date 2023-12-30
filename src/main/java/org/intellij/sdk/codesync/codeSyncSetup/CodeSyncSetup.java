@@ -640,11 +640,6 @@ public class CodeSyncSetup {
             S3FileUploader s3FileUploader = new S3FileUploader(configRepo.repoPath, branchName, fileUrls);
             s3FileUploader.saveURLs();
             s3FileUploader.triggerAsyncTask(project);
-
-            // TODO: Remove old code after testing.
-            // codeSyncProgressIndicator.setMileStone(InitRepoMilestones.UPLOAD_FILES);
-            // Upload file to S3.
-            // uploadToS3(repoPath, branchName, accessToken, email, repoId, fileUrls);
         } catch (ClassCastException | JsonProcessingException err) {
             CodeSyncLogger.critical(
                 String.format("Error parsing the response of /init endpoint. Error: %s", err.getMessage()),
@@ -711,34 +706,6 @@ public class CodeSyncSetup {
             );
         }
     }
-
-    // TODO: Remove after testing.
-//    public static void uploadToS3(
-//            String repoPath, String branchName, String userEmail,
-//            Map<String, Object> fileUrls
-//    ) {
-//        OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath, branchName);
-//        CodeSyncClient codeSyncClient = new CodeSyncClient();
-//
-//        for (Map.Entry<String, Object> fileUrl : fileUrls.entrySet()) {
-//            File originalsFile = originalsRepoManager.getFilePath(fileUrl.getKey()).toFile();
-//            if (fileUrl.getValue() == "") {
-//                // Skip if file is empty.
-//                 continue;
-//            }
-//            try {
-//                codeSyncClient.uploadToS3(
-//                    originalsFile,
-//                    (Map<String, Object>) fileUrl.getValue()
-//                );
-//            } catch (RequestError | ClassCastException error) {
-//                CodeSyncLogger.critical(
-//                    String.format("[INTELLI_REPO_INIT_ERROR]: Could not upload file to S3. Error %s", error.getMessage()),
-//                    userEmail
-//                );
-//            }
-//        }
-//    }
 
     public static String createSyncIgnore(String repoPath) {
         File syncIgnoreFile = Paths.get(repoPath, ".syncignore").toFile();
