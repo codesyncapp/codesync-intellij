@@ -7,18 +7,22 @@ import org.intellij.sdk.codesync.files.S3UploadQueueFile;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.stream.Stream;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.intellij.sdk.codesync.Constants.S3_UPLOAD_QUEUE_DIR;
 
 public class S3FilesUploader {
     private final Project project;
     private final ArrayList<S3FileUploader> s3FileUploaderList = new ArrayList<>();
+    private static final Set<String> filesBeingProcessed = new HashSet<>();
+
+    public static void registerFileBeingProcessed(String filePath) {
+        filesBeingProcessed.add(filePath);
+    }
 
     public static void triggerS3Uploads (Project project) {
         S3FilesUploader s3FilesUploader = new S3FilesUploader(Paths.get(S3_UPLOAD_QUEUE_DIR), project);
@@ -27,15 +31,12 @@ public class S3FilesUploader {
 
     public S3FilesUploader (Path s3YMLFilesDirectory, Project project) {
         this.project = project;
+        File[] s3YMLFiles = s3YMLFilesDirectory.toFile().listFiles(
+            (dir, name) -> name.toLowerCase().endsWith("yml")
+        );
 
-        File[] s3YMLFiles = {};
-        try (Stream<Path> stream = Files.list(s3YMLFilesDirectory)) {
-            s3YMLFiles = (File[]) stream
-                .filter(file -> !Files.isDirectory(file))
-                .filter(path -> path.endsWith("yml"))
-                .toArray();
-        } catch (IOException e) {
-            CodeSyncLogger.error("[S3_FILE_UPLOAD]: Error while getting list of yml files, containing S3 file metadata.");
+        if (s3YMLFiles == null) {
+            return;
         }
 
         for (File s3YMLFile: s3YMLFiles) {
@@ -48,7 +49,6 @@ public class S3FilesUploader {
                 CodeSyncLogger.error(
                     String.format("[S3_FILE_UPLOAD]: Error while reading S3 yml file. Error: %s", error.getMessage())
                 );
-
             }
         }
     }
@@ -56,9 +56,13 @@ public class S3FilesUploader {
     /*
     Process al s3 YML files and upload pending files to S3.
     */
-    public void processFiles () {
+    private void processFiles () {
         for (S3FileUploader s3FileUploader: this.s3FileUploaderList) {
-            s3FileUploader.triggerAsyncTask(project);
+            String filePath = s3FileUploader.getQueueFilePath();
+            if (!filesBeingProcessed.contains(filePath)){
+                s3FileUploader.triggerAsyncTask(project);
+                filesBeingProcessed.add(filePath);
+            }
         }
     }
 }

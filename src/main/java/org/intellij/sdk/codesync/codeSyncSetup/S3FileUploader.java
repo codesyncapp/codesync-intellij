@@ -44,7 +44,7 @@ public class S3FileUploader {
     /*
     Pre-Process and validate yml data. return `true` of we are good to proceed, `false` otherwise.
     */
-    public boolean is_valid () {
+    public boolean is_valid() {
         if (!this.s3UploadQueueFile.hasFiles()){
             return false;
         }
@@ -59,12 +59,15 @@ public class S3FileUploader {
 
         for (Map.Entry<String, Object> fileUrl : fileUrls.entrySet()) {
             File originalsFile = originalsRepoManager.getFilePath(fileUrl.getKey()).toFile();
-            if (fileUrl.getValue() == "") {
+            if (fileUrl.getValue().equals("")) {
                 // Skip if file is empty.
                 continue;
             }
             try {
                 codeSyncClient.uploadToS3(originalsFile, (Map<String, Object>) fileUrl.getValue());
+
+                // File uploaded with success, so delete it from the originals.
+                originalsRepoManager.deleteFile(originalsFile.getPath());
             } catch (RequestError error) {
                 this.failedFilePathsAndURLs.put(fileUrl.getKey(), fileUrl.getValue());
                 CodeSyncLogger.critical(
@@ -76,11 +79,15 @@ public class S3FileUploader {
                 );
             }
         }
+
+        if (this.failedFilePathsAndURLs.isEmpty()) {
+            // Remove Originals repo as they are not needed anymore.
+            originalsRepoManager.delete();
+        }
     }
 
-
     // Process and upload files to S3.
-    public void processFiles() {
+    private void processFiles() {
         this.uploadToS3(
             this.s3UploadQueueFile.getRepoPath(),
             this.s3UploadQueueFile.getBranch(),
@@ -99,6 +106,8 @@ public class S3FileUploader {
                     )
                 );
             }
+        } else {
+            this.s3UploadQueueFile.removeFile();
         }
     }
 
@@ -107,11 +116,16 @@ public class S3FileUploader {
             this.s3UploadQueueFile.removeFile();
             return;
         }
+        S3FilesUploader.registerFileBeingProcessed(this.getQueueFilePath());
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Syncing files") {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 processFiles();
             }
         });
+    }
+
+    public String getQueueFilePath () {
+        return this.s3UploadQueueFile.getYmlFile().getPath();
     }
 }

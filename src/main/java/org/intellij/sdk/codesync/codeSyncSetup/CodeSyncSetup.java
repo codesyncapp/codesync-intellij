@@ -196,7 +196,9 @@ public class CodeSyncSetup {
 
     public static void createSystemDirectories() {
         // Create system folders
-        String[] systemFolders = {CODESYNC_ROOT, DIFFS_REPO, ORIGINALS_REPO, SHADOW_REPO, DELETED_REPO, LOCKS_FILE_DIR};
+        String[] systemFolders = {
+            CODESYNC_ROOT, DIFFS_REPO, ORIGINALS_REPO, SHADOW_REPO, DELETED_REPO, LOCKS_FILE_DIR, S3_UPLOAD_QUEUE_DIR
+        };
         for (String systemFolder : systemFolders) {
             File folder = new File(systemFolder);
             folder.mkdirs();
@@ -337,9 +339,6 @@ public class CodeSyncSetup {
 
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CLEANUP);
         if (wasUploadSuccessful) {
-            // Remove originals repo if it was uploaded successfully.
-            originalsRepoManager.delete();
-
             if (!Objects.equals(repoPath, project.getBasePath()) && isSyncingBranch) {
                 // Skip messaging as we are syncing offline branch for non-opened project.
                 return;

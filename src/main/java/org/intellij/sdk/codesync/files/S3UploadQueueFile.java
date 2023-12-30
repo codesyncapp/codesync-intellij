@@ -28,7 +28,7 @@ public class S3UploadQueueFile extends CodeSyncYmlFile {
         this.failedCount = failedCount;
 
         this.ymlFile = Paths.get(
-            S3_UPLOAD_QUEUE_DIR, String.valueOf(System.currentTimeMillis()), ".yml"
+            S3_UPLOAD_QUEUE_DIR, String.format("%s.yml", System.currentTimeMillis())
         ).toFile();
 
         // Create empty file.
