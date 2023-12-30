@@ -22,8 +22,7 @@ public final class InitRepoMilestones {
     public static MileStone COPY_FILES = new MileStone(0.30, "Copying files");
     public static MileStone SENDING_REPO = new MileStone(0.40, "Sending file to the server");
     public static MileStone PROCESS_RESPONSE = new MileStone(0.50, "Processing server response");
-    public static MileStone CONFIG_UPDATE = new MileStone(0.60, "Updating local config");
-    public static MileStone UPLOAD_FILES = new MileStone(0.70, "Uploading files");
+    public static MileStone CONFIG_UPDATE = new MileStone(0.70, "Updating local config");
     public static MileStone CLEANUP = new MileStone(0.90, "Cleaning up");
     public static MileStone END = new MileStone(1.00, "Sync complete");
 }
