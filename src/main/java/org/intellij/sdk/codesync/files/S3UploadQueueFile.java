@@ -4,8 +4,6 @@ import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;

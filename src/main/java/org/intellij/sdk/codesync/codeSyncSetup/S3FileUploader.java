@@ -44,7 +44,7 @@ public class S3FileUploader {
     /*
     Pre-Process and validate yml data. return `true` of we are good to proceed, `false` otherwise.
     */
-    public boolean is_valid() {
+    public boolean isValid() {
         if (!this.s3UploadQueueFile.hasFiles()){
             return false;
         }
@@ -112,7 +112,7 @@ public class S3FileUploader {
     }
 
     public void triggerAsyncTask(Project project) {
-        if (!this.is_valid()) {
+        if (!this.isValid()) {
             this.s3UploadQueueFile.removeFile();
             return;
         }
