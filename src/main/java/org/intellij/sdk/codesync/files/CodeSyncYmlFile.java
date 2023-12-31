@@ -100,7 +100,9 @@ abstract public class CodeSyncYmlFile {
     public void removeFile() {
         File ymlFile = this.getYmlFile();
         if (ymlFile.exists()) {
-            ymlFile.delete();
+            if(!ymlFile.delete()) {
+                CodeSyncLogger.warning(String.format("YML file '%s' could not be deleted.", ymlFile.getPath()));
+            }
         }
     }
 
