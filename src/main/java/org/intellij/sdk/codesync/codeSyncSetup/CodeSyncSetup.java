@@ -12,7 +12,6 @@ import com.intellij.openapi.project.Project;
 import kotlin.Pair;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
-import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.commands.ReloadStateCommand;
@@ -36,6 +35,7 @@ import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.alerts.PricingAlerts;
+import org.intellij.sdk.codesync.utils.GitUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
@@ -151,7 +151,7 @@ public class CodeSyncSetup {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
 
             if (!configFile.isRepoActive(repoPath) || isSyncingBranch) {
-                String branchName = Utils.GetGitBranch(repoPath);
+                String branchName = GitUtils.getBranchName(repoPath);
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CHECK_USER_ACCESS);
                 boolean hasAccessToken = checkUserAccess(project, repoPath, repoName, branchName, skipSyncPrompt, isSyncingBranch);
                 if (!hasAccessToken) {
@@ -393,7 +393,7 @@ public class CodeSyncSetup {
             return false;
         }
 
-        String branchName = Utils.GetGitBranch(repoPath);
+        String branchName = GitUtils.getBranchName(repoPath);
 
         ConfigFile configFile;
         try {

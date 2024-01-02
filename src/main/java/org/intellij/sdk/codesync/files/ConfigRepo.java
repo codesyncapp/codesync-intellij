@@ -1,8 +1,8 @@
 package org.intellij.sdk.codesync.files;
 
-import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.intellij.sdk.codesync.utils.GitUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -99,7 +99,7 @@ public class ConfigRepo {
     Make sure the current branch is successfully synced with the server.
      */
     public boolean isSuccessfullySyncedWithBranch() {
-        String branchName = Utils.GetGitBranch(this.repoPath);
+        String branchName = GitUtils.getBranchName(this.repoPath);
         if (!this.branches.containsKey(branchName)) {
             // If branch is not synced, daemon will take care of it.
             return false;

@@ -13,6 +13,7 @@ import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.alerts.PricingAlerts;
+import org.intellij.sdk.codesync.utils.GitUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 
 import java.io.*;
@@ -410,7 +411,7 @@ public class HandleBuffer {
     }
 
     public static boolean handleNewFile(CodeSyncClient client, String accessToken, DiffFile diffFile, ConfigFile configFile, ConfigRepo repo, ConfigRepoBranch configRepoBranch) {
-        String branchName = Utils.GetGitBranch(repo.repoPath);
+        String branchName = GitUtils.getBranchName(repo.repoPath);
         OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repo.repoPath, branchName);
 
         Path originalsFilePath = originalsRepoManager.getFilePath(diffFile.fileRelativePath);

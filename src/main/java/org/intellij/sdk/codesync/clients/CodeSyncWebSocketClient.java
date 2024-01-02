@@ -169,6 +169,7 @@ public class CodeSyncWebSocketClient {
             diff.put("is_binary", diffFile.isBinary);
             diff.put("created_at", CodeSyncDateUtils.formatDate(diffFile.createdAt));
             diff.put("path", diffFile.fileRelativePath);
+            diff.put("commit_hash", diffFile.commitHash);
             diff.put("diff_file_path", diffFile.originalDiffFile.getPath());
 
             diffs.add(diff);
