@@ -13,17 +13,17 @@ import static org.intellij.sdk.codesync.Constants.S3_UPLOAD_QUEUE_DIR;
 public class S3UploadQueueFile extends CodeSyncYmlFile {
     File ymlFile;
     String repoPath, branch;
-    Integer failedCount=0;
+    Integer runCount=0;
     Map<String, Object> filePathAndURLs = new HashMap<>();
 
     /*
     Constructor to create a new file.
      */
-    public S3UploadQueueFile(String repoPath, String branch, Map<String, Object> filePathAndURLs, Integer failedCount) {
+    public S3UploadQueueFile(String repoPath, String branch, Map<String, Object> filePathAndURLs, Integer runCount) {
         this.repoPath = repoPath;
         this.branch = branch;
         this.filePathAndURLs = filePathAndURLs;
-        this.failedCount = failedCount;
+        this.runCount = runCount;
 
         this.ymlFile = Paths.get(
             S3_UPLOAD_QUEUE_DIR, String.format("%s.yml", System.currentTimeMillis())
@@ -49,7 +49,7 @@ public class S3UploadQueueFile extends CodeSyncYmlFile {
 
         this.repoPath = (String) contentsMap.get("repo_path");
         this.branch = (String) contentsMap.get("branch");
-        this.failedCount = (Integer) contentsMap.get("failed_count");
+        this.runCount = (Integer) contentsMap.get("run_count");
         this.filePathAndURLs = (Map<String, Object>) contentsMap.get("file_path_and_urls");
     }
 
@@ -63,7 +63,7 @@ public class S3UploadQueueFile extends CodeSyncYmlFile {
         Map<String, Object> ymlContent = new HashMap<>();
         ymlContent.put("repo_path", this.repoPath);
         ymlContent.put("branch", this.branch);
-        ymlContent.put("failed_count", this.failedCount);
+        ymlContent.put("run_count", this.runCount);
         ymlContent.put("file_path_and_urls", this.filePathAndURLs);
 
         return ymlContent;
@@ -76,11 +76,11 @@ public class S3UploadQueueFile extends CodeSyncYmlFile {
         return repoPath != null && branch != null && !filePathAndURLs.isEmpty();
     }
 
-    public Integer getFailedCount () {
-        return this.failedCount;
+    public Integer getRunCount () {
+        return this.runCount;
     }
-    public void setFailedCount(Integer failedCount) {
-        this.failedCount = failedCount;
+    public void setRunCount(Integer runCount) {
+        this.runCount = runCount;
     }
     public String getRepoPath () {
         return this.repoPath;

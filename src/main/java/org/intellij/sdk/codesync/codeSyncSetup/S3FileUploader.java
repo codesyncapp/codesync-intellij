@@ -20,16 +20,18 @@ import java.util.Map;
 
 public class S3FileUploader {
     S3UploadQueueFile s3UploadQueueFile;
-    Integer failedCount;
+    Integer runCount;
     Map<String, Object> failedFilePathsAndURLs = new HashMap<>();
+
+    final Integer maxRunCount = 10;
 
     public S3FileUploader (S3UploadQueueFile s3UploadQueueFile) {
         this.s3UploadQueueFile = s3UploadQueueFile;
-        this.failedCount = this.s3UploadQueueFile.getFailedCount();
+        this.runCount = this.s3UploadQueueFile.getRunCount();
     }
     public S3FileUploader (String repoPath, String branch, Map<String, Object> filePathAndURLs) {
-        this.failedCount = 0;
-        this.s3UploadQueueFile = new S3UploadQueueFile(repoPath, branch, filePathAndURLs, failedCount);
+        this.runCount = 0;
+        this.s3UploadQueueFile = new S3UploadQueueFile(repoPath, branch, filePathAndURLs, runCount);
     }
 
     public void saveURLs() throws InvalidYmlFileError, FileNotFoundException {
@@ -50,7 +52,7 @@ public class S3FileUploader {
         }
 
         // If previous 3 attempts have resulted in failures then do not try again.
-        return this.failedCount <= 3;
+        return this.runCount <= this.maxRunCount;
     }
 
     public void uploadToS3(String repoPath, String branchName, Map<String, Object> fileUrls) {
@@ -96,7 +98,7 @@ public class S3FileUploader {
         if (!this.failedFilePathsAndURLs.isEmpty()) {
             try {
                 this.s3UploadQueueFile.setFilePathAndURLs(this.failedFilePathsAndURLs);
-                this.s3UploadQueueFile.setFailedCount(++this.failedCount);
+                this.s3UploadQueueFile.setRunCount(++this.runCount);
                 this.saveURLs();
             } catch (InvalidYmlFileError | FileNotFoundException error) {
                 CodeSyncLogger.critical(

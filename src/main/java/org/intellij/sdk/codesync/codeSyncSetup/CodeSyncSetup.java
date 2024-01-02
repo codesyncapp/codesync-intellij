@@ -639,7 +639,6 @@ public class CodeSyncSetup {
 
             S3FileUploader s3FileUploader = new S3FileUploader(configRepo.repoPath, branchName, fileUrls);
             s3FileUploader.saveURLs();
-            s3FileUploader.triggerAsyncTask(project);
         } catch (ClassCastException | JsonProcessingException err) {
             CodeSyncLogger.critical(
                 String.format("Error parsing the response of /init endpoint. Error: %s", err.getMessage()),

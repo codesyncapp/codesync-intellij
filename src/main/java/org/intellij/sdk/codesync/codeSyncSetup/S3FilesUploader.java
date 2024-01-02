@@ -61,7 +61,7 @@ public class S3FilesUploader {
             String filePath = s3FileUploader.getQueueFilePath();
             if (!filesBeingProcessed.contains(filePath)){
                 s3FileUploader.triggerAsyncTask(project);
-                filesBeingProcessed.add(filePath);
+                registerFileBeingProcessed(filePath);
             }
         }
     }
