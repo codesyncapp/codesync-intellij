@@ -47,11 +47,11 @@ public class S3FileUploader {
     Pre-Process and validate yml data. return `true` of we are good to proceed, `false` otherwise.
     */
     public boolean isValid() {
-        if (!this.s3UploadQueueFile.hasFiles()){
+        if (!this.s3UploadQueueFile.hasValidFields()){
             return false;
         }
 
-        // If previous 3 attempts have resulted in failures then do not try again.
+        // Make sure to not exceed the max run count.
         return this.runCount <= this.maxRunCount;
     }
 
@@ -80,11 +80,6 @@ public class S3FileUploader {
                     String.format("[S3_FILE_UPLOAD]: Could not process yaml content. Error %s", error.getMessage())
                 );
             }
-        }
-
-        if (this.failedFilePathsAndURLs.isEmpty()) {
-            // Remove Originals repo as they are not needed anymore.
-            originalsRepoManager.delete();
         }
     }
 

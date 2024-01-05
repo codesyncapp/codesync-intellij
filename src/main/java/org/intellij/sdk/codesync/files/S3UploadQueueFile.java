@@ -72,7 +72,7 @@ public class S3UploadQueueFile extends CodeSyncYmlFile {
     /*
     Return `true` if there are S3 files that need to be uploaded, `false` otherwise.
      */
-    public boolean hasFiles() {
+    public boolean hasValidFields() {
         return repoPath != null && branch != null && !filePathAndURLs.isEmpty();
     }
 
