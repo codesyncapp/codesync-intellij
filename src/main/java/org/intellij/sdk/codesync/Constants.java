@@ -32,6 +32,7 @@ public final class Constants {
     public static final String DELETED_REPO = Paths.get(CODESYNC_ROOT, ".deleted").toString();
     public static final String SHADOW_REPO = Paths.get(CODESYNC_ROOT, ".shadow").toString();
     public static final String CONFIG_PATH = Paths.get(CODESYNC_ROOT, "config.yml").toString();
+    public static final String S3_UPLOAD_QUEUE_DIR = Paths.get(CODESYNC_ROOT, ".s3_uploader").toString();
 
     //TODO: User file will be removed
     public static final String USER_FILE_PATH = Paths.get(CODESYNC_ROOT, "user.yml").toString();
@@ -114,6 +115,11 @@ public final class Constants {
     public static final String VIEW_ACTIVITY = "View Activity";
     public static final String REMIND_LATER = "Remind Later";
     public static final String SKIP_TODAY = "Skip Today";
+
+    public static final String S3_FILE_UPLOAD_LOCK_KEY = "s3_file_upload";
+
+    public static final Integer S3_UPLOAD_TIMEOUT = 5 * 60 * 1000; // 1000 is for ms
+    public static final Integer S3_UPLOAD_RETRY_AFTER = 5 * 60 * 1000; // 1000 is for ms
 
     public static final class PlatformIdentifier {
         private PlatformIdentifier() {

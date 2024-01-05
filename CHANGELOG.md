@@ -4,9 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.28.0] - 2023-12-30
+- Added background S3 file upload capability to speed up repo sync action.
+
+## [3.27.0] - 2023-12-30
+- README updated with the same content
+
 ## [3.26.0] - 2023-12-30
 - Content updated for CodeSync Description in plugin.xml
-- README updated with the same content
+- Fixed compatibility issues
 
 ## [3.25.3] - 2023-12-07
 - Support for IntelliJ Platform version 2023.3

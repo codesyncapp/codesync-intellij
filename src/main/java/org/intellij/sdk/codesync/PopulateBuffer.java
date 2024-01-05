@@ -4,6 +4,7 @@ import com.intellij.openapi.project.Project;
 import org.apache.commons.text.similarity.*;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
+import org.intellij.sdk.codesync.codeSyncSetup.S3FilesUploader;
 import org.intellij.sdk.codesync.exceptions.FileInfoError;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
@@ -145,6 +146,8 @@ public class PopulateBuffer {
         if (!canRunDaemon) {
             return;
         }
+        S3FilesUploader.triggerS3Uploads(project);
+
         Map<String, String> reposToUpdate = detectBranchChange();
         populateBufferForMissedEvents(reposToUpdate);
     }

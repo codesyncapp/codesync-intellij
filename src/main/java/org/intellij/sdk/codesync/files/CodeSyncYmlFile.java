@@ -95,6 +95,18 @@ abstract public class CodeSyncYmlFile {
     }
 
     /*
+    Delete the file.
+     */
+    public void removeFile() {
+        File ymlFile = this.getYmlFile();
+        if (ymlFile.exists()) {
+            if(!ymlFile.delete()) {
+                CodeSyncLogger.warning(String.format("YML file '%s' could not be deleted.", ymlFile.getPath()));
+            }
+        }
+    }
+
+    /*
     Remove the contents of the file and replace with empty dict, this is useful when invalid yaml error is raised.
     */
     public static void removeFileContents(File ymlFile) {

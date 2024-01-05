@@ -40,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -195,7 +196,9 @@ public class CodeSyncSetup {
 
     public static void createSystemDirectories() {
         // Create system folders
-        String[] systemFolders = {CODESYNC_ROOT, DIFFS_REPO, ORIGINALS_REPO, SHADOW_REPO, DELETED_REPO, LOCKS_FILE_DIR};
+        String[] systemFolders = {
+            CODESYNC_ROOT, DIFFS_REPO, ORIGINALS_REPO, SHADOW_REPO, DELETED_REPO, LOCKS_FILE_DIR, S3_UPLOAD_QUEUE_DIR
+        };
         for (String systemFolder : systemFolders) {
             File folder = new File(systemFolder);
             folder.mkdirs();
@@ -336,9 +339,6 @@ public class CodeSyncSetup {
 
         codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CLEANUP);
         if (wasUploadSuccessful) {
-            // Remove originals repo if it was uploaded successfully.
-            originalsRepoManager.delete();
-
             if (!Objects.equals(repoPath, project.getBasePath()) && isSyncingBranch) {
                 // Skip messaging as we are syncing offline branch for non-opened project.
                 return;
@@ -637,12 +637,17 @@ public class CodeSyncSetup {
             }
             fileUrls = new ObjectMapper().readValue(urls.toJSONString(), new TypeReference<Map<String, Object>>(){});
 
-            codeSyncProgressIndicator.setMileStone(InitRepoMilestones.UPLOAD_FILES);
-            // Upload file to S3.
-            uploadToS3(repoPath, branchName, accessToken, email, repoId, fileUrls);
+            S3FileUploader s3FileUploader = new S3FileUploader(configRepo.repoPath, branchName, fileUrls);
+            s3FileUploader.saveURLs();
         } catch (ClassCastException | JsonProcessingException err) {
             CodeSyncLogger.critical(
                 String.format("Error parsing the response of /init endpoint. Error: %s", err.getMessage()),
+                email
+            );
+            return false;
+        } catch (InvalidYmlFileError | FileNotFoundException error) {
+            CodeSyncLogger.critical(
+                String.format("Error creating S3 upload queue file. Error: %s", error.getMessage()),
                 email
             );
             return false;
@@ -698,33 +703,6 @@ public class CodeSyncSetup {
                 String.format("[INTELLI_REPO_INIT_ERROR]: Could not update config file. Error %s", error.getMessage()),
                 userEmail
             );
-        }
-    }
-
-    public static void uploadToS3(
-            String repoPath, String branchName, String accessToken, String userEmail, Integer repoId,
-            Map<String, Object> fileUrls
-    ) {
-        OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath, branchName);
-        CodeSyncClient codeSyncClient = new CodeSyncClient();
-
-        for (Map.Entry<String, Object> fileUrl : fileUrls.entrySet()) {
-            File originalsFile = originalsRepoManager.getFilePath(fileUrl.getKey()).toFile();
-            if (fileUrl.getValue() == "") {
-                // Skip if file is empty.
-                 continue;
-            }
-            try {
-                codeSyncClient.uploadToS3(
-                        originalsFile,
-                        (Map<String, Object>) fileUrl.getValue()
-                );
-            } catch (RequestError | ClassCastException error) {
-                CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: Could not upload file to S3. Error %s", error.getMessage()),
-                    userEmail
-                );
-            }
         }
     }
 
