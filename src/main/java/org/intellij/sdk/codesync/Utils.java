@@ -15,10 +15,7 @@ import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
-import org.intellij.sdk.codesync.utils.CommonUtils;
-import org.intellij.sdk.codesync.utils.DiffUtils;
-import org.intellij.sdk.codesync.utils.FileUtils;
-import org.intellij.sdk.codesync.utils.ProjectUtils;
+import org.intellij.sdk.codesync.utils.*;
 import org.json.simple.JSONObject;
 
 import java.io.*;
@@ -50,38 +47,6 @@ public class Utils {
         return file.isFile();
     }
 
-    public static String GetGitBranch(String repoPath) {
-        String branch = DEFAULT_BRANCH;
-
-        // Get current git branch name
-        ProcessBuilder processBuilder = new ProcessBuilder().directory(new File(repoPath));
-        if (CommonUtils.isWindows()) {
-            processBuilder.command("cmd", "/C", CURRENT_GIT_BRANCH_COMMAND);
-        } else {
-            // Run a shell command
-            processBuilder.command("/bin/bash", "-c", CURRENT_GIT_BRANCH_COMMAND);
-        }
-
-        try {
-            Process process = processBuilder.start();
-            StringBuilder output = new StringBuilder();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line);
-            }
-            int exitVal = process.waitFor();
-            if (exitVal == 0) {
-                branch = output.toString();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return branch;
-    }
-
     public static void FileCreateHandler(String filePath, String repoPath) {
         // Skip in case of directory
         File eventFile = new File(filePath);
@@ -94,7 +59,7 @@ public class Utils {
                 .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
         if (shouldSkipEvent(repoPath) || FileUtils.shouldIgnoreFile(relativeFilePath, repoPath)) { return; }
-        String branchName = Utils.GetGitBranch(repoPath);
+        String branchName = GitUtils.getBranchName(repoPath);
 
         OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(repoPath, branchName);
         originalsRepoManager.copyFiles(new String[] {filePath});
@@ -120,7 +85,7 @@ public class Utils {
                 .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
         if (shouldSkipEvent(repoPath) || FileUtils.shouldIgnoreFile(relativeFilePath, repoPath)) { return; }
-        String branchName = Utils.GetGitBranch(repoPath);
+        String branchName = GitUtils.getBranchName(repoPath);
 
         if (event.getFile().isDirectory()) {
             handleDirDelete(repoPath, branchName, relativeFilePath);
@@ -196,7 +161,7 @@ public class Utils {
 
         if (shouldSkipEvent(repoPath) || FileUtils.shouldIgnoreFile(newRelativeFilePath, repoPath)) { return; }
 
-        String branch = Utils.GetGitBranch(repoPath);
+        String branch = GitUtils.getBranchName(repoPath);
         // See if it is for directory or a file
         File file = new File(newAbsPath);
         handleRename(repoPath, branch, oldAbsPath, newAbsPath, file.isFile());
@@ -306,7 +271,7 @@ public class Utils {
             return;
         }
 
-        String branch = Utils.GetGitBranch(repoPath);
+        String branch = GitUtils.getBranchName(repoPath);
 
         String relativeFilePath = filePath
                 .replace(repoPath, "")

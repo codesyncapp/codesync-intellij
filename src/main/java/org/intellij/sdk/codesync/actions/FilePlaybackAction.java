@@ -7,13 +7,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
-import org.intellij.sdk.codesync.Utils;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
 import org.intellij.sdk.codesync.utils.FileUtils;
+import org.intellij.sdk.codesync.utils.GitUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -107,7 +107,7 @@ public class FilePlaybackAction extends BaseModuleAction {
 
             return;
         }
-        String branchName = Utils.GetGitBranch(repoPath);
+        String branchName = GitUtils.getBranchName(repoPath);
         ConfigRepoBranch configRepoBranch = configRepo.getRepoBranch(branchName);
 
         if (configRepoBranch == null) {

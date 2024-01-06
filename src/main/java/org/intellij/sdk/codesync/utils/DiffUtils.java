@@ -54,6 +54,7 @@ public class DiffUtils {
         }
         data.put("source", DIFF_SOURCE);
         data.put("created_at", createdAt);
+        data.put("commit_hash", GitUtils.getCommitHash(repoPath));
 
         writeToYML(data);
     }

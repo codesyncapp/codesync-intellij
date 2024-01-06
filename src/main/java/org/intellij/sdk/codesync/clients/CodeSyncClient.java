@@ -105,6 +105,7 @@ public class CodeSyncClient {
 
         payload.put("repo_id", configRepo.id);
         payload.put("branch", diffFile.branch);
+        payload.put("commit_hash", diffFile.commitHash);
         payload.put("is_binary", (Boolean) fileInfo.get("isBinary"));
         payload.put("size", (long) fileInfo.get("size"));
         payload.put("file_path", diffFile.fileRelativePath);

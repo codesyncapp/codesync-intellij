@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.28.0] - 2023-12-30
 - Added background S3 file upload capability to speed up repo sync action.
+- Added marking of git commit hash along with each change event.
 
 ## [3.27.0] - 2023-12-30
 - README updated with the same content

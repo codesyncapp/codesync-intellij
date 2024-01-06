@@ -203,7 +203,7 @@ public class PopulateBuffer {
             File _repoPath = new File(repoPath);
             if (!_repoPath.exists()) continue;
 
-            String branchName = Utils.GetGitBranch(repoPath);
+            String branchName = GitUtils.getBranchName(repoPath);
             ShadowRepoManager shadowRepoManager = new ShadowRepoManager(repoPath, branchName);
 
             // Get the path of the shadow repo, one level above the branch name.

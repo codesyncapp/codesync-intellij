@@ -70,6 +70,10 @@ dependencies {
   // https://commons.apache.org/proper/commons-text/dependency-info.html
   implementation 'org.apache.commons:commons-text:1.9'
 
+  // https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit
+  implementation ('org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r') {
+    exclude group: 'org.slf4j'
+  }
 
   // Configuration for tests.
   testImplementation('org.junit.jupiter:junit-jupiter-api:5.4.2')
