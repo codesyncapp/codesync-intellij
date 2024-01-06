@@ -42,7 +42,7 @@ public class AuthAction extends AnAction {
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getProject();
         if (project == null) {
-            NotificationManager.notifyError("An error occurred trying to perform authentication action.");
+            NotificationManager.getInstance().notifyError("An error occurred trying to perform authentication action.");
             CodeSyncLogger.warning("An error occurred trying to perform authentication action. e.getProject() is null.");
 
             return;
@@ -59,7 +59,7 @@ public class AuthAction extends AnAction {
                 try{
                     userAccount = new UserAccount();
                 }catch (SQLiteDBConnectionError error){
-                    NotificationManager.notifyError(
+                    NotificationManager.getInstance().notifyError(
                             "An error occurred trying to logout the user, please tyr again later.", project
                     );
                     CodeSyncLogger.error(
@@ -74,7 +74,7 @@ public class AuthAction extends AnAction {
                 try{
                     userAccount.makeAllUsersInActive();
                 } catch (SQLiteDBConnectionError error){
-                    NotificationManager.notifyError(
+                    NotificationManager.getInstance().notifyError(
                             "An error occurred trying to logout the user, please tyr again later.", project
                     );
                     CodeSyncLogger.error(
@@ -82,7 +82,7 @@ public class AuthAction extends AnAction {
                     );
                     return;
                 } catch (SQLiteDataError error){
-                    NotificationManager.notifyError(
+                    NotificationManager.getInstance().notifyError(
                             "An error occurred trying to logout the user, please tyr again later.", project
                     );
                     CodeSyncLogger.error(
@@ -94,7 +94,7 @@ public class AuthAction extends AnAction {
                 // Reload the state now.
                 StateUtils.reloadState(project);
 
-                NotificationManager.notifyInformation(
+                NotificationManager.getInstance().notifyInformation(
                         "You have been logged out successfully.", project
                 );
             } else {

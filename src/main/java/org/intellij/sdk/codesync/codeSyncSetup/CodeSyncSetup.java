@@ -120,7 +120,7 @@ public class CodeSyncSetup {
             configFile.publishRepoUpdate(configRepo);
 
             StateUtils.reloadState(project);
-            NotificationManager.notifyInformation(Notification.REPO_UNSYNCED, project);
+            NotificationManager.getInstance().notifyInformation(Notification.REPO_UNSYNCED, project);
         }
     }
 
@@ -155,7 +155,7 @@ public class CodeSyncSetup {
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CHECK_USER_ACCESS);
                 boolean hasAccessToken = checkUserAccess(project, repoPath, repoName, branchName, skipSyncPrompt, isSyncingBranch);
                 if (!hasAccessToken) {
-                    NotificationManager.notifyInformation(Notification.LOGIN_REQUIRED_FOR_SYNC_MESSAGE, project);
+                    NotificationManager.getInstance().notifyInformation(Notification.LOGIN_REQUIRED_FOR_SYNC_MESSAGE, project);
                     return;
                 }
 
@@ -184,7 +184,7 @@ public class CodeSyncSetup {
                     }
                 }
             } else {
-                NotificationManager.notifyInformation(
+                NotificationManager.getInstance().notifyInformation(
                         String.format(Notification.REPO_IN_SYNC_MESSAGE, repoName),
                         project
                 );
@@ -227,7 +227,7 @@ public class CodeSyncSetup {
     public static boolean validateAccessToken(String accessToken) throws InvalidAccessTokenError {
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         if (!codeSyncClient.isServerUp()) {
-            NotificationManager.notifyError(Notification.SERVICE_NOT_AVAILABLE);
+            NotificationManager.getInstance().notifyError(Notification.SERVICE_NOT_AVAILABLE);
             return false;
         }
 
@@ -305,7 +305,7 @@ public class CodeSyncSetup {
             CodeSyncLogger.critical(String.format(
                 "[INTELLIJ_AUTH_ERROR]: IntelliJ Login Error, an error occurred during user authentication. Error: %s", exc.getMessage()
             ));
-            NotificationManager.notifyError("There was a problem with login, please try again later.", project);
+            NotificationManager.getInstance().notifyError("There was a problem with login, please try again later.", project);
         }
 
         return false;
@@ -346,18 +346,18 @@ public class CodeSyncSetup {
 
             // Show success message and update state
             if (!isSyncingBranch){
-                NotificationManager.notifyInformation(Notification.INIT_SUCCESS_MESSAGE, project);
+                NotificationManager.getInstance().notifyInformation(Notification.INIT_SUCCESS_MESSAGE, project);
             } else {
-                NotificationManager.notifyInformation(
+                NotificationManager.getInstance().notifyInformation(
                     String.format(Notification.BRANCH_INIT_SUCCESS_MESSAGE, branchName), project);
             }
             StateUtils.reloadState(project);
         } else {
             // Show failure message.
             if (!isSyncingBranch){
-                NotificationManager.notifyError(Notification.INIT_FAILURE_MESSAGE, project);
+                NotificationManager.getInstance().notifyError(Notification.INIT_FAILURE_MESSAGE, project);
             } else {
-                NotificationManager.notifyError(
+                NotificationManager.getInstance().notifyError(
                     String.format(Notification.BRANCH_INIT_FAILURE_MESSAGE, branchName), project
                 );
             }
@@ -403,9 +403,9 @@ public class CodeSyncSetup {
 
             // Show error message.
             if (!isSyncingBranch) {
-                NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+                NotificationManager.getInstance().notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
             } else {
-                NotificationManager.notifyInformation(
+                NotificationManager.getInstance().notifyInformation(
                     String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
                 );
             }
@@ -452,9 +452,9 @@ public class CodeSyncSetup {
 
                 // Show error message.
                 if (!isSyncingBranch) {
-                    NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+                    NotificationManager.getInstance().notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
                 } else {
-                    NotificationManager.notifyInformation(
+                    NotificationManager.getInstance().notifyInformation(
                             String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
                     );
                 }
@@ -473,9 +473,9 @@ public class CodeSyncSetup {
 
                     // Show error message.
                     if (!isSyncingBranch) {
-                        NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+                        NotificationManager.getInstance().notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
                     } else {
-                        NotificationManager.notifyInformation(
+                        NotificationManager.getInstance().notifyInformation(
                                 String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
                         );
                     }
@@ -490,9 +490,9 @@ public class CodeSyncSetup {
         if (accessToken == null) {
             // Show error message.
             if (!isSyncingBranch) {
-                NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+                NotificationManager.getInstance().notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
             } else {
-                NotificationManager.notifyInformation(
+                NotificationManager.getInstance().notifyInformation(
                         String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
                 );
             }
@@ -530,14 +530,14 @@ public class CodeSyncSetup {
         if (response == null || response.containsKey("error")) {
             // Show error message.
             if (!isSyncingBranch) {
-                NotificationManager.notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+                NotificationManager.getInstance().notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
                 try {
                     configFile.publishRepoRemoval(repoPath);
                 } catch (InvalidConfigFileError e) {
                     CodeSyncLogger.debug("Error processing config file after repo init failed");
                 }
             } else {
-                NotificationManager.notifyInformation(
+                NotificationManager.getInstance().notifyInformation(
                         String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
                 );
                 try {
@@ -725,13 +725,13 @@ public class CodeSyncSetup {
             // create an empty .syncignore file and let the user populate it.
             try {
                 if (syncIgnoreFile.createNewFile()){
-                    NotificationManager.notifyInformation(
+                    NotificationManager.getInstance().notifyInformation(
                             ".syncignore file is created, you can now update that file according to your preferences.",
                             project
                     );
                 }
             } catch (IOException e) {
-                NotificationManager.notifyError(
+                NotificationManager.getInstance().notifyError(
                         ".syncignore could not be created, you will have to create that file yourself.",
                         project
                 );
@@ -748,7 +748,7 @@ public class CodeSyncSetup {
             org.apache.commons.io.FileUtils.writeLines(syncIgnoreFile, gitIgnoreLines);
         } catch (IOException e) {
             // Ignore this error, user can create the file himself as well/
-            NotificationManager.notifyError(
+            NotificationManager.getInstance().notifyError(
                     ".syncignore could not be created, you will have to create that file yourself.",
                     project
             );

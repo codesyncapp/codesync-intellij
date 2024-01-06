@@ -1,60 +1,91 @@
 package org.intellij.sdk.codesync;
 
-import com.intellij.diagnostic.ReportMessages;
-//import com.intellij.notification.NotificationGroupManager;
-import com.intellij.notification.NotificationListener;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.project.Project;
+import icons.CodeSyncIcons;
 import org.intellij.sdk.codesync.utils.CommonUtils;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.intellij.sdk.codesync.Constants.Notification.CODESYNC_NOTIFICATION_GROUP;
+import static org.intellij.sdk.codesync.Constants.Notification.DEFAULT_TITLE;
 
 public class NotificationManager {
-    public static void notify(String content, NotificationType notificationType) {
+    NotificationGroup notificationGroup;
+    List<? extends AnAction> actions = new ArrayList<>();
+
+    String title = DEFAULT_TITLE, subtitle;
+
+    public static NotificationManager getInstance(String notificationGroupId) {
+        return new NotificationManager(notificationGroupId);
+    }
+
+    public static NotificationManager getInstance() {
+        return getInstance(CODESYNC_NOTIFICATION_GROUP);
+    }
+
+    private NotificationManager (String notificationGroupId) {
+        this.notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup(notificationGroupId);
+    }
+
+    public NotificationManager addActions(@NotNull List<? extends AnAction> actions) {
+        this.actions = actions;
+        return this;
+    }
+
+    public NotificationManager setTitle(String title) {
+        this.title = title;
+        return this;
+    }
+
+    public NotificationManager setTitle(String title, String subtitle) {
+        this.title = title;
+        this.subtitle = subtitle;
+        return this;
+    }
+
+    public void notify(String content, NotificationType notificationType) {
         Project project = CommonUtils.getCurrentProject();
         notify(content, notificationType, project);
     }
 
-    public static void notify(String content, NotificationType notificationType, Project project) {
-        // TODO: jetbrains does not allow even conditional use of new API and raises compatibilty errors.
-        // TODO: uncomment this when we aree ready to drop support for IDEs older than March 2020
-//        if (CommonUtils.isIDEOlderOrEqual(2020, 3)) {
-//            // 2020.3 or older, ref: https://plugins.jetbrains.com/docs/intellij/notifications.html#35da3371
-//            NotificationGroupManager.getInstance()
-//                    .getNotificationGroup("CodeSync Notifications")
-//                    .createNotification(content, NotificationType.ERROR)
-//                    .notify(project);
-//        } else {
-            // Pre 2020.3, ref: https://plugins.jetbrains.com/docs/intellij/notifications.html#35da3371
-        ReportMessages.GROUP.createNotification(
-                "CodeSync notification",
-                content,
-                notificationType,
-                NotificationListener.URL_OPENING_LISTENER
-        ).setImportant(false).notify(project);
-//        }
+    public void notify(String content, NotificationType notificationType, Project project) {
+        Notification notification = this.notificationGroup
+            .createNotification(content, notificationType)
+            .setTitle(this.title, this.subtitle)
+            .setIcon(CodeSyncIcons.codeSyncIcon);
+        notification.addActions(this.actions);
+        notification.notify(project);
     }
 
-    public static void notifyError(String content) {
+    public void notifyError(String content) {
         notify(content, NotificationType.ERROR);
     }
 
-    public static void notifyError(String content, Project project) {
+    public void notifyError(String content, Project project) {
         notify(content, NotificationType.ERROR, project);
     }
 
-    public static void notifyWarning(String content) {
+    public void notifyWarning(String content) {
         notify(content, NotificationType.WARNING);
     }
 
 
-    public static void notifyWarning(String content, Project project) {
+    public void notifyWarning(String content, Project project) {
         notify(content, NotificationType.WARNING, project);
     }
 
-    public static void notifyInformation(String content) {
+    public void notifyInformation(String content) {
         notify(content, NotificationType.INFORMATION);
     }
 
-    public static void notifyInformation(String content, Project project) {
+    public void notifyInformation(String content, Project project) {
         notify(content, NotificationType.INFORMATION, project);
     }
 }
