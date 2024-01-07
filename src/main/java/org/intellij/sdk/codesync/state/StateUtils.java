@@ -77,6 +77,7 @@ public class StateUtils {
         pluginState.repoPath = repoPath;
         pluginState.isAuthenticated = globalState.isAuthenticated;
         pluginState.userEmail = globalState.userEmail;
+        pluginState.isAccountDeactivated = globalState.isAccountDeactivated;
 
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
@@ -106,5 +107,22 @@ public class StateUtils {
         if(pluginState != null){
             pluginState.syncInProcess = false;
         }
+    }
+
+    public static void deactivateAccount() {
+        PluginState pluginState = getGlobalState();
+
+        // Do nothing if account already deactivated.
+        if (pluginState.isAccountDeactivated) {
+            return;
+        }
+        pluginState.isAccountDeactivated = true;
+        reloadState(pluginState.project);
+    }
+
+    public static void reactivateAccount() {
+        PluginState pluginState = getGlobalState();
+        pluginState.isAccountDeactivated = false;
+        reloadState(pluginState.project);
     }
 }

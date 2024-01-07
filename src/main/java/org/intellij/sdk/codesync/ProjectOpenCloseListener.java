@@ -1,8 +1,6 @@
 // Copyright 2000-2020 JetBrains s.r.o. and other contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.intellij.sdk.codesync;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import kotlin.Pair;
 
 import com.intellij.ide.startup.StartupManagerEx;
@@ -22,8 +20,6 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.serviceContainer.AlreadyDisposedException;
 import kt.org.intellij.sdk.codesync.tasks.TaskExecutor;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.intellij.sdk.codesync.alerts.ActivityAlertActions;
-import org.intellij.sdk.codesync.alerts.ActivityAlertNotification;
 import org.intellij.sdk.codesync.alerts.ActivityAlerts;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.database.Database;
@@ -63,10 +59,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return;
     }
-//    List<AnAction> actions = new ArrayList<>();
-//    actions.add(new ActivityAlertActions("Test", project, "", ""));
-//    NotificationManager.getInstance().addActions(actions).notifyInformation("This is a test.", project);
-//    ActivityAlertNotification.showAlert("test", project, "test");
     // Create system directories required by the plugin.
     createSystemDirectories();
     Database.setupDbFilesAndTables(DATABASE_PATH);

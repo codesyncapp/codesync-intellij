@@ -181,6 +181,11 @@ public final class Constants {
         public static final String TEAM_ACTIVITY_ALERT_MESSAGE = "Hope you had a great day! It's time to get in sync with your team's code.";
         public static final String TEAM_ACTIVITY_ALERT_SECONDARY_MESSAGE =
             "If you are not available right now then you can either skip for today or review later by clicking the correct button below.";
+
+        public static final String ACCOUNT_DEACTIVATED = "Your account has been deactivated. Please click 'Reactivate Account' below to resume syncing.";
+        public static final String ACCOUNT_REACTIVATE_BUTTON = "Reactivate Account";
+        public static final String ACCOUNT_DEACTIVATED_SHORT_TITLE = "Account deactivated";
+        public static final String REACTIVATED_SUCCESS = "Successfully reactivated your account";
     }
 
     public static final class LogMessageType {

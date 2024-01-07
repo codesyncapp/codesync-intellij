@@ -3,7 +3,6 @@ package org.intellij.sdk.codesync.clients;
 import kotlin.Pair;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.codeSyncSetup.S3FileUploader;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
 import org.intellij.sdk.codesync.files.ConfigRepo;
@@ -18,7 +17,6 @@ import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.json.simple.JSONObject;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;

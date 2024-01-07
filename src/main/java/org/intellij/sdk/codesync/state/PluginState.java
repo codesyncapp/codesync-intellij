@@ -9,4 +9,5 @@ public class PluginState {
     public String repoPath;
     public String userEmail = null;
     public boolean syncInProcess = false;
+    public boolean isAccountDeactivated = false;
 }

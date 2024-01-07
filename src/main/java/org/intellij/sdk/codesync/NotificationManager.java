@@ -76,7 +76,6 @@ public class NotificationManager {
         notify(content, NotificationType.WARNING);
     }
 
-
     public void notifyWarning(String content, Project project) {
         notify(content, NotificationType.WARNING, project);
     }
