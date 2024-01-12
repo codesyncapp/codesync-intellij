@@ -91,6 +91,8 @@ public final class Constants {
     public static final String PLANS_URL = String.format("%s/plans?%s", WEB_APP_URL, GA4_PARAMS);
     public static final String REPO_PLAYBACK_LINK = String.format("%s/repos", WEB_APP_URL) + "/%s/playback?" + GA4_PARAMS;
     public static final String FILE_PLAYBACK_LINK = String.format("%s/files", WEB_APP_URL) + "/%s/history?" + GA4_PARAMS;
+    public static final String SETTINGS_PAGE_URL = String.format("%s/settings", WEB_APP_URL);
+
 
     public static final String CLIENT_LOGS_GROUP_NAME = configuration.getLogGroupName();
     public static final String PLUGIN_USER = configuration.getPluginUser();
@@ -140,6 +142,9 @@ public final class Constants {
 
         public static final String CODESYNC_NOTIFICATION_GROUP = "CodeSync Notifications";
         public static final String DEFAULT_TITLE = "CodeSync";
+        public static final String CODESYNC_ERROR_TITLE = "CodeSync Error";
+        public static final String CODESYNC_WARNING_TITLE = "CodeSync Warning";
+        public static final String CODESYNC_INFORMATION_TITLE = "CodeSync Information";
 
         public static final String YES = "Yes";
         public static final String NO = "No";
@@ -184,7 +189,6 @@ public final class Constants {
 
         public static final String ACCOUNT_DEACTIVATED = "Your account has been deactivated. Please click 'Reactivate Account' below to resume syncing.";
         public static final String ACCOUNT_REACTIVATE_BUTTON = "Reactivate Account";
-        public static final String ACCOUNT_DEACTIVATED_SHORT_TITLE = "Account deactivated";
         public static final String REACTIVATED_SUCCESS = "Successfully reactivated your account";
     }
 

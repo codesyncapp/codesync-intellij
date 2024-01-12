@@ -13,14 +13,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.intellij.sdk.codesync.Constants.Notification.CODESYNC_NOTIFICATION_GROUP;
-import static org.intellij.sdk.codesync.Constants.Notification.DEFAULT_TITLE;
+import static org.intellij.sdk.codesync.Constants.Notification.*;
 
 public class NotificationManager {
     NotificationGroup notificationGroup;
     List<? extends AnAction> actions = new ArrayList<>();
-
-    String title = DEFAULT_TITLE, subtitle;
 
     public static NotificationManager getInstance(String notificationGroupId) {
         return new NotificationManager(notificationGroupId);
@@ -39,26 +36,28 @@ public class NotificationManager {
         return this;
     }
 
-    public NotificationManager setTitle(String title) {
-        this.title = title;
-        return this;
-    }
-
-    public NotificationManager setTitle(String title, String subtitle) {
-        this.title = title;
-        this.subtitle = subtitle;
-        return this;
-    }
-
     public void notify(String content, NotificationType notificationType) {
         Project project = CommonUtils.getCurrentProject();
         notify(content, notificationType, project);
     }
 
+    private String getTitle(NotificationType notificationType) {
+        switch (notificationType) {
+            case ERROR:
+                return CODESYNC_ERROR_TITLE;
+            case INFORMATION:
+                return CODESYNC_INFORMATION_TITLE;
+            case WARNING:
+                return CODESYNC_WARNING_TITLE;
+            default:
+                return DEFAULT_TITLE;
+        }
+    }
+
     public void notify(String content, NotificationType notificationType, Project project) {
         Notification notification = this.notificationGroup
             .createNotification(content, notificationType)
-            .setTitle(this.title, this.subtitle)
+            .setTitle(getTitle(notificationType))
             .setIcon(CodeSyncIcons.codeSyncIcon);
         notification.addActions(this.actions);
         notification.notify(project);

@@ -27,6 +27,7 @@ import org.intellij.sdk.codesync.database.SQLiteConnection;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.state.StateUtils;
+import org.intellij.sdk.codesync.ui.notifications.DeactivatedAccountNotification;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
