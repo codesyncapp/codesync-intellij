@@ -27,7 +27,6 @@ import org.intellij.sdk.codesync.database.SQLiteConnection;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.state.StateUtils;
-import org.intellij.sdk.codesync.ui.notifications.DeactivatedAccountNotification;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -126,6 +125,11 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       public void after(@NotNull List<? extends VFileEvent> events) {
         String repoPath;
 
+        // Abort if account is has been deactivated.
+        if (StateUtils.getGlobalState().isAccountDeactivated) {
+          return;
+        }
+
         for (VFileEvent event : events) {
           VirtualFile virtualFile = event.getFile();
 
@@ -180,6 +184,12 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       @Override
       public void documentChanged(@NotNull DocumentEvent event) {
         if (!project.isDisposed()){
+
+          // Abort if account is has been deactivated.
+          if (StateUtils.getGlobalState().isAccountDeactivated) {
+            return;
+          }
+
           ChangesHandler(event, project);
         }
       }
