@@ -4,17 +4,13 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
-import org.apache.http.client.utils.URIBuilder;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.Constants.Notification;
 import org.intellij.sdk.codesync.NotificationManager;
-import org.intellij.sdk.codesync.server.CodeSyncServer;
-import org.intellij.sdk.codesync.server.servlets.ReactivateAccountHandler;
+import org.intellij.sdk.codesync.server.CodeSyncReactivateAccountServer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
-
-import static org.intellij.sdk.codesync.Constants.SETTINGS_PAGE_URL;
 
 public class DeactivatedAccountNotification {
     String message = Notification.ACCOUNT_DEACTIVATED;
@@ -32,19 +28,8 @@ public class DeactivatedAccountNotification {
                 @Override
                 public void actionPerformed(@NotNull AnActionEvent e) {
                     try {
-                        // Start the server.
-                        CodeSyncServer reactivateAccountServer = CodeSyncServer
-                            .getInstance()
-                            .addPathMapping("/reactivate-callback", ReactivateAccountHandler.class);
-                        reactivateAccountServer.start();
-
-                        String callbackURL = String.format("%sreactivate-callback", reactivateAccountServer.getServerURL());
-
-                        URIBuilder uriBuilder = new URIBuilder(SETTINGS_PAGE_URL);
-                        uriBuilder.addParameter("callback", callbackURL);
-
-                        // Redirect the user to settings page.
-                        BrowserUtil.browse(uriBuilder.build().toURL());
+                        CodeSyncReactivateAccountServer codeSyncReactivateAccountServer = CodeSyncReactivateAccountServer.getInstance();
+                        BrowserUtil.browse(codeSyncReactivateAccountServer.getReactivateAccountUrl());
                     } catch (Exception error) {
                         CodeSyncLogger.critical(String.format(
                             "[REACTIVATE_ACCOUNT]: Error while activating the account. \nError: %s", error.getMessage()

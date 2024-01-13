@@ -10,6 +10,7 @@ import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.alerts.PricingAlerts;
@@ -151,6 +152,12 @@ public class HandleBuffer {
         );
 
         if (!canRunDaemon) {
+            return;
+        }
+
+        // Abort if account is has been deactivated.
+        if (StateUtils.getGlobalState().isAccountDeactivated) {
+            diffFilesBeingProcessed.clear();
             return;
         }
 

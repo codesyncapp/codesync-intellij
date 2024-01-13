@@ -32,6 +32,11 @@ public class FilePlaybackAction extends BaseModuleAction {
             return;
         }
 
+        if (this.isAccountDeactivated()) {
+            e.getPresentation().setEnabled(false);
+            return;
+        }
+
         // Only enable file playback button when some file is opened in the editor.
         try {
             VirtualFile virtualFile = e.getRequiredData(CommonDataKeys.PSI_FILE).getVirtualFile();

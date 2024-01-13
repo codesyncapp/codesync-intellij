@@ -125,7 +125,7 @@ public class CodeSyncSetup {
     }
 
     public static void setupCodeSyncRepoAsync(Project project, String repoPath, String repoName, boolean skipSyncPrompt, boolean isSyncingBranch) {
-        //Mark SyncInProgress true.
+        // Mark SyncInProgress true.
         StateUtils.setSyncInProgress(repoPath);
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {

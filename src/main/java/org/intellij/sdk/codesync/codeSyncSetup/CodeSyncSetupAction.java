@@ -34,6 +34,11 @@ public class CodeSyncSetupAction extends BaseModuleAction {
             return;
         }
 
+        if (this.isAccountDeactivated()) {
+            e.getPresentation().setEnabled(false);
+            return;
+        }
+
         VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
 
         VirtualFile contentRoot = null;

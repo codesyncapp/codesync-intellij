@@ -83,7 +83,6 @@ public class CodeSyncWebSocketClient {
                 response = (JSONObject) JSONValue.parseWithException(message);
                 Long statusCode = (Long) response.get("status");
                 if (statusCode != 200) {
-                    // TODO: Adds check for 403 and show user a message.
                     CodeSyncLogger.critical(String.format("Diff auth Failed with error: %s.", response.get("error")));
                 }
                 authenticationHandler.handleAuthenticated(statusCode == 200);

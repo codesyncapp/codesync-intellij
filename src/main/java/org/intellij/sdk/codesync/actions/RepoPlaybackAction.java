@@ -27,6 +27,11 @@ public class RepoPlaybackAction extends BaseModuleAction {
             return;
         }
 
+        if (this.isAccountDeactivated()) {
+            e.getPresentation().setEnabled(false);
+            return;
+        }
+
         // Check if any of the modules inside this project are synced with codesync or not.
         // We will show repo playback button if even a single repo is synced.
         VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
