@@ -64,7 +64,7 @@ public class AuthAction extends BaseModuleAction {
                 BrowserUtil.browse(codeSyncReactivateAccountServer.getReactivateAccountUrl());
             } catch (Exception error) {
                 CodeSyncLogger.critical(String.format(
-                    "[REACTIVATE_ACCOUNT]: Error while activating the account. \nError: %s", error.getMessage()
+                    "[REACTIVATE_ACCOUNT]: Error while activating the account. %nError: %s", error.getMessage()
                 ));
             }
             return;
