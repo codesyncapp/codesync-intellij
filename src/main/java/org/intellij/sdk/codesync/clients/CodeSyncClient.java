@@ -168,14 +168,18 @@ public class CodeSyncClient {
 
             long fileSize =  (long) fileInfo.get("size");
             if (fileSize > 0) {
-                this.uploadToS3(originalsFile, preSignedURLData);
+                S3FileUploader s3FileUploader = new S3FileUploader(configRepo.repoPath, diffFile.branch, preSignedURLData);
+                s3FileUploader.saveURLs();
             }
         } catch (ClassCastException error) {
             CodeSyncLogger.logConsoleMessage("Could not upload the file.");
             // this would probably mean that `url` is empty, and we can skip aws upload.
+        } catch (InvalidYmlFileError | FileNotFoundException error) {
+            CodeSyncLogger.critical(
+                String.format("Error creating S3 upload queue file. Error: %s", error.getMessage())
+            );
         }
 
-        originalsFile.delete();
         return fileId.intValue();
     }
 
