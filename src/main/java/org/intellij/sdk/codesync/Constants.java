@@ -77,7 +77,6 @@ public final class Constants {
     public static final String API_ENDPOINT = String.format("%s/v1", CODESYNC_HOST);
     public static final String API_INIT = String.format("%s/init?source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String API_USERS = String.format("%s/users?&source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
-    public static final String API_REACTIVATE_ACCOUNT = String.format("%s/users/reactivate", API_ENDPOINT);
     public static final String CODESYNC_REPO_URL = String.format("%s/repos", API_ENDPOINT);
     public static final String FILES_API_ENDPOINT = String.format("%s/files?source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String TEAM_ACTIVITY_ENDPOINT = String.format("%s/team_activity?tz=%s&source=%s&v=%s", API_ENDPOINT, DEFAULT_TIMEZONE, DIFF_SOURCE, PLUGIN_VERSION);
