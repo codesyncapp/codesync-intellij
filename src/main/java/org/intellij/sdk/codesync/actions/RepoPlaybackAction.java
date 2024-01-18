@@ -27,6 +27,11 @@ public class RepoPlaybackAction extends BaseModuleAction {
             return;
         }
 
+        if (this.isAccountDeactivated()) {
+            e.getPresentation().setEnabled(false);
+            return;
+        }
+
         // Check if any of the modules inside this project are synced with codesync or not.
         // We will show repo playback button if even a single repo is synced.
         VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
@@ -56,7 +61,7 @@ public class RepoPlaybackAction extends BaseModuleAction {
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getProject();
         if(project == null) {
-            NotificationManager.notifyError("An error occurred trying to perform repo playback action.");
+            NotificationManager.getInstance().notifyError("An error occurred trying to perform repo playback action.");
             CodeSyncLogger.warning("An error occurred trying to perform repo playback action. e.getProject() is null.");
 
             return;
@@ -72,7 +77,7 @@ public class RepoPlaybackAction extends BaseModuleAction {
                 repoPath = ProjectUtils.getRepoPath(virtualFile, project);
                 repoName = ProjectUtils.getRepoName(virtualFile, project);
             } catch (AssertionError | FileNotInModuleError error) {
-                NotificationManager.notifyError(
+                NotificationManager.getInstance().notifyError(
                     "An error occurred trying to perform repo playback action. " +
                             "We could not detect the module of the opened file.", project
                 );
@@ -89,7 +94,7 @@ public class RepoPlaybackAction extends BaseModuleAction {
             repoPath = FileUtils.normalizeFilePath(contentRoots[0]);
             repoName = contentRoots[0].getName();
         } else {
-            NotificationManager.notifyError(
+            NotificationManager.getInstance().notifyError(
         "An error occurred trying to perform repo playback action. " +
                 "We could not detect the module of the opened file.", project
             );
@@ -105,7 +110,7 @@ public class RepoPlaybackAction extends BaseModuleAction {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
              configRepo = configFile.getRepo(repoPath);
         } catch (InvalidConfigFileError error) {
-            NotificationManager.notifyError(
+            NotificationManager.getInstance().notifyError(
                 "An error occurred trying to perform repo playback action. CodeSync configuration file is malformed.", project
             );
             CodeSyncLogger.critical(String.format(
@@ -117,7 +122,7 @@ public class RepoPlaybackAction extends BaseModuleAction {
         }
 
         if (configRepo == null) {
-            NotificationManager.notifyError(
+            NotificationManager.getInstance().notifyError(
                 String.format(
                     "An error occurred trying to perform repo playback action. Because Repo '%s' is not being synced.",
                         repoName

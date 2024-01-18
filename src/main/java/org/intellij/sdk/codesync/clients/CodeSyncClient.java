@@ -39,6 +39,11 @@ public class CodeSyncClient {
             return jsonResponse.getStatusCode() == 200;
         } catch (InvalidJsonError | RequestError error) {
             return false;
+        } catch (StatusCodeError error) {
+            CodeSyncLogger.error(
+                String.format("Server returned %s status code on health check endpoint.", error.getStatusCode())
+            );
+            return false;
         }
     }
 
@@ -51,7 +56,6 @@ public class CodeSyncClient {
         JSONObject response;
         try {
             JSONResponse jsonResponse = ClientUtils.sendGet(API_USERS, accessToken);
-            jsonResponse.raiseForStatus();
             response = jsonResponse.getJsonResponse();
         } catch (RequestError | InvalidJsonError error) {
             CodeSyncLogger.error(
@@ -119,12 +123,7 @@ public class CodeSyncClient {
             jsonResponse = ClientUtils.sendPost(this.filesURL, payload, accessToken);
         } catch (RequestError | InvalidJsonError error) {
             throw new RequestError(String.format("Error processing response of the file upload  request. Error: %s", error.getMessage()));
-        }
-
-        try {
-            jsonResponse.raiseForStatus();
         } catch (StatusCodeError statusCodeError) {
-
             if (statusCodeError.getStatusCode() == ErrorCodes.INVALID_USAGE) {
                 throw new InvalidUsage(statusCodeError.getMessage());
             }
@@ -220,11 +219,6 @@ public class CodeSyncClient {
         } catch (RequestError | InvalidJsonError error) {
             CodeSyncLogger.critical(String.format("Error while repo init, %s", error.getMessage()));
             return null;
-        }
-
-        try {
-            jsonResponse.raiseForStatus();
-            return jsonResponse.getJsonResponse();
         } catch (StatusCodeError statusCodeError) {
             if (statusCodeError.getStatusCode()  == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
                 PricingAlerts.setPlanLimitReached();
@@ -236,13 +230,13 @@ public class CodeSyncClient {
             errorResponse.put("error", statusCodeError.getMessage());
             return errorResponse;
         }
+        return jsonResponse.getJsonResponse();
     }
 
     public JSONObject updateRepo(String accessToken, int repoId, JSONObject payload) {
         String url = String.format("%s/%s?source=%s&v=%s", CODESYNC_REPO_URL, repoId, DIFF_SOURCE, PLUGIN_VERSION);
         try {
             JSONResponse jsonResponse = ClientUtils.sendPatch(url, payload, accessToken);
-            jsonResponse.raiseForStatus();
             return jsonResponse.getJsonResponse();
         } catch (RequestError | InvalidJsonError | StatusCodeError error) {
             CodeSyncLogger.critical(String.format("Error while repo update, %s", error.getMessage()));
@@ -258,7 +252,6 @@ public class CodeSyncClient {
 
         try {
             JSONResponse jsonResponse = ClientUtils.sendGet(url, accessToken);
-            jsonResponse.raiseForStatus();
             return jsonResponse.getJsonResponse();
         } catch (RequestError | InvalidJsonError | StatusCodeError error) {
             CodeSyncLogger.error(String.format("Error while getting plan upgrade information. %s", error.getMessage()));
@@ -269,11 +262,11 @@ public class CodeSyncClient {
     public JSONObject getTeamActivity(String accessToken) {
         try {
             JSONResponse jsonResponse = ClientUtils.sendGet(TEAM_ACTIVITY_ENDPOINT, accessToken);
-            jsonResponse.raiseForStatus();
             return jsonResponse.getJsonResponse();
         } catch (RequestError | InvalidJsonError | StatusCodeError error) {
             CodeSyncLogger.error(String.format("Error while getting team activity data. %s", error.getMessage()));
             return null;
         }
     }
+
 }

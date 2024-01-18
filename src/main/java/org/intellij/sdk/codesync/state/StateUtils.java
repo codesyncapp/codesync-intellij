@@ -7,6 +7,7 @@ import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.models.UserAccount;
+import org.intellij.sdk.codesync.ui.notifications.DeactivatedAccountNotification;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 
@@ -77,6 +78,7 @@ public class StateUtils {
         pluginState.repoPath = repoPath;
         pluginState.isAuthenticated = globalState.isAuthenticated;
         pluginState.userEmail = globalState.userEmail;
+        pluginState.isAccountDeactivated = globalState.isAccountDeactivated;
 
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
@@ -106,5 +108,24 @@ public class StateUtils {
         if(pluginState != null){
             pluginState.syncInProcess = false;
         }
+    }
+
+    public static void deactivateAccount() {
+        PluginState pluginState = getGlobalState();
+
+        // Do nothing if account already deactivated.
+        if (pluginState.isAccountDeactivated) {
+            return;
+        }
+        DeactivatedAccountNotification deactivatedAccountNotification = new DeactivatedAccountNotification(pluginState.project);
+        deactivatedAccountNotification.showAlert();
+        pluginState.isAccountDeactivated = true;
+        reloadState(pluginState.project);
+    }
+
+    public static void reactivateAccount() {
+        PluginState pluginState = getGlobalState();
+        pluginState.isAccountDeactivated = false;
+        reloadState(pluginState.project);
     }
 }

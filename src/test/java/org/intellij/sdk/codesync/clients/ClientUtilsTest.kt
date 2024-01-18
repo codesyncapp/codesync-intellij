@@ -9,8 +9,10 @@ import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.message.BasicHttpResponse
 import org.apache.http.message.BasicStatusLine
+import org.intellij.sdk.codesync.exceptions.response.StatusCodeError
 import org.json.simple.JSONObject
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.Answers
 import org.mockito.Mockito.*
 import kotlin.test.assertEquals
@@ -27,7 +29,6 @@ class ClientUtilsTest {
         val failedHttpResponse: CloseableHttpResponse = getHttpResponse(401)
 
         val successfullyExpectedJSONResponse = "{\"user\":{\"access_token\":\"Unit Test Mode\",\"name\":\"Unit Test Name\",\"id\":\"Unit Test ID\",\"email\":\"Unit Test Email\"}}"
-        val failedExpectedJSONResponse = "{\"error\":{\"message\":\"Token verification failed\"}}"
 
         mockStatic(ClientUtils::class.java, Answers.CALLS_REAL_METHODS).use { mocked -> mocked.
 
@@ -44,9 +45,10 @@ class ClientUtilsTest {
             assertEquals(200, actualResponse.statusCode)
 
             //Second call resulting in failed request.
-            actualResponse = ClientUtils.sendPost(API, "ACCESS_TOKEN")
-            assertEquals(failedExpectedJSONResponse, actualResponse.jsonResponse.toString())
-            assertEquals(401, actualResponse.statusCode)
+            assertThrows<StatusCodeError> {
+                actualResponse = ClientUtils.sendPost(API, "ACCESS_TOKEN")
+
+            }
 
         }
 
