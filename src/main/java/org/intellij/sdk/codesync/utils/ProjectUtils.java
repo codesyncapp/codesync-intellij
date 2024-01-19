@@ -76,6 +76,11 @@ public class ProjectUtils {
         return FileUtils.normalizeFilePath(moduleContentRoot);
     }
 
+    public static VirtualFile getRepoRoot(VirtualFile virtualFile, Project project) {
+        ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
+        return projectFileIndex.getContentRootForFile(virtualFile);
+    }
+
     public static String getRepoName(VirtualFile virtualFile, Project project) throws FileNotInModuleError {
         ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
         VirtualFile moduleContentRoot = projectFileIndex.getContentRootForFile(virtualFile);

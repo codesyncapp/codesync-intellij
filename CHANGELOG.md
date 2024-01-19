@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.31.0] - [NOT_DEPLOYED] 2024-01-22
 - Renamed file sync message from "Syncing files" to "CodeSync: Uploading files..."
+- Updated messaging for reconnect repo functionality.
 
 ## [3.30.1] - 2024-01-19
 - Fixed async file upload issue.

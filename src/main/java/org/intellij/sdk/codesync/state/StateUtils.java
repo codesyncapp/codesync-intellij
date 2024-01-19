@@ -86,27 +86,30 @@ public class StateUtils {
             if (configFile.hasRepo(repoPath)) {
                 ConfigRepo configRepo = configFile.getRepo(repoPath);
                 pluginState.isRepoInSync = configRepo.isSynced() && !configRepo.isDisconnected;
+
+                if (configRepo.isSynced() && !configRepo.isDisconnected) {
+                    pluginState.repoStatus = RepoStatus.IN_SYNC;
+                } else if (!configRepo.isSynced()) {
+                    pluginState.repoStatus = RepoStatus.NOT_SYNCED;
+                } else if (configRepo.isDisconnected) {
+                    pluginState.repoStatus = RepoStatus.DISCONNECTED;
+                }
             } else {
+                pluginState.repoStatus = RepoStatus.NOT_SYNCED;
                 pluginState.isRepoInSync = false;
             }
         } catch (InvalidConfigFileError error) {
+            pluginState.repoStatus = RepoStatus.UNKNOWN;
             pluginState.isRepoInSync = false;
         }
 
         projectStateMap.put(repoPath, pluginState);
     }
 
-    public static void setSyncInProgress(String repoPath){
+    public static void updateRepoStatus(String repoPath, RepoStatus repoStatus){
         PluginState pluginState = getState(repoPath);
         if(pluginState != null){
-            pluginState.syncInProcess = true;
-        }
-    }
-
-    public static void unsetSyncInProgress(String repoPath){
-        PluginState pluginState = getState(repoPath);
-        if(pluginState != null){
-            pluginState.syncInProcess = false;
+            pluginState.setRepoStatus(repoStatus);
         }
     }
 
