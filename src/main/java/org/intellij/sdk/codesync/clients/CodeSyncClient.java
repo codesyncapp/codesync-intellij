@@ -167,7 +167,9 @@ public class CodeSyncClient {
 
             long fileSize =  (long) fileInfo.get("size");
             if (fileSize > 0) {
-                S3FileUploader s3FileUploader = new S3FileUploader(configRepo.repoPath, diffFile.branch, preSignedURLData);
+                Map<String, Object> filePathAndURLs = new HashMap<>();
+                filePathAndURLs.put(diffFile.fileRelativePath, preSignedURLData);
+                S3FileUploader s3FileUploader = new S3FileUploader(configRepo.repoPath, diffFile.branch, filePathAndURLs);
                 s3FileUploader.saveURLs();
             }
         } catch (ClassCastException error) {
