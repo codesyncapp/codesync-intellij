@@ -152,6 +152,31 @@ public class CodeSyncSetup {
         }
     }
 
+    public static void reconnectRepoAsync(Project project, String repoPath, String repoName) {
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "CodeSync repo management"){
+            public void run(@NotNull ProgressIndicator progressIndicator) {
+                boolean shouldReconnect = CodeSyncMessages.showYesNoMessage(
+                    "Do you want to reconnect this repo?",
+                    String.format("'%s' has been disconnected!", repoName),
+                    project
+                );
+
+                if (shouldReconnect) {
+                    try {
+                        CodeSyncSetup.reconnectRepo(project, repoPath, repoName);
+                    } catch (InvalidConfigFileError | ServerConnectionError | RepoUpdateError | SQLiteDBConnectionError |
+                             SQLiteDataError error) {
+                        NotificationManager.getInstance().notifyError(Notification.REPO_RECONNECT_FAILED, project);
+                        NotificationManager.getInstance().notifyError(error.getMessage(), project);
+                        CodeSyncLogger.critical(
+                            String.format("Could not reconnect the repo. Error: %s", error.getMessage())
+                        );
+                    }
+                }
+            }
+        });
+    }
+
     public static void setupCodeSyncRepoAsync(Project project, String repoPath, String repoName, boolean skipSyncPrompt, boolean isSyncingBranch) {
         // Update state to show repo sync is in progress.
         StateUtils.updateRepoStatus(repoPath, RepoStatus.SYNC_IN_PROGRESS);

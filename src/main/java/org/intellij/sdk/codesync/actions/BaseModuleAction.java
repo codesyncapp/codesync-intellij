@@ -14,11 +14,7 @@ import org.intellij.sdk.codesync.utils.ProjectUtils;
 public abstract class BaseModuleAction extends AnAction {
     public RepoStatus getRepoStatus(VirtualFile moduleRoot) {
         String repoPath = FileUtils.normalizeFilePath(moduleRoot.getPath());
-        PluginState pluginState = StateUtils.getState(repoPath);
-        if (pluginState == null) {
-            return RepoStatus.UNKNOWN;
-        }
-        return pluginState.repoStatus;
+        return StateUtils.getRepoStatus(repoPath);
     }
 
     public boolean isRepoInSync (VirtualFile virtualFile, Project project) throws FileNotInModuleError {

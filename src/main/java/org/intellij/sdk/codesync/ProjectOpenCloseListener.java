@@ -26,6 +26,7 @@ import org.intellij.sdk.codesync.database.Database;
 import org.intellij.sdk.codesync.database.SQLiteConnection;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
+import org.intellij.sdk.codesync.state.RepoStatus;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
@@ -110,7 +111,12 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
 
         String repoPath = FileUtils.normalizeFilePath(contentRoot.getPath());
         String repoName = contentRoot.getName();
-        CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, false, false);
+        RepoStatus repoStatus = StateUtils.getRepoStatus(repoPath);
+        if (repoStatus == RepoStatus.DISCONNECTED) {
+          CodeSyncSetup.reconnectRepoAsync(project, repoPath, repoName);
+        } else {
+          CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, false, false);
+        }
       }
 
       for (Pair<Project, DocumentListener> pair: changeHandlers.values()) {

@@ -106,6 +106,13 @@ public class StateUtils {
         projectStateMap.put(repoPath, pluginState);
     }
 
+    public static RepoStatus getRepoStatus(String repoPath) {
+        PluginState pluginState = StateUtils.getState(repoPath);
+        if (pluginState == null) {
+            return RepoStatus.UNKNOWN;
+        }
+        return pluginState.repoStatus;
+    }
     public static void updateRepoStatus(String repoPath, RepoStatus repoStatus){
         PluginState pluginState = getState(repoPath);
         if(pluginState != null){
