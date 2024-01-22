@@ -114,7 +114,7 @@ public class S3FileUploader {
             return;
         }
         S3FilesUploader.registerFileBeingProcessed(this.getQueueFilePath());
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Syncing files") {
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "CodeSync: Uploading files…") {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 processFiles();
