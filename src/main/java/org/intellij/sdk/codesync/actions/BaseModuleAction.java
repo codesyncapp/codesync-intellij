@@ -21,4 +21,9 @@ public abstract class BaseModuleAction extends AnAction {
         PluginState pluginState = StateUtils.getState(repoPath);
         return pluginState != null && pluginState.isRepoInSync;
     }
+
+    public boolean isAccountDeactivated() {
+        PluginState pluginState = StateUtils.getGlobalState();
+        return pluginState.isAccountDeactivated;
+    }
 }

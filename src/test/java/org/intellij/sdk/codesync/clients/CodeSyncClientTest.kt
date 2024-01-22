@@ -65,9 +65,8 @@ class CodeSyncClientTest {
 
                         mockStatic(ClientUtils::class.java).use { clientUtilsMocked ->
                             clientUtilsMocked.`when`<Any> { ClientUtils.sendPost(anyString(), any(), anyString()) }
-                                .thenReturn(jsonResponseMock)
+                                .thenThrow(statusCodeErrorMock)
 
-                            `when`(jsonResponseMock.raiseForStatus()).thenThrow(statusCodeErrorMock)
                             assertThrows<InvalidUsage> {
                                 val codeSyncClient = CodeSyncClient()
                                 codeSyncClient.uploadFile(

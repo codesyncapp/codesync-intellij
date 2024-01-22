@@ -7,6 +7,14 @@ import org.jetbrains.annotations.NotNull;
 import static org.intellij.sdk.codesync.Constants.WEBAPP_DASHBOARD_URL;
 
 public class ViewDashboardAction extends BaseModuleAction {
+
+    @Override
+    public void update(AnActionEvent e) {
+        if (this.isAccountDeactivated()) {
+            e.getPresentation().setEnabled(false);
+        }
+    }
+
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         BrowserUtil.browse(WEBAPP_DASHBOARD_URL);

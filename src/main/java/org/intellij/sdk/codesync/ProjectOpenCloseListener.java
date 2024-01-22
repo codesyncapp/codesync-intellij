@@ -125,6 +125,11 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       public void after(@NotNull List<? extends VFileEvent> events) {
         String repoPath;
 
+        // Abort if account is has been deactivated.
+        if (StateUtils.getGlobalState().isAccountDeactivated) {
+          return;
+        }
+
         for (VFileEvent event : events) {
           VirtualFile virtualFile = event.getFile();
 
@@ -179,6 +184,12 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       @Override
       public void documentChanged(@NotNull DocumentEvent event) {
         if (!project.isDisposed()){
+
+          // Abort if account is has been deactivated.
+          if (StateUtils.getGlobalState().isAccountDeactivated) {
+            return;
+          }
+
           ChangesHandler(event, project);
         }
       }
