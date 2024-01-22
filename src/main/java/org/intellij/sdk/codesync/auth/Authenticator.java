@@ -8,6 +8,7 @@ import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
 import org.intellij.sdk.codesync.exceptions.RequestError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
+import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
 import org.intellij.sdk.codesync.models.UserAccount;
 import org.json.simple.JSONObject;
 
@@ -63,7 +64,7 @@ public class Authenticator extends HttpServlet {
 
         try {
             jsonResponse = ClientUtils.sendPost(API_USERS, accessToken).getJsonResponse();
-        } catch (RequestError | InvalidJsonError error) {
+        } catch (RequestError | InvalidJsonError | StatusCodeError error) {
             CodeSyncLogger.critical(
                     String.format("[INTELLIJ_AUTH_ERROR]: Error while creating the user. access token: '%s'", accessToken)
             );

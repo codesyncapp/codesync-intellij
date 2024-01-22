@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.29.1] - 2024-01-22
 - Renamed file sync message from "Syncing files" to "CodeSync: Uploading files..."
 
+## [3.30.1] - 2024-01-19
+- Fixed async file upload issue.
+
+## [3.30.0] - 2024-01-18
+- Added proper handling for deactivated accounts.
+- Added the ability for user to reactivate account.
+
 ## [3.29.0] - 2024-01-17
 - Added marking of git commit hash along with repo init.
 - Added background S3 file upload capability for single new files.
