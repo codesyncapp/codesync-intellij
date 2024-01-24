@@ -24,6 +24,7 @@ import org.intellij.sdk.codesync.exceptions.repo.RepoNotActive;
 import org.intellij.sdk.codesync.files.*;
 import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.state.PluginState;
+import org.intellij.sdk.codesync.state.RepoStatus;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.ui.dialogs.RepoPublicPrivateDialog;
 import org.intellij.sdk.codesync.ui.messages.CodeSyncMessages;
@@ -69,52 +70,14 @@ public class CodeSyncSetup {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
 
             if (!configFile.isRepoActive(repoPath)) {
-               throw new RepoNotActive(String.format("Repo '%s' is not active and can not be disconnected.", repoName));
-            };
-            UserAccount userAccount;
-            try {
-                userAccount = new UserAccount();
-            } catch (SQLiteDBConnectionError e) {
-                throw new SQLiteDBConnectionError(
-                        String.format(
-                                "Repo '%s' could not be disconnected because there was an SQLite database error. Error: %s",
-                                repoName, e.getMessage()
-                        )
-                );
+                throw new RepoNotActive(String.format("Repo '%s' is not active and can not be disconnected.", repoName));
             }
-            ConfigRepo configRepo = configFile.getRepo(repoPath);
-            userAccount = userAccount.getUser(configRepo.email);
-            if (userAccount == null) {
-                throw new SQLiteDataError(
-                    String.format(
-                        "Repo '%s' could not be disconnected because user data is missing from SQLite database.",
-                        repoName
-                    )
-                );
-            }
-            String accessToken = userAccount.getAccessToken();
-            CodeSyncClient codeSyncClient = new CodeSyncClient();
 
-            if (!codeSyncClient.isServerUp()) {
-                throw new ServerConnectionError(
-                    String.format(
-                        "Repo '%s' could not be disconnected because we could not connect to the codesync servers.",
-                        repoName
-                    )
-                );
-            }
+            ConfigRepo configRepo = configFile.getRepo(repoPath);
+
             JSONObject payload = new JSONObject();
             payload.put("is_in_sync", false);
-            JSONObject response = codeSyncClient.updateRepo(accessToken, configRepo.id, payload);
-            if (response.containsKey("error")) {
-                throw new RepoUpdateError(
-                    String.format(
-                        "Repo '%s' could not be disconnected server returned an error response. Error: %s",
-                        repoName,
-                        response.get("error")
-                    )
-                );
-            }
+            updateRepo(configRepo.id, configRepo.email, repoName, payload);
 
             configRepo.isDisconnected = true;
             configFile.publishRepoUpdate(configRepo);
@@ -124,9 +87,99 @@ public class CodeSyncSetup {
         }
     }
 
+    public static void reconnectRepo(Project project, String repoPath, String repoName) throws InvalidConfigFileError, ServerConnectionError, RepoUpdateError, SQLiteDBConnectionError, SQLiteDataError {
+        ConfigFile configFile = new ConfigFile(CONFIG_PATH);
+        ConfigRepo configRepo = configFile.getRepo(repoPath);
+
+        if (!configRepo.isSynced() || !configRepo.hasValidEmail() || !configRepo.hasValidId()) {
+            // If repo is not being synced then start the sync from scratch.
+            setupCodeSyncRepoAsync(project, repoPath, repoName, true, false);
+        } else {
+            JSONObject payload = new JSONObject();
+            payload.put("is_in_sync", true);
+            updateRepo(configRepo.id, configRepo.email, repoName, payload);
+
+            configRepo.isDisconnected = false;
+            configFile.publishRepoUpdate(configRepo);
+
+            StateUtils.reloadState(project);
+            NotificationManager.getInstance().notifyInformation(Notification.REPO_RECONNECTED, project);
+        }
+    }
+
+    public static void updateRepo(Integer repoId, String userEmail, String repoName, JSONObject payload) throws SQLiteDBConnectionError, SQLiteDataError, ServerConnectionError, RepoUpdateError {
+        UserAccount userAccount;
+        try {
+            userAccount = new UserAccount();
+        } catch (SQLiteDBConnectionError e) {
+            throw new SQLiteDBConnectionError(
+                String.format(
+                    "Repo '%s' could not be updated because there was an SQLite database error. Error: %s",
+                    repoName, e.getMessage()
+                )
+            );
+        }
+        userAccount = userAccount.getUser(userEmail);
+        if (userAccount == null) {
+            throw new SQLiteDataError(
+                String.format(
+                    "Repo '%s' could not be updated because user data is missing from SQLite database.",
+                    repoName
+                )
+            );
+        }
+        String accessToken = userAccount.getAccessToken();
+        CodeSyncClient codeSyncClient = new CodeSyncClient();
+
+        if (!codeSyncClient.isServerUp()) {
+            throw new ServerConnectionError(
+                String.format(
+                    "Repo '%s' could not be updated because we could not connect to the CodeSync servers.",
+                    repoName
+                )
+            );
+        }
+
+        JSONObject response = codeSyncClient.updateRepo(accessToken, repoId, payload);
+        if (response.containsKey("error")) {
+            throw new RepoUpdateError(
+                String.format(
+                    "Repo '%s' could not be updated server returned an error response. Error: %s",
+                    repoName,
+                    response.get("error")
+                )
+            );
+        }
+    }
+
+    public static void reconnectRepoAsync(Project project, String repoPath, String repoName) {
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "CodeSync repo management"){
+            public void run(@NotNull ProgressIndicator progressIndicator) {
+                boolean shouldReconnect = CodeSyncMessages.showYesNoMessage(
+                    "Do you want to reconnect this repo?",
+                    String.format("'%s' has been disconnected!", repoName),
+                    project
+                );
+
+                if (shouldReconnect) {
+                    try {
+                        CodeSyncSetup.reconnectRepo(project, repoPath, repoName);
+                    } catch (InvalidConfigFileError | ServerConnectionError | RepoUpdateError | SQLiteDBConnectionError |
+                             SQLiteDataError error) {
+                        NotificationManager.getInstance().notifyError(Notification.REPO_RECONNECT_FAILED, project);
+                        NotificationManager.getInstance().notifyError(error.getMessage(), project);
+                        CodeSyncLogger.critical(
+                            String.format("Could not reconnect the repo. Error: %s", error.getMessage())
+                        );
+                    }
+                }
+            }
+        });
+    }
+
     public static void setupCodeSyncRepoAsync(Project project, String repoPath, String repoName, boolean skipSyncPrompt, boolean isSyncingBranch) {
-        // Mark SyncInProgress true.
-        StateUtils.setSyncInProgress(repoPath);
+        // Update state to show repo sync is in progress.
+        StateUtils.updateRepoStatus(repoPath, RepoStatus.SYNC_IN_PROGRESS);
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 progressIndicator.setIndeterminate(false);
@@ -140,8 +193,8 @@ public class CodeSyncSetup {
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
                 
-                //Mark SyncInProgress back to false.
-                StateUtils.unsetSyncInProgress(repoPath);
+                // Update state to show repo is in sync with the server.
+                StateUtils.updateRepoStatus(repoPath, RepoStatus.IN_SYNC);
             }
         });
     }

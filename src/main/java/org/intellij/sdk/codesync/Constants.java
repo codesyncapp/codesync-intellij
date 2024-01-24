@@ -167,6 +167,10 @@ public final class Constants {
         public static final String REPO_UNSYNC_CONFIRMATION = "Are you sure to continue? You won't be able to revert this!";
         public static final String REPO_UNSYNCED = "Repo disconnected successfully";
         public static final String REPO_UNSYNC_FAILED = "Could not unsync the repo";
+        public static final String REPO_SYNC_ACTION_FAILED = "Could not perform the action, please try again.";
+
+        public static final String REPO_RECONNECTED = "Repo reconnected successfully";
+        public static final String REPO_RECONNECT_FAILED = "Could not reconnect the repo";
 
         // Pricing plan related notification messages
         public static final String UPGRADE = "CodeSync | Free tier limit reached";
