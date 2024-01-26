@@ -97,6 +97,13 @@
         <li>Updated file sync message from "Syncing Files" to "CodeSync: Syncing Files..."</li>
         <li>Added marking of git commit hash along with repo init.</li>
         <li>Added background S3 file upload capability for single new files.</li>
+        <li>Added the ability for users to reconnect account.</li>
+        <li>Async file upload to speed up repo setup.</li>
+        <li>Handling for disabled accounts and the ability to enable it again.</li>
+        <li>Integration with Github pull request to watch pull request playback.</li>
+    <h2>Bug Fixes</h2>
+      <ul>
+        <li>Fixed an error in handle buffer. Added checks for null values.</li>
       </ul>
     ]]>
   </change-notes>

@@ -40,6 +40,11 @@ public class DiffFile {
             return;
         }
 
+        if (obj == null) {
+            CodeSyncLogger.debug(String.format("Invalid diff file. YAML returned null after loading contents. File Contents: %s", this.contents));
+            return;
+        }
+
         this.diff = (String) obj.get("diff");
         this.branch = (String) obj.get("branch");
         try {
