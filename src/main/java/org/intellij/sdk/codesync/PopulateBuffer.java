@@ -16,6 +16,7 @@ import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.*;
 
 import static org.intellij.sdk.codesync.Constants.*;
@@ -146,6 +147,12 @@ public class PopulateBuffer {
         if (!canRunDaemon) {
             return;
         }
+
+        // Abort if account is has been deactivated.
+        if (StateUtils.getGlobalState().isAccountDeactivated) {
+            return;
+        }
+
         S3FilesUploader.triggerS3Uploads(project);
 
         Map<String, String> reposToUpdate = detectBranchChange();

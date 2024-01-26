@@ -3,8 +3,10 @@ package org.intellij.sdk.codesync.clients;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.util.EntityUtils;
+import org.intellij.sdk.codesync.Constants;
 import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -63,6 +65,9 @@ public class JSONResponse {
     public void raiseForStatus () throws StatusCodeError {
         // Only throw for client or server error, all other responses are considered success response.
         if(this.statusCode >= 400) {
+            if (this.statusCode == Constants.ErrorCodes.ACCOUNT_DEACTIVATED) {
+                StateUtils.deactivateAccount();
+            }
             String errorMessage = "API returned an error status code.";
             if (this.jsonResponse.containsKey("error")) {
                 JSONObject errorObject = (JSONObject)this.jsonResponse.get("error");
