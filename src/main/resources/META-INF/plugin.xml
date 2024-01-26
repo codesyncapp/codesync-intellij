@@ -98,9 +98,6 @@
         <li>Added marking of git commit hash along with repo init.</li>
         <li>Added background S3 file upload capability for single new files.</li>
       </ul>
-<!--    <h2>Bug Fixes</h2>-->
-<!--      <ul>-->
-<!--      </ul>-->
     ]]>
   </change-notes>
 
