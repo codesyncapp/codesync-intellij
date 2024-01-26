@@ -94,12 +94,9 @@
   <change-notes><![CDATA[
     <h2>New Features</h2>
       <ul>
-        <li>Replaced Activity Alert Dialog with a Notification Balloon which is non-blocking.</li>
-      </ul>
-    <h2>Bug Fixes</h2>
-      <ul>
-        <li>Fixed repeated activity alert being shown to some users.</li>
-        <li>Fixed populateBuffer issue for unopened synced project with new branch.</li>
+        <li>Updated file sync message from "Syncing Files" to "CodeSync: Syncing Files..."</li>
+        <li>Added marking of git commit hash along with repo init.</li>
+        <li>Added background S3 file upload capability for single new files.</li>
       </ul>
     ]]>
   </change-notes>
