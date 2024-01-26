@@ -7,6 +7,7 @@ import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.files.AlertsFile;
 import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.DataUtils;
 import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
@@ -174,7 +175,7 @@ public class ActivityAlerts {
                         project.getName()
                     );
 
-                    if (canRunDaemon) {
+                    if (canRunDaemon && !StateUtils.getGlobalState().isAccountDeactivated) {
                         CodeSyncLogger.debug("[CODESYNC_DAEMON]: showActivityAlert called.");
                         showActivityAlert(project);
                     }

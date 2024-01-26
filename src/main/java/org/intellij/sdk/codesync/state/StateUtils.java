@@ -7,6 +7,7 @@ import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.models.UserAccount;
+import org.intellij.sdk.codesync.ui.notifications.DeactivatedAccountNotification;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 
@@ -77,6 +78,7 @@ public class StateUtils {
         pluginState.repoPath = repoPath;
         pluginState.isAuthenticated = globalState.isAuthenticated;
         pluginState.userEmail = globalState.userEmail;
+        pluginState.isAccountDeactivated = globalState.isAccountDeactivated;
 
         try {
             ConfigFile configFile = new ConfigFile(CONFIG_PATH);
@@ -84,27 +86,56 @@ public class StateUtils {
             if (configFile.hasRepo(repoPath)) {
                 ConfigRepo configRepo = configFile.getRepo(repoPath);
                 pluginState.isRepoInSync = configRepo.isSynced() && !configRepo.isDisconnected;
+
+                if (configRepo.isSynced() && !configRepo.isDisconnected) {
+                    pluginState.repoStatus = RepoStatus.IN_SYNC;
+                } else if (!configRepo.isSynced()) {
+                    pluginState.repoStatus = RepoStatus.NOT_SYNCED;
+                } else if (configRepo.isDisconnected) {
+                    pluginState.repoStatus = RepoStatus.DISCONNECTED;
+                }
             } else {
+                pluginState.repoStatus = RepoStatus.NOT_SYNCED;
                 pluginState.isRepoInSync = false;
             }
         } catch (InvalidConfigFileError error) {
+            pluginState.repoStatus = RepoStatus.UNKNOWN;
             pluginState.isRepoInSync = false;
         }
 
         projectStateMap.put(repoPath, pluginState);
     }
 
-    public static void setSyncInProgress(String repoPath){
+    public static RepoStatus getRepoStatus(String repoPath) {
+        PluginState pluginState = StateUtils.getState(repoPath);
+        if (pluginState == null) {
+            return RepoStatus.UNKNOWN;
+        }
+        return pluginState.repoStatus;
+    }
+    public static void updateRepoStatus(String repoPath, RepoStatus repoStatus){
         PluginState pluginState = getState(repoPath);
         if(pluginState != null){
-            pluginState.syncInProcess = true;
+            pluginState.setRepoStatus(repoStatus);
         }
     }
 
-    public static void unsetSyncInProgress(String repoPath){
-        PluginState pluginState = getState(repoPath);
-        if(pluginState != null){
-            pluginState.syncInProcess = false;
+    public static void deactivateAccount() {
+        PluginState pluginState = getGlobalState();
+
+        // Do nothing if account already deactivated.
+        if (pluginState.isAccountDeactivated) {
+            return;
         }
+        DeactivatedAccountNotification deactivatedAccountNotification = new DeactivatedAccountNotification(pluginState.project);
+        deactivatedAccountNotification.showAlert();
+        pluginState.isAccountDeactivated = true;
+        reloadState(pluginState.project);
+    }
+
+    public static void reactivateAccount() {
+        PluginState pluginState = getGlobalState();
+        pluginState.isAccountDeactivated = false;
+        reloadState(pluginState.project);
     }
 }

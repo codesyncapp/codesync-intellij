@@ -11,6 +11,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
 import org.intellij.sdk.codesync.exceptions.RequestError;
+import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
@@ -88,13 +89,17 @@ public class ClientUtils {
         return httpPatch;
     }
 
-    public static JSONResponse sendGet(String url, String accessToken) throws RequestError, InvalidJsonError {
+    public static JSONResponse sendGet(String url, String accessToken) throws RequestError, InvalidJsonError, StatusCodeError {
         try (CloseableHttpClient httpClient = getHttpClientBuilder().build()) {
             // Build HTTP GET request instance.
             HttpGet httpGet = getHttpGet(url, accessToken);
 
             try (CloseableHttpResponse httpResponse = httpClient.execute(httpGet)) {
-                return JSONResponse.from(httpResponse);
+                JSONResponse jsonResponse = JSONResponse.from(httpResponse);
+
+                // Raise Client or Server Error to be handled by the calling code.
+                jsonResponse.raiseForStatus();
+                return jsonResponse;
             } catch (SocketTimeoutException | ConnectTimeoutException error) {
                 throw new RequestError("Request to CodeSync server timed out.");
             } catch (IOException error) {
@@ -107,17 +112,21 @@ public class ClientUtils {
         }
     }
 
-    public static JSONResponse sendGet(String url) throws RequestError, InvalidJsonError {
+    public static JSONResponse sendGet(String url) throws RequestError, InvalidJsonError, StatusCodeError {
         return sendGet(url, null);
     }
 
-    public static JSONResponse sendPost(String url, JSONObject payload, String accessToken) throws RequestError, InvalidJsonError {
+    public static JSONResponse sendPost(String url, JSONObject payload, String accessToken) throws RequestError, InvalidJsonError, StatusCodeError {
         try (CloseableHttpClient httpClient = getHttpClientBuilder().build()) {
             // Build HTTP POST request instance.
             HttpPost httpPost = getHttpPost(url, payload, accessToken);
 
             try (CloseableHttpResponse httpResponse = httpClient.execute(httpPost)) {
-                return JSONResponse.from(httpResponse);
+                JSONResponse jsonResponse = JSONResponse.from(httpResponse);
+
+                // Raise Client or Server Error to be handled by the calling code.
+                jsonResponse.raiseForStatus();
+                return jsonResponse;
             } catch (SocketTimeoutException | ConnectTimeoutException error) {
                 throw new RequestError("Request to CodeSync server timed out.");
             } catch (IOException error) {
@@ -130,21 +139,25 @@ public class ClientUtils {
         }
     }
 
-    public static JSONResponse sendPost(String url, String accessToken) throws RequestError, InvalidJsonError {
+    public static JSONResponse sendPost(String url, String accessToken) throws RequestError, InvalidJsonError, StatusCodeError {
         return sendPost(url, new JSONObject(), accessToken);
     }
 
-    public static JSONResponse sendPost(String url, JSONObject payload) throws RequestError, InvalidJsonError {
+    public static JSONResponse sendPost(String url, JSONObject payload) throws RequestError, InvalidJsonError, StatusCodeError {
         return sendPost(url, payload, null);
     }
 
-    public static JSONResponse sendPatch(String url, JSONObject payload, String accessToken) throws RequestError, InvalidJsonError {
+    public static JSONResponse sendPatch(String url, JSONObject payload, String accessToken) throws RequestError, InvalidJsonError, StatusCodeError {
         try (CloseableHttpClient httpClient = getHttpClientBuilder().build()) {
             // Build HTTP PATCH request instance.
             HttpPatch httpPatch = getHttpPatch(url, payload, accessToken);
 
             try (CloseableHttpResponse httpResponse = httpClient.execute(httpPatch)) {
-                return JSONResponse.from(httpResponse);
+                JSONResponse jsonResponse = JSONResponse.from(httpResponse);
+
+                // Raise Client or Server Error to be handled by the calling code.
+                jsonResponse.raiseForStatus();
+                return jsonResponse;
             } catch (SocketTimeoutException | ConnectTimeoutException error) {
                 throw new RequestError("Request to CodeSync server timed out.");
             } catch (IOException error) {

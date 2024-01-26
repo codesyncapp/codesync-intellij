@@ -90,6 +90,8 @@ public final class Constants {
     public static final String PLANS_URL = String.format("%s/plans?%s", WEB_APP_URL, GA4_PARAMS);
     public static final String REPO_PLAYBACK_LINK = String.format("%s/repos", WEB_APP_URL) + "/%s/playback?" + GA4_PARAMS;
     public static final String FILE_PLAYBACK_LINK = String.format("%s/files", WEB_APP_URL) + "/%s/history?" + GA4_PARAMS;
+    public static final String SETTINGS_PAGE_URL = String.format("%s/settings", WEB_APP_URL);
+
 
     public static final String CLIENT_LOGS_GROUP_NAME = configuration.getLogGroupName();
     public static final String PLUGIN_USER = configuration.getPluginUser();
@@ -137,6 +139,12 @@ public final class Constants {
             // restrict instantiation
         }
 
+        public static final String CODESYNC_NOTIFICATION_GROUP = "CodeSync Notifications";
+        public static final String DEFAULT_TITLE = "CodeSync";
+        public static final String CODESYNC_ERROR_TITLE = "CodeSync Error";
+        public static final String CODESYNC_WARNING_TITLE = "CodeSync Warning";
+        public static final String CODESYNC_INFORMATION_TITLE = "CodeSync Information";
+
         public static final String YES = "Yes";
         public static final String NO = "No";
         public static final String SERVICE_NOT_AVAILABLE = "CodeSync Service is unavailable. Please try again in a moment.";
@@ -159,6 +167,10 @@ public final class Constants {
         public static final String REPO_UNSYNC_CONFIRMATION = "Are you sure to continue? You won't be able to revert this!";
         public static final String REPO_UNSYNCED = "Repo disconnected successfully";
         public static final String REPO_UNSYNC_FAILED = "Could not unsync the repo";
+        public static final String REPO_SYNC_ACTION_FAILED = "Could not perform the action, please try again.";
+
+        public static final String REPO_RECONNECTED = "Repo reconnected successfully";
+        public static final String REPO_RECONNECT_FAILED = "Could not reconnect the repo";
 
         // Pricing plan related notification messages
         public static final String UPGRADE = "CodeSync | Free tier limit reached";
@@ -177,6 +189,10 @@ public final class Constants {
         public static final String TEAM_ACTIVITY_ALERT_MESSAGE = "Hope you had a great day! It's time to get in sync with your team's code.";
         public static final String TEAM_ACTIVITY_ALERT_SECONDARY_MESSAGE =
             "If you are not available right now then you can either skip for today or review later by clicking the correct button below.";
+
+        public static final String ACCOUNT_DEACTIVATED = "Your account has been deactivated. Please click 'Reactivate Account' below to resume syncing.";
+        public static final String ACCOUNT_REACTIVATE_BUTTON = "Reactivate Account";
+        public static final String REACTIVATED_SUCCESS = "Successfully reactivated your account";
     }
 
     public static final class LogMessageType {
@@ -208,5 +224,6 @@ public final class Constants {
         public static final int INVALID_USAGE = 400;
         public static final int REPO_SIZE_LIMIT_REACHED = 402;
         public static final int DIFFS_LIMIT_REACHED = 402;
+        public static final int ACCOUNT_DEACTIVATED = 403;
     }
 }
