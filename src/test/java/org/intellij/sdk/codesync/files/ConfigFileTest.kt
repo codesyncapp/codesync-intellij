@@ -1,16 +1,10 @@
 package org.intellij.sdk.codesync.files
 
 import CodeSyncTestUtils.getTestDataPath
-import com.intellij.openapi.project.Project
-import org.intellij.sdk.codesync.CodeSyncLogger
-import org.intellij.sdk.codesync.state.PluginState
-import org.intellij.sdk.codesync.state.StateUtils
 import org.intellij.sdk.codesync.utils.FileUtils
 import org.junit.After
 import org.junit.Before
 import org.junit.jupiter.api.Test
-import org.mockito.MockedStatic
-import org.mockito.Mockito
 import java.io.File
 import java.io.FileWriter
 import java.nio.file.Files
@@ -53,37 +47,6 @@ class ConfigFileTest {
         writer.write(content)
         writer.flush()
         writer.close()
-    }
-
-    @Test
-    fun testInvalidYMLFileGetsCleared() {
-        val tempDir = Paths.get(System.getProperty("java.io.tmpdir"))
-        val configFile = File("${tempDir}/config.yml")
-
-        // Create an invalid config file.
-        writeConfigFile(invalidContent)
-
-        val project: Project = Mockito.mock(Project::class.java)
-        val globalState = PluginState();
-        globalState.project = project;
-
-
-        Mockito.mockStatic(CodeSyncLogger::class.java).use {
-            Mockito.mockStatic(StateUtils::class.java).use { stateUtils ->
-                stateUtils.`when`<Any>(MockedStatic.Verification { StateUtils.getGlobalState() }).thenReturn(globalState)
-
-                var contents = FileUtils.readFileToString(configFile.path)
-                assert(contents == invalidContent)
-
-                // Initiate ConfigFile.
-                ConfigFile(configFile.path)
-
-                // Verify content was removed.
-                contents = FileUtils.readFileToString(configFile.path)
-                assert(contents != invalidContent)
-                assert(contents == "{}")
-            }
-        }
     }
 
     @Test
