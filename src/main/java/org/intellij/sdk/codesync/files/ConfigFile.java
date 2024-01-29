@@ -10,7 +10,6 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
-import org.intellij.sdk.codesync.state.StateUtils;
 
 
 public class ConfigFile extends CodeSyncYmlFile {
@@ -32,9 +31,7 @@ public class ConfigFile extends CodeSyncYmlFile {
         try {
             this.contentsMap = this.readYml();
         } catch (InvalidYmlFileError e) {
-            CodeSyncYmlFile.removeFileContents(this.getYmlFile());
-            StateUtils.reloadState(StateUtils.getGlobalState().project);
-            CodeSyncLogger.error("Removed contents of the config file after facing invalid yaml error.");
+            CodeSyncLogger.error("[CONFIG_FILE]: Config file facing invalid yaml error.");
         } catch (FileNotFoundException e) {
             throw new InvalidConfigFileError(e.getMessage());
         }

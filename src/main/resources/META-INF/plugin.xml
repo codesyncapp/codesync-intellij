@@ -106,6 +106,7 @@
         <li>Fixed an error in handle buffer. Added checks for null values.</li>
         <li>Updated messaging for repo disconnect confirmation prompt.</li>
         <li>Only process diffs of the authenticated user.</li>
+        <li>Disabled config file reset logic in case of yaml error.</li>
       </ul>
     ]]>
   </change-notes>
