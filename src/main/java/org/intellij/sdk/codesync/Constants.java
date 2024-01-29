@@ -164,7 +164,7 @@ public final class Constants {
 
         public static final String LOGIN_REQUIRED_FOR_SYNC_MESSAGE = "You need to login to sync repo. Please login and then try again.";
 
-        public static final String REPO_UNSYNC_CONFIRMATION = "Are you sure to continue? You won't be able to revert this!";
+        public static final String REPO_UNSYNC_CONFIRMATION = "Are you sure to continue? Your changes won't be synced if you disconnect!";
         public static final String REPO_UNSYNCED = "Repo disconnected successfully";
         public static final String REPO_UNSYNC_FAILED = "Could not unsync the repo";
         public static final String REPO_SYNC_ACTION_FAILED = "Could not perform the action, please try again.";

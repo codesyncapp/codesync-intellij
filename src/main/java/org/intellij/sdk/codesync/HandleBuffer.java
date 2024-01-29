@@ -10,6 +10,7 @@ import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
+import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
@@ -97,6 +98,16 @@ public class HandleBuffer {
                     diffFile.delete();
                 }
             }
+            return true;
+        }
+
+        PluginState globalState = StateUtils.getGlobalState();
+        if (configRepo.hasValidEmail() && globalState.isAuthenticated) {
+            // If diff file is not from the active user then skip it.
+            if(!Objects.equals(configRepo.email, globalState.userEmail)) {
+                return true;
+            }
+        } else {
             return true;
         }
 

@@ -104,6 +104,8 @@
     <h2>Bug Fixes</h2>
       <ul>
         <li>Fixed an error in handle buffer. Added checks for null values.</li>
+        <li>Updated messaging for repo disconnect confirmation prompt.</li>
+        <li>Only process diffs of the authenticated user.</li>
       </ul>
     ]]>
   </change-notes>
