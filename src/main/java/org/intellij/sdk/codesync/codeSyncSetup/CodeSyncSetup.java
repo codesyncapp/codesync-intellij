@@ -22,7 +22,7 @@ import org.intellij.sdk.codesync.exceptions.network.RepoUpdateError;
 import org.intellij.sdk.codesync.exceptions.network.ServerConnectionError;
 import org.intellij.sdk.codesync.exceptions.repo.RepoNotActive;
 import org.intellij.sdk.codesync.files.*;
-import org.intellij.sdk.codesync.models.UserAccount;
+import org.intellij.sdk.codesync.database.models.UserAccount;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.RepoStatus;
 import org.intellij.sdk.codesync.state.StateUtils;

@@ -1,15 +1,16 @@
-package org.intellij.sdk.codesync.database;
+package org.intellij.sdk.codesync.database.tables;
 
+import org.intellij.sdk.codesync.database.Database;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
-import org.intellij.sdk.codesync.models.UserAccount;
+import org.intellij.sdk.codesync.database.models.UserAccount;
 import org.intellij.sdk.codesync.utils.Queries;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class UserTable {
+    static String tableName = "user";
 
     public static void insertNewUser(UserAccount userAccount) throws SQLiteDBConnectionError, SQLiteDataError {
         Database.executeUpdate(Queries.User.insert(userAccount.getUserEmail(), userAccount.getAccessToken(), userAccount.getSecretKey(), userAccount.getAccessKey(), userAccount.getActive()));

@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync.database
 
-import org.intellij.sdk.codesync.models.UserAccount
+import org.intellij.sdk.codesync.database.models.UserAccount
+import org.intellij.sdk.codesync.database.tables.UserTable
 import org.intellij.sdk.codesync.utils.Queries
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -35,7 +36,8 @@ class UserTableTest {
     fun validateInsertNewUser(){
         var email = "sample@gmail.com"
 
-        var userAccount = UserAccount(email, "ACCESS_TOKEN")
+        var userAccount =
+            UserAccount(email, "ACCESS_TOKEN")
         UserTable.insertNewUser(userAccount)
 
         var resultSet = Database.runQuery(Queries.User.get_by_email(email))
@@ -50,7 +52,8 @@ class UserTableTest {
     fun insertDuplicate(){
         var email = "Dummy@gmail.com"
 
-        var userAccount = UserAccount(email, "ACCESS_TOKEN")
+        var userAccount =
+            UserAccount(email, "ACCESS_TOKEN")
         AssertionError(UserTable.insertNewUser(userAccount))
     }
 
@@ -58,7 +61,8 @@ class UserTableTest {
     fun validateUpdateUser(){
         var email = "sample@gmail.com"
 
-        var userAccount = UserAccount(email, "access token")
+        var userAccount =
+            UserAccount(email, "access token")
         UserTable.insertNewUser(userAccount)
 
         userAccount.setSecretKey("secret key")

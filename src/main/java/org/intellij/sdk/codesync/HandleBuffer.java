@@ -6,7 +6,7 @@ import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.clients.CodeSyncWebSocketClient;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.files.*;
-import org.intellij.sdk.codesync.models.UserAccount;
+import org.intellij.sdk.codesync.database.models.UserAccount;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;

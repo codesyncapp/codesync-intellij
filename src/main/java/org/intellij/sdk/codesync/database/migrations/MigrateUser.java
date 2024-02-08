@@ -3,11 +3,11 @@ package org.intellij.sdk.codesync.database.migrations;
 import com.google.common.io.CharStreams;
 import com.intellij.openapi.application.ApplicationManager;
 import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.database.UserTable;
+import org.intellij.sdk.codesync.database.tables.UserTable;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
-import org.intellij.sdk.codesync.models.UserAccount;
+import org.intellij.sdk.codesync.database.models.UserAccount;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 

@@ -11,13 +11,11 @@ import org.intellij.sdk.codesync.commands.ClearReposToIgnoreCache;
 import org.intellij.sdk.codesync.commands.ReloadStateCommand;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
-import org.intellij.sdk.codesync.models.UserAccount;
+import org.intellij.sdk.codesync.database.models.UserAccount;
 import org.intellij.sdk.codesync.server.CodeSyncReactivateAccountServer;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.plaf.nimbus.State;
 
 import static org.intellij.sdk.codesync.Constants.Notification.ACCOUNT_REACTIVATE_BUTTON;
 

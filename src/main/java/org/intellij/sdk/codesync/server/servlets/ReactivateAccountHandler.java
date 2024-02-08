@@ -7,7 +7,7 @@ import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
 import org.intellij.sdk.codesync.exceptions.RequestError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
-import org.intellij.sdk.codesync.models.UserAccount;
+import org.intellij.sdk.codesync.database.models.UserAccount;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.json.simple.JSONObject;
 

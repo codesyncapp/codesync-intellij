@@ -13,6 +13,30 @@ import java.util.HashMap;
 
 public class Database {
 
+    private static Database instance;
+
+    private Database() {
+    }
+
+    public static Database getInstance() {
+        if (instance == null) {
+            instance = new Database();
+        }
+        return instance;
+    }
+
+    public ResultSet query(String query) throws SQLException {
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            return statement.executeQuery(query);
+        }
+    }
+
+    public void update(String query) throws SQLException {
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            statement.executeUpdate(query);
+        }
+    }
+
     public static void setupDbFilesAndTables(String databasePath){
 
         /*
