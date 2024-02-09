@@ -226,4 +226,18 @@ public final class Constants {
         public static final int DIFFS_LIMIT_REACHED = 402;
         public static final int ACCOUNT_DEACTIVATED = 403;
     }
+
+    public static final class CustomErrorCodes {
+        /*
+            Custom error codes for the case: Free Plan restrictions
+        */
+        private CustomErrorCodes(){
+            // restrict instantiation
+        }
+
+        public static final int IS_FROZEN_REPO = 4000;
+        public static final int REPO_SIZE_LIMIT_REACHED = 4001;
+    }
 }
+
+
