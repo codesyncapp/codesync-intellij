@@ -37,6 +37,23 @@ public class PricingAlertDialog extends DialogWrapper {
         setTitle(this.title);
     }
 
+    public PricingAlertDialog(Boolean isOrgRepo, Boolean canAvailTrial, String pricingURL, Project project, boolean privateRepoCountLimitReached){
+        super(project, true);
+        this.pricingURL = pricingURL;
+        if (privateRepoCountLimitReached) {
+            this.title = Notification.PRIVATE_REPO_COUNT_REACHED;
+        }
+        if (canAvailTrial) {
+            upgradeButtonText = "Try Pro for free";
+            secondaryMessage = isOrgRepo ? Notification.TRY_ORG_PRO_FOR_FREE: Notification.TRY_PRO_FOR_FREE;
+        } else {
+            upgradeButtonText = "Upgrade to Pro";
+            secondaryMessage = isOrgRepo ? Notification.UPGRADE_ORG_PRICING_PLAN: Notification.UPGRADE_PRICING_PLAN;
+        }
+
+        setTitle(this.title);
+    }
+
     public void show() {
         CommonUtils.invokeAndWait(
             () -> {

@@ -17,10 +17,17 @@ Class to store API response data.
 */
 public class JSONResponse {
     private final int statusCode;
+    private int customErrorCode;
     private final JSONObject jsonResponse;
 
     public JSONResponse(int statusCode, JSONObject jsonResponse) {
+        this(statusCode, 0, jsonResponse);
+    }
+
+
+    public JSONResponse(int statusCode, int customErrorCode, JSONObject jsonResponse) {
         this.statusCode = statusCode;
+        this.customErrorCode = customErrorCode;
         this.jsonResponse = jsonResponse;
     }
 
@@ -74,8 +81,11 @@ public class JSONResponse {
                 if (errorObject != null && errorObject.containsKey("message")) {
                     errorMessage = (String) errorObject.get("message");
                 }
+                if (errorObject != null && errorObject.containsKey("error_code")) {
+                    this.customErrorCode = ((Number) errorObject.get("error_code")).intValue();
+                }
             }
-            throw new StatusCodeError(this.statusCode, errorMessage);
+            throw new StatusCodeError(this.statusCode, this.customErrorCode, errorMessage);
         }
     }
 }

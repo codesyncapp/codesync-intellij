@@ -222,9 +222,15 @@ public class CodeSyncClient {
             CodeSyncLogger.critical(String.format("Error while repo init, %s", error.getMessage()));
             return null;
         } catch (StatusCodeError statusCodeError) {
-            if (statusCodeError.getStatusCode()  == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
+
+            if (statusCodeError.getCustomErrorCode()  == CustomErrorCodes.PRIVATE_REPO_COUNT_LIMIT_REACHED) {
+                boolean privateRepoCountLimitReached = true;
+                PricingAlerts.setPlanLimitReached(null, privateRepoCountLimitReached);
+            }
+            else if (statusCodeError.getStatusCode()  == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
                 PricingAlerts.setPlanLimitReached();
-            } else {
+            }
+            else {
                 PricingAlerts.resetPlanLimitReached();
             }
             // In case of error status code, repo upload should stop.

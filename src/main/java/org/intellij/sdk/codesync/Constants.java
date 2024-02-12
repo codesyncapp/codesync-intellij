@@ -180,6 +180,9 @@ public final class Constants {
         public static final String TRY_PRO_FOR_FREE = "To continue, please sign up for a 30-day free trial of Pro.";
         public static final String TRY_ORG_PRO_FOR_FREE = "To continue, please sign your organization up for a 30-day free trial of the Team plan.";
 
+        // Free plan related notification messages
+        public static final String PRIVATE_REPO_COUNT_REACHED = "Only 1 private repository is allowed in Free Plan";
+
         // Team alert related notification messages
         public static final String ACTIVITY_ALERT_HEADER_MESSAGE = "CodeSync | Check your activity!";
         public static final String ACTIVITY_ALERT_MESSAGE = "Let’s take a minute to review today’s coding!";
@@ -237,6 +240,7 @@ public final class Constants {
 
         public static final int IS_FROZEN_REPO = 4000;
         public static final int REPO_SIZE_LIMIT_REACHED = 4001;
+        public static final int PRIVATE_REPO_COUNT_LIMIT_REACHED = 4006;
     }
 }
 
