@@ -5,6 +5,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.intellij.sdk.codesync.Constants.Notification;
+import org.intellij.sdk.codesync.Constants.NotificationButton;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -27,10 +28,10 @@ public class PricingAlertDialog extends DialogWrapper {
         this.pricingURL = pricingURL;
 
         if (canAvailTrial) {
-            upgradeButtonText = "Try Pro for free";
+            upgradeButtonText = isOrgRepo ? NotificationButton.TRY_TEAM_FOR_FREE: NotificationButton.TRY_PRO_FOR_FREE;
             secondaryMessage = isOrgRepo ? Notification.TRY_ORG_PRO_FOR_FREE: Notification.TRY_PRO_FOR_FREE;
         } else {
-            upgradeButtonText = "Upgrade to Pro";
+            upgradeButtonText = NotificationButton.UPGRADE_PLAN;
             secondaryMessage = isOrgRepo ? Notification.UPGRADE_ORG_PRICING_PLAN: Notification.UPGRADE_PRICING_PLAN;
         }
 
@@ -44,10 +45,10 @@ public class PricingAlertDialog extends DialogWrapper {
             this.title = Notification.PRIVATE_REPO_COUNT_REACHED;
         }
         if (canAvailTrial) {
-            upgradeButtonText = "Try Pro for free";
+            upgradeButtonText = isOrgRepo ? NotificationButton.TRY_TEAM_FOR_FREE: NotificationButton.TRY_PRO_FOR_FREE;
             secondaryMessage = isOrgRepo ? Notification.TRY_ORG_PRO_FOR_FREE: Notification.TRY_PRO_FOR_FREE;
         } else {
-            upgradeButtonText = "Upgrade to Pro";
+            upgradeButtonText = NotificationButton.UPGRADE_PLAN;
             secondaryMessage = isOrgRepo ? Notification.UPGRADE_ORG_PRICING_PLAN: Notification.UPGRADE_PRICING_PLAN;
         }
 

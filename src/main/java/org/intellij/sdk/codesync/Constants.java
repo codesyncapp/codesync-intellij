@@ -198,6 +198,16 @@ public final class Constants {
         public static final String REACTIVATED_SUCCESS = "Successfully reactivated your account";
     }
 
+
+    public static class NotificationButton {
+        private NotificationButton() {
+            // restrict instantiation
+        }
+
+        public static final String TRY_PRO_FOR_FREE = "Try Pro for Free";
+        public static final String TRY_TEAM_FOR_FREE = "Try Team for Free";
+        public static final String UPGRADE_PLAN = "Upgrade Plan";
+    }
     public static final class LogMessageType {
         private LogMessageType() {
             // restrict instantiation
