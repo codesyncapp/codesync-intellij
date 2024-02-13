@@ -181,7 +181,7 @@ public final class Constants {
         public static final String TRY_ORG_PRO_FOR_FREE = "To continue, please sign your organization up for a 30-day free trial of the Team plan.";
 
         // Free plan related notification messages
-        public static final String PRIVATE_REPO_COUNT_REACHED = "Only 1 private repository is allowed in Free Plan";
+        public static final String PRIVATE_REPO_COUNT_REACHED = "In the Free Plan, you can have just one private repository.";
 
         // Team alert related notification messages
         public static final String ACTIVITY_ALERT_HEADER_MESSAGE = "CodeSync | Check your activity!";
