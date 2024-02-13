@@ -249,7 +249,6 @@ public final class Constants {
         }
 
         public static final int IS_FROZEN_REPO = 4000;
-        public static final int REPO_SIZE_LIMIT_REACHED = 4001;
         public static final int PRIVATE_REPO_COUNT_LIMIT_REACHED = 4006;
     }
 }
