@@ -98,37 +98,6 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                     // Show Pricing alert dialog.
                     PricingAlerts.setPlanLimitReached(project);
                 } else {
-                    // Get access token
-                    String accessToken;
-                    try {
-                        UserAccount userAccount = new UserAccount();
-                        accessToken = userAccount.getActiveAccessToken();
-                    } catch (SQLiteDBConnectionError err) {
-                        accessToken = null;
-                    }
-//                    // User already has access token, no need to proceed.
-//                    if (accessToken != null) {
-//                        try {
-//                            return validateAccessToken(accessToken);
-//                        } catch (InvalidAccessTokenError invalidAccessTokenError) {
-//                            // no action needed, user will be prompted for authenticated later by default.
-//                        }
-//                    }
-                    // Hit /v1/init endpoint
-                    JSONResponse jsonResponse;
-                    try {
-                        jsonResponse = ClientUtils.sendPost(API_INIT, accessToken);
-                    } catch (RequestError | InvalidJsonError error) {
-                        CodeSyncLogger.critical(String.format("Error while repo init, %s", error.getMessage()));
-                    } catch (StatusCodeError statusCodeError) {
-                        if (statusCodeError.getStatusCode()  == CustomErrorCodes.REPO_SIZE_LIMIT_REACHED) {
-                            e.getPresentation().setText("Repo Size Limit Reached!");
-                            e.getPresentation().setDescription("Only 1 Private Repo is allowed in Free plan. Please upgrade your plan.");
-                            break;
-                        }
-                    }
-                    // If there is error, display that error accordingly
-
                     CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, true, false);
                 }
                 break;

@@ -94,9 +94,21 @@
   <change-notes><![CDATA[
     <h2>New Features</h2>
       <ul>
-        <li>Added new error message "Only 1 private repository is allowed in Free Plan"</li>
-        <li>Added custom error codes class: CustomErrorCodes</li>
-        <li>Added error handling for when user on FREE plan tries to add more than 1 private repo.</li>
+        <li>Restricted users on free plan to only one private repository</li>
+        <li>Adding more than one private repo on free plan will trigger error: "In the Free Plan, you can have just one private repository."</li>
+        <li>Updated file sync message from "Syncing Files" to "CodeSync: Syncing Files..."</li>
+        <li>Added marking of git commit hash along with repo init.</li>
+        <li>Added background S3 file upload capability for single new files.</li>
+        <li>Added the ability for users to reconnect account.</li>
+        <li>Async file upload to speed up repo setup.</li>
+        <li>Handling for disabled accounts and the ability to enable it again.</li>
+        <li>Integration with Github pull request to watch pull request playback.</li>
+    <h2>Bug Fixes</h2>
+      <ul>
+        <li>Fixed an error in handle buffer. Added checks for null values.</li>
+        <li>Updated messaging for repo disconnect confirmation prompt.</li>
+        <li>Only process diffs of the authenticated user.</li>
+        <li>Disabled config file reset logic in case of yaml error.</li>
       </ul>
     ]]>
   </change-notes>

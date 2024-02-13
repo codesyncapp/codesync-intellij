@@ -183,8 +183,6 @@ public class CodeSyncSetup {
         StateUtils.updateRepoStatus(repoPath, RepoStatus.SYNC_IN_PROGRESS);
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
             public void run(@NotNull ProgressIndicator progressIndicator) {
-
-
                 progressIndicator.setIndeterminate(false);
 
                 CodeSyncProgressIndicator codeSyncProgressIndicator = new CodeSyncProgressIndicator(progressIndicator);
