@@ -10,6 +10,7 @@ import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.DiffFile;
 import static org.intellij.sdk.codesync.Constants.*;
 
+import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
@@ -224,8 +225,7 @@ public class CodeSyncClient {
         } catch (StatusCodeError statusCodeError) {
 
             if (statusCodeError.getCustomErrorCode()  == CustomErrorCodes.PRIVATE_REPO_COUNT_LIMIT_REACHED) {
-                boolean privateRepoCountLimitReached = true;
-                PricingAlerts.setPlanLimitReached(null, privateRepoCountLimitReached);
+                PricingAlerts.showPrivateRepoCountLimitReached();
             }
             else if (statusCodeError.getStatusCode()  == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
                 PricingAlerts.setPlanLimitReached();
@@ -273,6 +273,29 @@ public class CodeSyncClient {
             return jsonResponse.getJsonResponse();
         } catch (RequestError | InvalidJsonError | StatusCodeError error) {
             CodeSyncLogger.error(String.format("Error while getting team activity data. %s", error.getMessage()));
+            return null;
+        }
+    }
+
+    public  static  Boolean  getUserSubscription() {
+        /*
+        - GETs the user subscription
+        */
+//        String userEmail = UserAccount.getEmail();
+//        System.out.println(userEmail);
+//        return userEmail;
+        String accessToken = UserAccount.getAccessTokenByEmail();
+//        System.out.println(accessToken);
+        try {
+            JSONResponse response = ClientUtils.sendGet(USER_SUBSCRIPTION_ENDPOINT, accessToken);
+            JSONObject result = response.getJsonResponse();
+//            System.out.println(result);
+            JSONObject subscriptionObject = (JSONObject) result.get("subscription");
+//            System.out.println(subscriptionObject);
+            //            System.out.println(canAvailTrial);
+            return Boolean.valueOf(subscriptionObject.get("can_avail_trial").toString());
+        } catch (RequestError | InvalidJsonError | StatusCodeError error) {
+            CodeSyncLogger.error(String.format("Error while getting user subscription. %s", error.getMessage()));
             return null;
         }
     }

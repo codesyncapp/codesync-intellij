@@ -34,17 +34,13 @@ public class PricingAlerts {
         );
     }
 
-    public static void setPlanLimitReached(Project project, boolean privateRepoCountLimitReached) {
-        // We only want to show notification once every 5 minutes, I have implemented that using locks with an expiry of
-        // 5 minutes. So, skip the notification if lock is not acquired.
-        acquirePricingLock();
-        CommonUtils.invokeAndWait(
-                () -> {
-                    PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(false, false, CODESYNC_PRICING_URL, project, privateRepoCountLimitReached);
-                    return pricingAlertDialog.showAndGet();
-                },
-                ModalityState.defaultModalityState()
-        );
+    public static boolean showPrivateRepoCountLimitReached() {
+
+            // GET subscription -> getUserSubscription()
+            Boolean  canAvailTrial = CodeSyncClient.getUserSubscription();
+            System.out.println(canAvailTrial);
+            PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(canAvailTrial);
+            return pricingAlertDialog.showAndGet();
     }
 
 

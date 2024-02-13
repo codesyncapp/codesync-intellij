@@ -80,6 +80,7 @@ public final class Constants {
     public static final String CODESYNC_REPO_URL = String.format("%s/repos", API_ENDPOINT);
     public static final String FILES_API_ENDPOINT = String.format("%s/files?source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String TEAM_ACTIVITY_ENDPOINT = String.format("%s/team_activity?tz=%s&source=%s&v=%s", API_ENDPOINT, DEFAULT_TIMEZONE, DIFF_SOURCE, PLUGIN_VERSION);
+    public static final String USER_SUBSCRIPTION_ENDPOINT = String.format("%s/pricing/subscription", API_ENDPOINT);
 
     public static final String API_HEALTHCHECK = String.format("%s/healthcheck?source=%s&v=%s", CODESYNC_HOST, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String CODESYNC_AUTHORIZE_URL = String.format("%s/authorize", CODESYNC_HOST);
@@ -207,6 +208,7 @@ public final class Constants {
         public static final String TRY_PRO_FOR_FREE = "Try Pro for Free";
         public static final String TRY_TEAM_FOR_FREE = "Try Team for Free";
         public static final String UPGRADE_PLAN = "Upgrade Plan";
+        public static final String UPGRADE_TO_TEAM = "Upgrade to Team Plan";
     }
     public static final class LogMessageType {
         private LogMessageType() {

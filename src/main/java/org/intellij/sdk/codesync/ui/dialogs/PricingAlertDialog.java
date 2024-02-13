@@ -15,6 +15,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
+import static org.intellij.sdk.codesync.Constants.CODESYNC_PRICING_URL;
+
 
 public class PricingAlertDialog extends DialogWrapper {
     String primaryMessage = Notification.PRICING_LIMIT_REACHED_MESSAGE,
@@ -38,21 +40,27 @@ public class PricingAlertDialog extends DialogWrapper {
         setTitle(this.title);
     }
 
-    public PricingAlertDialog(Boolean isOrgRepo, Boolean canAvailTrial, String pricingURL, Project project, boolean privateRepoCountLimitReached){
-        super(project, true);
+    public PricingAlertDialog(Boolean canAvailTrial){
+        super(canAvailTrial);
+        System.out.println("in pricing alert");
+        this.title = Notification.PRIVATE_REPO_COUNT_REACHED;
+        // Call to the first constructor should be the first statement
+        initializeParameters(false, canAvailTrial, CODESYNC_PRICING_URL, null);
+        setTitle(this.title);
+        // Rest of your constructor logic here
+    }
+
+    private void initializeParameters(Boolean isOrgRepo, Boolean canAvailTrial, String pricingURL, Project project) {
         this.pricingURL = pricingURL;
-        if (privateRepoCountLimitReached) {
-            this.title = Notification.PRIVATE_REPO_COUNT_REACHED;
-        }
+        System.out.println("22");
+        System.out.println(this.pricingURL);
         if (canAvailTrial) {
-            upgradeButtonText = isOrgRepo ? NotificationButton.TRY_TEAM_FOR_FREE: NotificationButton.TRY_PRO_FOR_FREE;
-            secondaryMessage = isOrgRepo ? Notification.TRY_TEAM_PLAN_FOR_FREE: Notification.TRY_PRO_FOR_FREE;
+            upgradeButtonText = isOrgRepo ? NotificationButton.TRY_TEAM_FOR_FREE : NotificationButton.TRY_PRO_FOR_FREE;
+            secondaryMessage = isOrgRepo ? Notification.TRY_TEAM_PLAN_FOR_FREE : Notification.TRY_PRO_FOR_FREE;
         } else {
             upgradeButtonText = NotificationButton.UPGRADE_PLAN;
-            secondaryMessage = isOrgRepo ? Notification.UPGRADE_ORG_PRICING_PLAN: Notification.UPGRADE_PRICING_PLAN;
+            secondaryMessage = isOrgRepo ? Notification.UPGRADE_ORG_PRICING_PLAN : Notification.UPGRADE_PRICING_PLAN;
         }
-
-        setTitle(this.title);
     }
 
     public void show() {
