@@ -23,7 +23,6 @@ public class StatusCodeError extends BaseException {
     }
 
     public int getCustomErrorCode() {
-        System.out.println("in custom error code implementation");
         return customErrorCode;
     }
 }

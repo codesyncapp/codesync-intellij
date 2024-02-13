@@ -178,7 +178,7 @@ public final class Constants {
         public static final String UPGRADE_PRICING_PLAN = "To continue, please upgrade your plan.";
         public static final String UPGRADE_ORG_PRICING_PLAN = "To continue, please sign your organization up for the Team plan.";
         public static final String TRY_PRO_FOR_FREE = "To continue, please sign up for a 30-day free trial of Pro.";
-        public static final String TRY_ORG_PRO_FOR_FREE = "To continue, please sign your organization up for a 30-day free trial of the Team plan.";
+        public static final String TRY_TEAM_PLAN_FOR_FREE = "To continue, please sign your organization up for a 30-day free trial of the Team plan.";
 
         // Free plan related notification messages
         public static final String PRIVATE_REPO_COUNT_REACHED = "In the Free Plan, you can have just one private repository.";

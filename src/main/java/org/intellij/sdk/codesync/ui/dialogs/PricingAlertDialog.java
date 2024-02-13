@@ -29,7 +29,7 @@ public class PricingAlertDialog extends DialogWrapper {
 
         if (canAvailTrial) {
             upgradeButtonText = isOrgRepo ? NotificationButton.TRY_TEAM_FOR_FREE: NotificationButton.TRY_PRO_FOR_FREE;
-            secondaryMessage = isOrgRepo ? Notification.TRY_ORG_PRO_FOR_FREE: Notification.TRY_PRO_FOR_FREE;
+            secondaryMessage = isOrgRepo ? Notification.TRY_TEAM_PLAN_FOR_FREE: Notification.TRY_PRO_FOR_FREE;
         } else {
             upgradeButtonText = NotificationButton.UPGRADE_PLAN;
             secondaryMessage = isOrgRepo ? Notification.UPGRADE_ORG_PRICING_PLAN: Notification.UPGRADE_PRICING_PLAN;
@@ -46,7 +46,7 @@ public class PricingAlertDialog extends DialogWrapper {
         }
         if (canAvailTrial) {
             upgradeButtonText = isOrgRepo ? NotificationButton.TRY_TEAM_FOR_FREE: NotificationButton.TRY_PRO_FOR_FREE;
-            secondaryMessage = isOrgRepo ? Notification.TRY_ORG_PRO_FOR_FREE: Notification.TRY_PRO_FOR_FREE;
+            secondaryMessage = isOrgRepo ? Notification.TRY_TEAM_PLAN_FOR_FREE: Notification.TRY_PRO_FOR_FREE;
         } else {
             upgradeButtonText = NotificationButton.UPGRADE_PLAN;
             secondaryMessage = isOrgRepo ? Notification.UPGRADE_ORG_PRICING_PLAN: Notification.UPGRADE_PRICING_PLAN;
