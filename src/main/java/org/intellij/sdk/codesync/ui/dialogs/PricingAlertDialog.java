@@ -6,6 +6,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.intellij.sdk.codesync.Constants.Notification;
 import org.intellij.sdk.codesync.Constants.NotificationButton;
+import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -28,8 +29,8 @@ public class PricingAlertDialog extends DialogWrapper {
     public PricingAlertDialog(Boolean isOrgRepo, Boolean canAvailTrial, String pricingURL, Project project){
         super(project, true);
         this.pricingURL = pricingURL;
-
         if (canAvailTrial) {
+            this.title = Notification.PRIVATE_REPO_COUNT_REACHED;
             upgradeButtonText = isOrgRepo ? NotificationButton.TRY_TEAM_FOR_FREE: NotificationButton.TRY_PRO_FOR_FREE;
             secondaryMessage = isOrgRepo ? Notification.TRY_TEAM_PLAN_FOR_FREE: Notification.TRY_PRO_FOR_FREE;
         } else {
@@ -41,26 +42,7 @@ public class PricingAlertDialog extends DialogWrapper {
     }
 
     public PricingAlertDialog(Boolean canAvailTrial){
-        super(canAvailTrial);
-        System.out.println("in pricing alert");
-        this.title = Notification.PRIVATE_REPO_COUNT_REACHED;
-        // Call to the first constructor should be the first statement
-        initializeParameters(false, canAvailTrial, CODESYNC_PRICING_URL, null);
-        setTitle(this.title);
-        // Rest of your constructor logic here
-    }
-
-    private void initializeParameters(Boolean isOrgRepo, Boolean canAvailTrial, String pricingURL, Project project) {
-        this.pricingURL = pricingURL;
-        System.out.println("22");
-        System.out.println(this.pricingURL);
-        if (canAvailTrial) {
-            upgradeButtonText = isOrgRepo ? NotificationButton.TRY_TEAM_FOR_FREE : NotificationButton.TRY_PRO_FOR_FREE;
-            secondaryMessage = isOrgRepo ? Notification.TRY_TEAM_PLAN_FOR_FREE : Notification.TRY_PRO_FOR_FREE;
-        } else {
-            upgradeButtonText = NotificationButton.UPGRADE_PLAN;
-            secondaryMessage = isOrgRepo ? Notification.UPGRADE_ORG_PRICING_PLAN : Notification.UPGRADE_PRICING_PLAN;
-        }
+        this(false, canAvailTrial, CODESYNC_PRICING_URL, null);
     }
 
     public void show() {

@@ -281,18 +281,11 @@ public class CodeSyncClient {
         /*
         - GETs the user subscription
         */
-//        String userEmail = UserAccount.getEmail();
-//        System.out.println(userEmail);
-//        return userEmail;
         String accessToken = UserAccount.getAccessTokenByEmail();
-//        System.out.println(accessToken);
         try {
             JSONResponse response = ClientUtils.sendGet(USER_SUBSCRIPTION_ENDPOINT, accessToken);
             JSONObject result = response.getJsonResponse();
-//            System.out.println(result);
             JSONObject subscriptionObject = (JSONObject) result.get("subscription");
-//            System.out.println(subscriptionObject);
-            //            System.out.println(canAvailTrial);
             return Boolean.valueOf(subscriptionObject.get("can_avail_trial").toString());
         } catch (RequestError | InvalidJsonError | StatusCodeError error) {
             CodeSyncLogger.error(String.format("Error while getting user subscription. %s", error.getMessage()));

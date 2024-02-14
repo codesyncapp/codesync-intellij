@@ -34,15 +34,20 @@ public class PricingAlerts {
         );
     }
 
-    public static boolean showPrivateRepoCountLimitReached() {
-
-            // GET subscription -> getUserSubscription()
+    public static void showPrivateRepoCountLimitReached() {
+            // Validate that user can avail trial
             Boolean  canAvailTrial = CodeSyncClient.getUserSubscription();
             System.out.println(canAvailTrial);
-            PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(canAvailTrial);
-            return pricingAlertDialog.showAndGet();
-    }
+            CommonUtils.invokeAndWait(
+                    () -> {
+                        PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(canAvailTrial);
+                        System.out.println("after method call");
+                        return pricingAlertDialog.showAndGet();
+                    },
+                    ModalityState.defaultModalityState()
+            );
 
+    }
 
     public static void setPlanLimitReached(String accessToken, int repoId) {
         setPlanLimitReached(accessToken, repoId, (Project) null);
