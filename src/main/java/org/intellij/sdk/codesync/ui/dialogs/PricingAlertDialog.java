@@ -30,7 +30,6 @@ public class PricingAlertDialog extends DialogWrapper {
         super(project, true);
         this.pricingURL = pricingURL;
         if (canAvailTrial) {
-            this.title = Notification.PRIVATE_REPO_COUNT_REACHED;
             upgradeButtonText = isOrgRepo ? NotificationButton.TRY_TEAM_FOR_FREE: NotificationButton.TRY_PRO_FOR_FREE;
             secondaryMessage = isOrgRepo ? Notification.TRY_TEAM_PLAN_FOR_FREE: Notification.TRY_PRO_FOR_FREE;
         } else {
@@ -42,7 +41,8 @@ public class PricingAlertDialog extends DialogWrapper {
     }
 
     public PricingAlertDialog(Boolean canAvailTrial){
-        this(false, canAvailTrial, CODESYNC_PRICING_URL, null);
+        this(true, false, CODESYNC_PRICING_URL, null);
+        setTitle(Notification.PRIVATE_REPO_COUNT_REACHED);
     }
 
     public void show() {
