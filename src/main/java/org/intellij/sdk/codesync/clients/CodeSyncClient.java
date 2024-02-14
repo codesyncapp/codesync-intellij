@@ -226,13 +226,10 @@ public class CodeSyncClient {
         } catch (StatusCodeError statusCodeError) {
             // if status_code == 402
             if (statusCodeError.getStatusCode() == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
-                System.out.println("402 recieved");
                 // if custom_error_code == 4006
                 if (statusCodeError.getCustomErrorCode() == CustomErrorCodes.PRIVATE_REPO_COUNT_LIMIT_REACHED) {
-                    System.out.println("4006 recieved");
                     PricingAlerts.showPrivateRepoCountLimitReached();
                 } else {
-                    System.out.println("4006 not recieved");
                     PricingAlerts.setPlanLimitReached();
                 }
             } else {
