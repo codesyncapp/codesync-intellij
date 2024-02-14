@@ -2,17 +2,17 @@
 
 <idea-plugin require-restart="true">
 
-  <!-- Unique id for this plugin. Must stay constant for the life of the plugin. -->
-  <id>com.codesync</id>
+    <!-- Unique id for this plugin. Must stay constant for the life of the plugin. -->
+    <id>com.codesync</id>
 
-  <!-- Text to display as name on Preferences/Settings | Plugin page -->
-  <name>CodeSync</name>
+    <!-- Text to display as name on Preferences/Settings | Plugin page -->
+    <name>CodeSync</name>
 
-  <!-- Product and plugin compatibility requirements -->
-  <depends>com.intellij.modules.platform</depends>
+    <!-- Product and plugin compatibility requirements -->
+    <depends>com.intellij.modules.platform</depends>
 
-  <!-- Text to display as description on Preferences/Settings | Plugin page -->
-  <description><![CDATA[
+    <!-- Text to display as description on Preferences/Settings | Plugin page -->
+    <description><![CDATA[
 <p>CodeSync: Unravel the Story of Your Code in a Glance. CodeSync for JetBrains IDEs uniquely blends the power of playback technology with the convenience of modern IDEs, offering a groundbreaking approach to code management and review. Our advanced playback feature allows developers to navigate through the history of code changes visually, providing an unparalleled understanding of code evolution and enhancing the quality of code reviews.</p>
 <p>
   <strong>Key Features</strong>
@@ -91,7 +91,7 @@
     ]]>
     </description>
 
-  <change-notes><![CDATA[
+    <change-notes><![CDATA[
     <h2>New Features</h2>
       <ul>
         <li>Updated file sync message from "Syncing Files" to "CodeSync: Syncing Files..."</li>
@@ -101,7 +101,7 @@
         <li>Async file upload to speed up repo setup.</li>
         <li>Handling for disabled accounts and the ability to enable it again.</li>
         <li>Integration with Github pull request to watch pull request playback.</li>
-         <li>Restricted users on free plan to only one private repository</li>
+        <li>Restricted users on free plan to only one private repository</li>
         <li>Adding more than one private repo on free plan will trigger error: "In the Free Plan, you can have just one private repository."</li>
     <h2>Bug Fixes</h2>
       <ul>
@@ -111,43 +111,48 @@
         <li>Disabled config file reset logic in case of yaml error.</li>
       </ul>
     ]]>
-  </change-notes>
+    </change-notes>
 
-  <!-- Text to display as company information on Preferences/Settings | Plugin page -->
-  <vendor email="hello@codesync.com" url="https://www.codesync.com">CodeSync</vendor>
+    <!-- Text to display as company information on Preferences/Settings | Plugin page -->
+    <vendor email="hello@codesync.com" url="https://www.codesync.com">CodeSync</vendor>
 
-  <projectListeners>
-    <listener class="org.intellij.sdk.codesync.ProjectOpenCloseListener"
-              topic="com.intellij.openapi.project.ProjectManagerListener"/>
-  </projectListeners>
-  <actions>
-    <group id="org.intellij.sdk.action.GroupedActions" text="CodeSync" popup="true" icon="CodeSyncIcons.codeSyncIcon">
-      <add-to-group group-id="MainMenu" anchor="after" relative-to-action="ToolsMenu"/>
-      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+    <projectListeners>
+        <listener class="org.intellij.sdk.codesync.ProjectOpenCloseListener"
+                  topic="com.intellij.openapi.project.ProjectManagerListener"/>
+    </projectListeners>
+    <actions>
+        <group id="org.intellij.sdk.action.GroupedActions" text="CodeSync" popup="true"
+               icon="CodeSyncIcons.codeSyncIcon">
+            <add-to-group group-id="MainMenu" anchor="after" relative-to-action="ToolsMenu"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
 
-      <action id="org.intellij.sdk.codesync.actions.FilePlaybackAction"
-              class="org.intellij.sdk.codesync.actions.FilePlaybackAction" text="View File Playback..."
-              description="View file playback">
-      </action>
-      <action id="org.intellij.sdk.codesync.actions.RepoPlaybackAction"
-              class="org.intellij.sdk.codesync.actions.RepoPlaybackAction" text="View Repo Playback..."
-              description="View repo playback">
-      </action>
-      <action id="org.intellij.sdk.codesync.actions.ViewDashboardAction" class="org.intellij.sdk.codesync.actions.ViewDashboardAction"
-              text="View Dashboard" description="View CodeSync dashboard">
-      </action>
-      <action id="org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetupAction" class="org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetupAction"
-              text="Connect Repo" description="Connect repo with codeSync">
-      </action>
-      <action id="org.intellij.sdk.codesync.auth.AuthAction" class="org.intellij.sdk.codesync.auth.AuthAction"
-              text="Login" description="Authentication setup">
-      </action>
+            <action id="org.intellij.sdk.codesync.actions.FilePlaybackAction"
+                    class="org.intellij.sdk.codesync.actions.FilePlaybackAction" text="View File Playback..."
+                    description="View file playback">
+            </action>
+            <action id="org.intellij.sdk.codesync.actions.RepoPlaybackAction"
+                    class="org.intellij.sdk.codesync.actions.RepoPlaybackAction" text="View Repo Playback..."
+                    description="View repo playback">
+            </action>
+            <action id="org.intellij.sdk.codesync.actions.ViewDashboardAction"
+                    class="org.intellij.sdk.codesync.actions.ViewDashboardAction"
+                    text="View Dashboard" description="View CodeSync dashboard">
+            </action>
+            <action id="org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetupAction"
+                    class="org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetupAction"
+                    text="Connect Repo" description="Connect repo with codeSync">
+            </action>
+            <action id="org.intellij.sdk.codesync.auth.AuthAction" class="org.intellij.sdk.codesync.auth.AuthAction"
+                    text="Login" description="Authentication setup">
+            </action>
 
-    </group>
-  </actions>
+        </group>
+    </actions>
 
-  <extensions defaultExtensionNs="com.intellij">
-    <notificationGroup icon="CodeSyncIcons.codeSyncIcon" id="CodeSync Notifications" displayType="STICKY_BALLOON" key="codesync.notification"/>
-    <notificationGroup icon="CodeSyncIcons.codeSyncIcon" id="CodeSync Daily Digest" displayType="STICKY_BALLOON" key="codesync.notification"/>
-  </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup icon="CodeSyncIcons.codeSyncIcon" id="CodeSync Notifications" displayType="STICKY_BALLOON"
+                           key="codesync.notification"/>
+        <notificationGroup icon="CodeSyncIcons.codeSyncIcon" id="CodeSync Daily Digest" displayType="STICKY_BALLOON"
+                           key="codesync.notification"/>
+    </extensions>
 </idea-plugin>
