@@ -18,38 +18,41 @@ public class PricingAlerts {
         CodeSyncLock pricingAlertLock = new CodeSyncLock(LockFileType.PROJECT_LOCK, PRICING_ALERT_LOCK_KEY);
         pricingAlertLock.acquireLock();
     }
+
     public static void setPlanLimitReached() {
         setPlanLimitReached((Project) null);
     }
+
     public static void setPlanLimitReached(Project project) {
         // We only want to show notification once every 5 minutes, I have implemented that using locks with an expiry of
         // 5 minutes. So, skip the notification if lock is not acquired.
         acquirePricingLock();
         CommonUtils.invokeAndWait(
-            () -> {
-                PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(false, false, CODESYNC_PRICING_URL, project);
-                return pricingAlertDialog.showAndGet();
-            },
-            ModalityState.defaultModalityState()
+                () -> {
+                    PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(false, false, CODESYNC_PRICING_URL, project);
+                    return pricingAlertDialog.showAndGet();
+                },
+                ModalityState.defaultModalityState()
         );
     }
 
     public static void showPrivateRepoCountLimitReached() {
-            // Validate that user can avail trial
-            Boolean canAvailTrial = CodeSyncClient.getUserSubscription();
-            CommonUtils.invokeAndWait(
-                    () -> {
-                        PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(canAvailTrial);
-                        return pricingAlertDialog.showAndGet();
-                    },
-                    ModalityState.defaultModalityState()
-            );
+        // Validate that user can avail trial
+        Boolean canAvailTrial = CodeSyncClient.getUserSubscription();
+        CommonUtils.invokeAndWait(
+                () -> {
+                    PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(canAvailTrial);
+                    return pricingAlertDialog.showAndGet();
+                },
+                ModalityState.defaultModalityState()
+        );
 
     }
 
     public static void setPlanLimitReached(String accessToken, int repoId) {
         setPlanLimitReached(accessToken, repoId, (Project) null);
     }
+
     public static void setPlanLimitReached(String accessToken, int repoId, Project project) {
         CodeSyncClient codeSyncClient = new CodeSyncClient();
         JSONObject response = codeSyncClient.getRepoPlanInfo(accessToken, repoId);
@@ -59,11 +62,11 @@ public class PricingAlerts {
             boolean canAvailTrial = (boolean) response.get("can_avail_trial");
             String pricingUrl = (String) response.get("url");
             CommonUtils.invokeAndWait(
-                () -> {
-                    PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(isOrgRepo, canAvailTrial, pricingUrl, project);
-                    return pricingAlertDialog.showAndGet();
-                },
-                ModalityState.defaultModalityState()
+                    () -> {
+                        PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(isOrgRepo, canAvailTrial, pricingUrl, project);
+                        return pricingAlertDialog.showAndGet();
+                    },
+                    ModalityState.defaultModalityState()
             );
             AlertsFile.updateUpgradePlanActivity(CodeSyncDateUtils.getTodayInstant());
         } else {

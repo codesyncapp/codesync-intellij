@@ -20,42 +20,41 @@ import static org.intellij.sdk.codesync.Constants.CODESYNC_PRICING_URL;
 
 public class PricingAlertDialog extends DialogWrapper {
     String primaryMessage = Notification.PRICING_LIMIT_REACHED_MESSAGE,
-        title = Notification.UPGRADE,
-        cancelButtonText = "Maybe later"
-    ;
+            title = Notification.UPGRADE,
+            cancelButtonText = "Maybe later";
     String upgradeButtonText, secondaryMessage, pricingURL;
 
-    public PricingAlertDialog(Boolean isOrgRepo, Boolean canAvailTrial, String pricingURL, Project project){
+    public PricingAlertDialog(Boolean isOrgRepo, Boolean canAvailTrial, String pricingURL, Project project) {
         super(project, true);
         this.pricingURL = pricingURL;
         if (canAvailTrial) {
-            upgradeButtonText = isOrgRepo ? NotificationButton.TRY_TEAM_FOR_FREE: NotificationButton.TRY_PRO_FOR_FREE;
-            secondaryMessage = isOrgRepo ? Notification.TRY_TEAM_PLAN_FOR_FREE: Notification.TRY_PRO_FOR_FREE;
+            upgradeButtonText = isOrgRepo ? NotificationButton.TRY_TEAM_FOR_FREE : NotificationButton.TRY_PRO_FOR_FREE;
+            secondaryMessage = isOrgRepo ? Notification.TRY_TEAM_PLAN_FOR_FREE : Notification.TRY_PRO_FOR_FREE;
         } else {
-            upgradeButtonText = NotificationButton.UPGRADE_PLAN;
-            secondaryMessage = isOrgRepo ? Notification.UPGRADE_ORG_PRICING_PLAN: Notification.UPGRADE_PRICING_PLAN;
+            upgradeButtonText = isOrgRepo ? NotificationButton.UPGRADE_TO_TEAM : NotificationButton.UPGRADE_TO_PRO;
+            secondaryMessage = isOrgRepo ? Notification.UPGRADE_ORG_PRICING_PLAN : Notification.UPGRADE_PRICING_PLAN;
         }
 
         setTitle(this.title);
     }
 
-    public PricingAlertDialog(Boolean canAvailTrial){
+    public PricingAlertDialog(Boolean canAvailTrial) {
         this(false, canAvailTrial, CODESYNC_PRICING_URL, null);
         setTitle(Notification.PRIVATE_REPO_COUNT_REACHED);
     }
 
     public void show() {
         CommonUtils.invokeAndWait(
-            () -> {
-                init();
-                super.show();
-                return OK_EXIT_CODE;
-            },
-            ModalityState.defaultModalityState()
+                () -> {
+                    init();
+                    super.show();
+                    return OK_EXIT_CODE;
+                },
+                ModalityState.defaultModalityState()
         );
     }
 
-    public PricingAlertDialog(Boolean isOrgRepo, Boolean canAvailTrial, String pricingURL){
+    public PricingAlertDialog(Boolean isOrgRepo, Boolean canAvailTrial, String pricingURL) {
         this(isOrgRepo, canAvailTrial, pricingURL, null);
     }
 
@@ -65,7 +64,7 @@ public class PricingAlertDialog extends DialogWrapper {
         JPanel dialogPanel = new JPanel(new BorderLayout());
 
         String htmlMessage = String.format(
-            "<html><p>%s</p><br/><p>%s</p><br/></html>", this.primaryMessage, this.secondaryMessage
+                "<html><p>%s</p><br/><p>%s</p><br/></html>", this.primaryMessage, this.secondaryMessage
         );
         JXLabel label = new JXLabel(htmlMessage);
         label.setLineWrap(true);
@@ -85,16 +84,16 @@ public class PricingAlertDialog extends DialogWrapper {
     @Override
     protected Action @NotNull [] createActions() {
         return new Action[]{
-            new AbstractAction(upgradeButtonText) {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    redirectToUpgrade();
-                    if (isEnabled()) {
-                        close(OK_EXIT_CODE);
+                new AbstractAction(upgradeButtonText) {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        redirectToUpgrade();
+                        if (isEnabled()) {
+                            close(OK_EXIT_CODE);
+                        }
                     }
-                }
-            },
-            new DialogWrapperExitAction(cancelButtonText, CANCEL_EXIT_CODE)
+                },
+                new DialogWrapperExitAction(cancelButtonText, CANCEL_EXIT_CODE)
         };
     }
 

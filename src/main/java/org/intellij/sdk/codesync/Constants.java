@@ -209,6 +209,7 @@ public final class Constants {
         public static final String TRY_TEAM_FOR_FREE = "Try Team for Free";
         public static final String UPGRADE_PLAN = "Upgrade Plan";
         public static final String UPGRADE_TO_TEAM = "Upgrade to Team Plan";
+        public static final String UPGRADE_TO_PRO = "Upgrade to Pro Plan";
     }
     public static final class LogMessageType {
         private LogMessageType() {

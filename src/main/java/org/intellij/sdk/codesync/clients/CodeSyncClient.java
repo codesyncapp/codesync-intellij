@@ -8,6 +8,7 @@ import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.DiffFile;
+
 import static org.intellij.sdk.codesync.Constants.*;
 
 import org.intellij.sdk.codesync.models.UserAccount;
@@ -42,7 +43,7 @@ public class CodeSyncClient {
             return false;
         } catch (StatusCodeError error) {
             CodeSyncLogger.error(
-                String.format("Server returned %s status code on health check endpoint.", error.getStatusCode())
+                    String.format("Server returned %s status code on health check endpoint.", error.getStatusCode())
             );
             return false;
         }
@@ -60,15 +61,15 @@ public class CodeSyncClient {
             response = jsonResponse.getJsonResponse();
         } catch (RequestError | InvalidJsonError error) {
             CodeSyncLogger.error(
-                String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
+                    String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
             );
             throw new RequestError("Could not make a successful request to CodeSync server.");
         } catch (StatusCodeError error) {
             CodeSyncLogger.error(
-                String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
+                    String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
             );
             throw new RequestError(
-                String.format("Could not make a successful request to CodeSync server. %s", error.getMessage())
+                    String.format("Could not make a successful request to CodeSync server. %s", error.getMessage())
             );
         }
 
@@ -83,7 +84,7 @@ public class CodeSyncClient {
             return new Pair<>(true, userEmail);
         } catch (ClassCastException err) {
             CodeSyncLogger.critical(String.format(
-                "Error parsing the response of /users endpoint. Error: %s", err.getMessage()
+                    "Error parsing the response of /users endpoint. Error: %s", err.getMessage()
             ));
             throw new RequestError("Error parsing the response from the server.");
         }
@@ -129,12 +130,12 @@ public class CodeSyncClient {
                 throw new InvalidUsage(statusCodeError.getMessage());
             }
 
-            if (statusCodeError.getStatusCode()  == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
+            if (statusCodeError.getStatusCode() == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
                 PluginState pluginState = StateUtils.getState(configRepo.repoPath);
                 PricingAlerts.setPlanLimitReached(
-                    accessToken,
-                    configRepo.id,
-                    pluginState != null ? pluginState.project: null
+                        accessToken,
+                        configRepo.id,
+                        pluginState != null ? pluginState.project : null
                 );
             } else {
                 PricingAlerts.resetPlanLimitReached();
@@ -145,8 +146,8 @@ public class CodeSyncClient {
 
         Long fileId;
         JSONObject responseObject = jsonResponse.getJsonResponse();
-        if(responseObject.containsKey("error")) {
-            throw new RequestError((String) ((JSONObject)responseObject.get("error")).get("message"));
+        if (responseObject.containsKey("error")) {
+            throw new RequestError((String) ((JSONObject) responseObject.get("error")).get("message"));
         }
 
         try {
@@ -157,8 +158,8 @@ public class CodeSyncClient {
 
         if (fileId == null) {
             throw new RequestError(String.format(
-                "Error processing response of the file upload request. fileId is null for '%s'.",
-                diffFile.fileRelativePath
+                    "Error processing response of the file upload request. fileId is null for '%s'.",
+                    diffFile.fileRelativePath
             ));
         }
 
@@ -166,7 +167,7 @@ public class CodeSyncClient {
         try {
             preSignedURLData = (Map<String, Object>) responseObject.get("url");
 
-            long fileSize =  (long) fileInfo.get("size");
+            long fileSize = (long) fileInfo.get("size");
             if (fileSize > 0) {
                 Map<String, Object> filePathAndURLs = new HashMap<>();
                 filePathAndURLs.put(diffFile.fileRelativePath, preSignedURLData);
@@ -178,7 +179,7 @@ public class CodeSyncClient {
             // this would probably mean that `url` is empty, and we can skip aws upload.
         } catch (InvalidYmlFileError | FileNotFoundException error) {
             CodeSyncLogger.critical(
-                String.format("Error creating S3 upload queue file. Error: %s", error.getMessage())
+                    String.format("Error creating S3 upload queue file. Error: %s", error.getMessage())
             );
         }
 
@@ -224,13 +225,11 @@ public class CodeSyncClient {
             return null;
         } catch (StatusCodeError statusCodeError) {
 
-            if (statusCodeError.getCustomErrorCode()  == CustomErrorCodes.PRIVATE_REPO_COUNT_LIMIT_REACHED) {
+            if (statusCodeError.getCustomErrorCode() == CustomErrorCodes.PRIVATE_REPO_COUNT_LIMIT_REACHED) {
                 PricingAlerts.showPrivateRepoCountLimitReached();
-            }
-            else if (statusCodeError.getStatusCode()  == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
+            } else if (statusCodeError.getStatusCode() == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
                 PricingAlerts.setPlanLimitReached();
-            }
-            else {
+            } else {
                 PricingAlerts.resetPlanLimitReached();
             }
             // In case of error status code, repo upload should stop.
