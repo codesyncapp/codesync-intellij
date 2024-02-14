@@ -224,11 +224,17 @@ public class CodeSyncClient {
             CodeSyncLogger.critical(String.format("Error while repo init, %s", error.getMessage()));
             return null;
         } catch (StatusCodeError statusCodeError) {
-
-            if (statusCodeError.getCustomErrorCode() == CustomErrorCodes.PRIVATE_REPO_COUNT_LIMIT_REACHED) {
-                PricingAlerts.showPrivateRepoCountLimitReached();
-            } else if (statusCodeError.getStatusCode() == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
-                PricingAlerts.setPlanLimitReached();
+            // if status_code == 402
+            if (statusCodeError.getStatusCode() == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
+                System.out.println("402 recieved");
+                // if custom_error_code == 4006
+                if (statusCodeError.getCustomErrorCode() == CustomErrorCodes.PRIVATE_REPO_COUNT_LIMIT_REACHED) {
+                    System.out.println("4006 recieved");
+                    PricingAlerts.showPrivateRepoCountLimitReached();
+                } else {
+                    System.out.println("4006 not recieved");
+                    PricingAlerts.setPlanLimitReached();
+                }
             } else {
                 PricingAlerts.resetPlanLimitReached();
             }
