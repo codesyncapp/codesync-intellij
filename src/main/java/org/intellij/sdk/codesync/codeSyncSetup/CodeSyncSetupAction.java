@@ -8,15 +8,13 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.actions.BaseModuleAction;
 import org.intellij.sdk.codesync.alerts.PricingAlerts;
-import org.intellij.sdk.codesync.clients.ClientUtils;
-import org.intellij.sdk.codesync.clients.JSONResponse;
-import org.intellij.sdk.codesync.exceptions.*;
+import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
+import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
+import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
 import org.intellij.sdk.codesync.exceptions.base.BaseException;
 import org.intellij.sdk.codesync.exceptions.base.BaseNetworkException;
 import org.intellij.sdk.codesync.exceptions.network.RepoUpdateError;
 import org.intellij.sdk.codesync.exceptions.network.ServerConnectionError;
-import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
-import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.state.RepoStatus;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
@@ -24,8 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 
-import static org.intellij.sdk.codesync.Constants.*;
-import static org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup.validateAccessToken;
+import static org.intellij.sdk.codesync.Constants.Notification;
 
 public class CodeSyncSetupAction extends BaseModuleAction {
     @Override

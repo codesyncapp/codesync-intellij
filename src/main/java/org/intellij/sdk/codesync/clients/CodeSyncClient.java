@@ -277,7 +277,7 @@ public class CodeSyncClient {
         }
     }
 
-    public  static  Boolean  getUserSubscription() {
+    public static Boolean getUserSubscription() {
         /*
         - GETs the user subscription
         */
@@ -289,7 +289,7 @@ public class CodeSyncClient {
             return Boolean.valueOf(subscriptionObject.get("can_avail_trial").toString());
         } catch (RequestError | InvalidJsonError | StatusCodeError error) {
             CodeSyncLogger.error(String.format("Error while getting user subscription. %s", error.getMessage()));
-            return null;
+            return false;
         }
     }
 

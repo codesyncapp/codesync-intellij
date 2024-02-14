@@ -36,12 +36,10 @@ public class PricingAlerts {
 
     public static void showPrivateRepoCountLimitReached() {
             // Validate that user can avail trial
-            Boolean  canAvailTrial = CodeSyncClient.getUserSubscription();
-            System.out.println(canAvailTrial);
+            Boolean canAvailTrial = CodeSyncClient.getUserSubscription();
             CommonUtils.invokeAndWait(
                     () -> {
                         PricingAlertDialog pricingAlertDialog = new PricingAlertDialog(canAvailTrial);
-                        System.out.println("after method call");
                         return pricingAlertDialog.showAndGet();
                     },
                     ModalityState.defaultModalityState()
