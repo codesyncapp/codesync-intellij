@@ -41,7 +41,7 @@ public class PricingAlertDialog extends DialogWrapper {
     }
 
     public PricingAlertDialog(Boolean canAvailTrial){
-        this(true, false, CODESYNC_PRICING_URL, null);
+        this(false, canAvailTrial, CODESYNC_PRICING_URL, null);
         setTitle(Notification.PRIVATE_REPO_COUNT_REACHED);
     }
 
