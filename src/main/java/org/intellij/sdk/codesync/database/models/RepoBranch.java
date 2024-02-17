@@ -3,7 +3,7 @@ package org.intellij.sdk.codesync.database.models;
 /*
     This class is model for RepoBranch table, and will contain all accessor and utility methods for managing RepoBranch.
 */
-public class RepoBranch {
+public class RepoBranch extends Model {
     private String name;
     private Integer repoId, id;
 

@@ -1,14 +1,26 @@
 package org.intellij.sdk.codesync.database.tables;
 
+import org.intellij.sdk.codesync.database.queries.RepoQueries;
+
 /*
     This class is used to interact with the Repo table in the database.
 */
 public class RepoTable extends DBTable {
-    private String tableName = "repo";
-    private String createTableQuery = String.format("CREATE TABLE IF NOT EXISTS %s (", tableName) +
-        "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, path TEXT, user_id INTEGER, state TEXT" +
-        String.format("FOREIGN KEY (user_id) REFERENCES %s (id) ", UserTable.tableName) +
-        ")";
+    private final String tableName = "repo";
+    private final RepoQueries repoQueries;
+
+    private static RepoTable instance;
+
+    private RepoTable() {
+        this.repoQueries = new RepoQueries(tableName);
+    }
+
+    public static RepoTable getInstance() {
+        if (instance == null) {
+            instance = new RepoTable();
+        }
+        return instance;
+    }
 
     @Override
     public String getTableName() {
@@ -17,10 +29,8 @@ public class RepoTable extends DBTable {
 
     @Override
     protected String getCreateTableQuery() {
-        return createTableQuery;
+        return this.repoQueries.getCreateTableQuery();
     }
 
-    public RepoTable() {
-    }
 
 }

@@ -2,7 +2,7 @@ package org.intellij.sdk.codesync.database.tables;
 
 
 import org.intellij.sdk.codesync.database.Database;
-import org.intellij.sdk.codesync.database.queries.QueryManager;
+import org.intellij.sdk.codesync.database.queries.CommonQueries;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,7 +20,7 @@ public abstract class DBTable {
         This method checks if the table exists in the database.
     */
     public Boolean exists() throws SQLException {
-        String query = QueryManager.getInstance().getTableExistsQuery(getTableName());
+        String query = new CommonQueries().getTableExistsQuery(getTableName());
         ResultSet resultSet = Database.getInstance().query(query);
         return resultSet.next();
     }

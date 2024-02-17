@@ -3,7 +3,7 @@ package org.intellij.sdk.codesync.database.models;
 /*
     This class is model for RepoFile table, and will contain all accessor and utility methods for managing RepoFile.
 */
-public class RepoFile {
+public class RepoFile extends Model {
     private String path;
     private Integer repoBranchId, id, serverFileId;
 

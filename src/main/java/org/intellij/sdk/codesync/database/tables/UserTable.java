@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync.database.tables;
 
 import org.intellij.sdk.codesync.database.Database;
+import org.intellij.sdk.codesync.database.queries.UserQueries;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
 import org.intellij.sdk.codesync.database.models.UserAccount;
@@ -11,6 +12,19 @@ import java.util.HashMap;
 
 public class UserTable {
     static String tableName = "user";
+    private final UserQueries userQueries;
+    private static UserTable instance;
+
+    private UserTable() {
+        this.userQueries = new UserQueries(tableName);
+    }
+
+    public static UserTable getInstance() {
+        if (instance == null) {
+            instance = new UserTable();
+        }
+        return instance;
+    }
 
     public static void insertNewUser(UserAccount userAccount) throws SQLiteDBConnectionError, SQLiteDataError {
         Database.executeUpdate(Queries.User.insert(userAccount.getUserEmail(), userAccount.getAccessToken(), userAccount.getSecretKey(), userAccount.getAccessKey(), userAccount.getActive()));
