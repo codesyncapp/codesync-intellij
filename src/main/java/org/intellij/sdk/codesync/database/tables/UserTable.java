@@ -1,12 +1,15 @@
 package org.intellij.sdk.codesync.database.tables;
 
 import org.intellij.sdk.codesync.database.Database;
+import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.database.queries.UserQueries;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
 import org.intellij.sdk.codesync.database.models.UserAccount;
 import org.intellij.sdk.codesync.utils.Queries;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -24,6 +27,27 @@ public class UserTable {
             instance = new UserTable();
         }
         return instance;
+    }
+
+    public User get(String email) throws SQLException {
+        ResultSet resultSet = Database.getInstance().query(this.userQueries.getSelectQuery(email));
+        if (resultSet.next()) {
+            return new User(
+                resultSet.getInt("id"),
+                resultSet.getString("email"),
+                resultSet.getString("access_token"),
+                resultSet.getString("access_key"),
+                resultSet.getString("secret_key"),
+                resultSet.getBoolean("is_active")
+            );
+        }
+        return null;
+    }
+
+    public User insert(User user) throws SQLException {
+        Database.getInstance().update(this.userQueries.getInsertQuery(user.getEmail(), user.getAccessToken(), user.getAccessKey(), user.getSecretKey(), user.isActive() ? "1": "0"));
+        // return the user object with the id
+        return get(user.getEmail());
     }
 
     public static void insertNewUser(UserAccount userAccount) throws SQLiteDBConnectionError, SQLiteDataError {

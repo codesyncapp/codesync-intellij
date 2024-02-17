@@ -2,6 +2,8 @@ package org.intellij.sdk.codesync.database.models;
 
 import org.intellij.sdk.codesync.database.tables.UserTable;
 
+import java.sql.SQLException;
+
 /*
     This class is model for User table, and will contain all accessor and utility methods for managing User.
 */
@@ -43,6 +45,10 @@ public class User extends Model {
         return table;
     }
 
+    public Integer getId() {
+        return id;
+    }
+
     public String getEmail() {
         return email;
     }
@@ -57,5 +63,13 @@ public class User extends Model {
 
     public String getSecretKey() {
         return secretKey;
+    }
+
+    public void save() throws SQLException {
+        this.table.insert(this);
+    }
+
+    public boolean isActive() {
+        return isActive;
     }
 }

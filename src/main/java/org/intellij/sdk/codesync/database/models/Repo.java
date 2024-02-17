@@ -2,6 +2,8 @@ package org.intellij.sdk.codesync.database.models;
 
 import org.intellij.sdk.codesync.database.tables.RepoTable;
 import org.intellij.sdk.codesync.enums.RepoState;
+import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
+import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
 
 /*
     This class is model for Repo table, and will contain all accessor and utility methods for managing Repo.
@@ -36,6 +38,11 @@ public class Repo extends Model {
         this.userId = userId;
         this.state = state;
         this.table = RepoTable.getInstance();
+    }
+
+    public Repo save() throws SQLiteDataError, SQLiteDBConnectionError {
+        table.insert(this.name, this.path, this.userId, this.state.toString());
+        return this;
     }
     public RepoTable getTable() {
         return table;

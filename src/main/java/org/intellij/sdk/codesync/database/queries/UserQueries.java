@@ -13,12 +13,20 @@ public class UserQueries extends CommonQueries {
             ")";
     }
 
-    public String getInsertQuery() {
-        return String.format("INSERT INTO %s (email, access_token, access_key, secret_key, is_active) VALUES (?, ?, ?, ?, ?)", this.tableName);
+    public String getInsertQuery(String email, String accessToken, String accessKey, String secretKey, String isActive) {
+        return String.format(
+            "INSERT INTO %s (email, access_token, access_key, secret_key, is_active) VALUES (%s, %s, %s, %s, %s)",
+                this.tableName,
+                email,
+                accessToken,
+                accessKey,
+                secretKey,
+                isActive
+        );
     }
 
-    public String getSelectQuery() {
-        return String.format("SELECT * FROM %s WHERE email = ?", this.tableName);
+    public String getSelectQuery(String email) {
+        return String.format("SELECT * FROM %s WHERE email = %s;", this.tableName, email);
     }
 
     public String getUpdateQuery() {
