@@ -193,8 +193,9 @@ public class CodeSyncSetup {
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
                 
-                // Update state to show repo is in sync with the server.
-                StateUtils.updateRepoStatus(repoPath, RepoStatus.IN_SYNC);
+                // Reload state according to the current state.
+                // We are reloading here instead of marking it as Done because we want to make sure the state is correct.
+                StateUtils.reloadState(project);
             }
         });
     }
