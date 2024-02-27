@@ -12,6 +12,10 @@ import java.sql.SQLException;
 */
 public class MigrationsTable extends DBTable {
     private final String tableName = "migrations";
+
+    // This is the identifier for the migration. It is used to identify the migration.
+    // This will be incremented manually each time we are adding a new migration.
+    private final String identifier = "1.0.0-feb-2024";
     private final MigrationsQueries migrationsQueries;
 
     private static MigrationsTable instance;
@@ -38,7 +42,7 @@ public class MigrationsTable extends DBTable {
     }
 
     public MigrationState getMigrationState(String tableName) throws SQLException {
-        ResultSet resultSet = Database.getInstance().query(this.migrationsQueries.getFetchMigrationQuery(tableName));
+        ResultSet resultSet = Database.getInstance().query(this.migrationsQueries.getFetchMigrationQuery(tableName, identifier));
         if (resultSet.next()) {
             return MigrationState.valueOf(resultSet.getString("state"));
         }

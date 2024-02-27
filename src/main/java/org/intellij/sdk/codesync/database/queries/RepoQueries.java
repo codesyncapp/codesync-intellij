@@ -1,5 +1,7 @@
 package org.intellij.sdk.codesync.database.queries;
 
+import org.intellij.sdk.codesync.database.tables.UserTable;
+
 public class RepoQueries extends CommonQueries {
     String tableName;
 
@@ -8,9 +10,11 @@ public class RepoQueries extends CommonQueries {
     }
 
     public String getCreateTableQuery() {
+        UserTable userTable = UserTable.getInstance();
+
         return String.format("CREATE TABLE IF NOT EXISTS %s (", this.tableName) +
-            "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, path TEXT, user_id INTEGER, state TEXT" +
-            String.format("FOREIGN KEY (user_id) REFERENCES %s (id) ", this.tableName) +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, path TEXT, user_id INTEGER, state TEXT, " +
+            String.format("FOREIGN KEY (user_id) REFERENCES %s (id) ", userTable.getTableName()) +
             ")";
 
     }

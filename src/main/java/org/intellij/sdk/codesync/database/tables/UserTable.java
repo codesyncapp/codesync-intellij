@@ -13,7 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class UserTable {
+public class UserTable extends DBTable {
     static String tableName = "user";
     private final UserQueries userQueries;
     private static UserTable instance;
@@ -27,6 +27,15 @@ public class UserTable {
             instance = new UserTable();
         }
         return instance;
+    }
+
+    public String getTableName() {
+        return tableName;
+    }
+
+    @Override
+    protected String getCreateTableQuery() {
+        return userQueries.getCreateTableQuery();
     }
 
     public User get(String email) throws SQLException {

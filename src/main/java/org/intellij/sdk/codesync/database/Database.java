@@ -37,7 +37,7 @@ public class Database {
         }
     }
 
-    public static void setupDbFilesAndTables(String databasePath){
+    public void setupDbFilesAndTables(String databasePath){
 
         /*
             This method will make sure to create db file and required tables,
@@ -51,7 +51,7 @@ public class Database {
 
         try {
             executeUpdate(Queries.User.CREATE_TABLE);
-            MigrateUser migrateUser = new MigrateUser();
+            MigrateUser migrateUser = MigrateUser.getInstance();
             migrateUser.migrateData();
         } catch (SQLiteDBConnectionError e) {
             CodeSyncLogger.error("[DATABASE] SQLite db connection error while making migration/creating db file first time " + e.getMessage());

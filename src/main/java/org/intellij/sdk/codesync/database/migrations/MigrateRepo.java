@@ -1,11 +1,13 @@
 package org.intellij.sdk.codesync.database.migrations;
 
+import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.database.enums.MigrationState;
 import org.intellij.sdk.codesync.database.models.Repo;
 import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.database.tables.MigrationsTable;
 import org.intellij.sdk.codesync.database.tables.RepoTable;
 import org.intellij.sdk.codesync.database.tables.UserTable;
+import org.intellij.sdk.codesync.enums.RepoState;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
@@ -36,7 +38,7 @@ public class MigrateRepo implements Migration {
     }
 
     private void createRepoTable() throws SQLException {
-        this.migrationsTable.createTable();
+        this.repoTable.createTable();
     }
 
     private MigrationState checkMigrationState() throws SQLException {
@@ -57,13 +59,26 @@ public class MigrateRepo implements Migration {
         return user;
     }
 
+    private RepoState getState(ConfigRepo configRepo) {
+        if (configRepo.isInSync && !configRepo.isDisconnected) {
+            return RepoState.SYNCED;
+        } else if (configRepo.isDisconnected) {
+            return RepoState.DISCONNECTED;
+        } else if (configRepo.isDeleted) {
+            return RepoState.DELETED;
+        } else {
+            return RepoState.NOT_SYNCED;
+        }
+    }
+
     private void migrateData() throws InvalidConfigFileError, SQLException {
         ConfigFile configFile = new ConfigFile(CONFIG_PATH);
         for (ConfigRepo configRepo : configFile.getRepos().values()) {
             String repoPath = configRepo.repoPath;
             String repoName = Paths.get(repoPath).getFileName().toString();
             User user = getOrCreateUser(configRepo.email);
-            Repo repo = new Repo(repoName, configRepo.repoPath, user.getId(), null);
+            Repo repo = new Repo(repoName, configRepo.repoPath, user.getId(), getState(configRepo));
+            repo.save();
         }
     }
 
@@ -74,13 +89,14 @@ public class MigrateRepo implements Migration {
                 case NOT_STARTED:
                 case ERROR:
                     createRepoTable();
+                    migrateData();
                     break;
                 case IN_PROGRESS:
                 case DONE:
                     break;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException | InvalidConfigFileError e) {
+            CodeSyncLogger.critical("[DATABASE_MIGRATION] SQL error while migrating Repo table: " + e.getMessage());
         }
     }
 }

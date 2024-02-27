@@ -3,6 +3,8 @@ package org.intellij.sdk.codesync.database.migrations;
 import com.google.common.io.CharStreams;
 import com.intellij.openapi.application.ApplicationManager;
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.database.enums.MigrationState;
+import org.intellij.sdk.codesync.database.tables.MigrationsTable;
 import org.intellij.sdk.codesync.database.tables.UserTable;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
@@ -14,17 +16,31 @@ import org.yaml.snakeyaml.error.YAMLException;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.intellij.sdk.codesync.Constants.USER_FILE_PATH;
-public class MigrateUser {
+public class MigrateUser implements Migration {
 
     private File userFile;
     private Map<String, Object> contentsMap;
     private Map<String, UserAccount> users;
+    private static MigrateUser instance;
+    private UserTable userTable;
+    private MigrationsTable migrationsTable;
 
-    public MigrateUser(){
+    public static MigrateUser getInstance() {
+        if (instance == null) {
+            instance = new MigrateUser();
+        }
+        return instance;
+    }
+
+    private MigrateUser(){
+        this.userTable = UserTable.getInstance();
+        this.migrationsTable = MigrationsTable.getInstance();
+
         if(ApplicationManager.getApplication() == null){
             Path testDirPath = Paths.get(System.getProperty("user.dir"), "test_data").toAbsolutePath();
             Path userTestFile = Paths.get(testDirPath.toString(), "userTest.yml").toAbsolutePath();
@@ -69,7 +85,7 @@ public class MigrateUser {
     }
 
     public void migrateData(){
-        try{
+        try {
             readYml();
             loadYmlContent();
             for(String key : users.keySet()){
@@ -84,7 +100,36 @@ public class MigrateUser {
         } catch (SQLiteDataError e) {
             CodeSyncLogger.critical("[INTELLIJ_MIGRATE_TO_SQLITE] Database connection error while migrating user to SQLite: " + e.getMessage());
         }
-
     }
 
+    private void createUserTable() throws SQLException {
+        this.userTable.createTable();
+    }
+
+    private MigrationState checkMigrationState() throws SQLException {
+        if (!this.migrationsTable.exists()) {
+            this.migrationsTable.createTable();
+            return MigrationState.NOT_STARTED;
+        }
+        return this.migrationsTable.getMigrationState(this.userTable.getTableName());
+    }
+
+
+    @Override
+    public void migrate() {
+        try {
+            switch (checkMigrationState()) {
+                case NOT_STARTED:
+                case ERROR:
+                    createUserTable();
+                    migrateData();
+                    break;
+                case IN_PROGRESS:
+                case DONE:
+                    break;
+            }
+        } catch (SQLException e) {
+            CodeSyncLogger.critical("[DATABASE_MIGRATION] SQL error while migrating User table: " + e.getMessage());
+        }
+    }
 }

@@ -45,7 +45,7 @@ class DatabaseTest {
         var file = File(CodeSyncTestUtils.getTestDBFilePath())
         assertTrue(!file.exists())
 
-        Database.setupDbFilesAndTables(CodeSyncTestUtils.getTestDBFilePath())
+        Database.getInstance().setupDbFilesAndTables(CodeSyncTestUtils.getTestDBFilePath())
 
         file = File(CodeSyncTestUtils.getTestDBFilePath())
         assertTrue(file.exists())

@@ -24,6 +24,7 @@ import org.intellij.sdk.codesync.alerts.ActivityAlerts;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.database.Database;
 import org.intellij.sdk.codesync.database.SQLiteConnection;
+import org.intellij.sdk.codesync.database.migrations.MigrationManager;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.state.RepoStatus;
@@ -62,7 +63,8 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     }
     // Create system directories required by the plugin.
     createSystemDirectories();
-    Database.setupDbFilesAndTables(DATABASE_PATH);
+    MigrationManager.getInstance().runMigrations(DATABASE_PATH);
+//    Database.getInstance().setupDbFilesAndTables(DATABASE_PATH);
     String repoDirPath = ProjectUtils.getRepoPath(project);
     CodeSyncLock codeSyncProjectLock = new CodeSyncLock(
         LockFileType.PROJECT_LOCK,
