@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 
-import static org.intellij.sdk.codesync.Constants.*;
+import static org.intellij.sdk.codesync.Constants.Notification;
 
 public class CodeSyncSetupAction extends BaseModuleAction {
     @Override

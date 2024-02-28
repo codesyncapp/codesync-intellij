@@ -80,6 +80,7 @@ public final class Constants {
     public static final String CODESYNC_REPO_URL = String.format("%s/repos", API_ENDPOINT);
     public static final String FILES_API_ENDPOINT = String.format("%s/files?source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String TEAM_ACTIVITY_ENDPOINT = String.format("%s/team_activity?tz=%s&source=%s&v=%s", API_ENDPOINT, DEFAULT_TIMEZONE, DIFF_SOURCE, PLUGIN_VERSION);
+    public static final String USER_SUBSCRIPTION_ENDPOINT = String.format("%s/pricing/subscription", API_ENDPOINT);
 
     public static final String API_HEALTHCHECK = String.format("%s/healthcheck?source=%s&v=%s", CODESYNC_HOST, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String CODESYNC_AUTHORIZE_URL = String.format("%s/authorize", CODESYNC_HOST);
@@ -178,7 +179,10 @@ public final class Constants {
         public static final String UPGRADE_PRICING_PLAN = "To continue, please upgrade your plan.";
         public static final String UPGRADE_ORG_PRICING_PLAN = "To continue, please sign your organization up for the Team plan.";
         public static final String TRY_PRO_FOR_FREE = "To continue, please sign up for a 30-day free trial of Pro.";
-        public static final String TRY_ORG_PRO_FOR_FREE = "To continue, please sign your organization up for a 30-day free trial of the Team plan.";
+        public static final String TRY_TEAM_PLAN_FOR_FREE = "To continue, please sign your organization up for a 30-day free trial of the Team plan.";
+
+        // Free plan related notification messages
+        public static final String PRIVATE_REPO_COUNT_REACHED = "In the Free Plan, you can have just one private repository.";
 
         // Team alert related notification messages
         public static final String ACTIVITY_ALERT_HEADER_MESSAGE = "CodeSync | Check your activity!";
@@ -195,6 +199,18 @@ public final class Constants {
         public static final String REACTIVATED_SUCCESS = "Successfully reactivated your account";
     }
 
+
+    public static class NotificationButton {
+        private NotificationButton() {
+            // restrict instantiation
+        }
+
+        public static final String TRY_PRO_FOR_FREE = "Try Pro for Free";
+        public static final String TRY_TEAM_FOR_FREE = "Try Team for Free";
+        public static final String UPGRADE_PLAN = "Upgrade Plan";
+        public static final String UPGRADE_TO_TEAM = "Upgrade to Team Plan";
+        public static final String UPGRADE_TO_PRO = "Upgrade to Pro Plan";
+    }
     public static final class LogMessageType {
         private LogMessageType() {
             // restrict instantiation
@@ -226,4 +242,18 @@ public final class Constants {
         public static final int DIFFS_LIMIT_REACHED = 402;
         public static final int ACCOUNT_DEACTIVATED = 403;
     }
+
+    public static final class CustomErrorCodes {
+        /*
+            Custom error codes for the case: Free Plan restrictions
+        */
+        private CustomErrorCodes(){
+            // restrict instantiation
+        }
+
+        public static final int IS_FROZEN_REPO = 4000;
+        public static final int PRIVATE_REPO_COUNT_LIMIT_REACHED = 4006;
+    }
 }
+
+

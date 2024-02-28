@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync.clients;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.ParseException;
 import org.apache.http.StatusLine;
 import org.apache.http.util.EntityUtils;
 import org.intellij.sdk.codesync.Constants;
@@ -24,6 +25,7 @@ public class JSONResponse {
         this.jsonResponse = jsonResponse;
     }
 
+
     public static JSONResponse from(HttpResponse response) throws InvalidJsonError {
         String responseContent;
         StatusLine responseStatusLine;
@@ -32,7 +34,7 @@ public class JSONResponse {
 
             responseStatusLine = response.getStatusLine();
             responseContent = EntityUtils.toString(response.getEntity());
-        } catch (IOException | org.apache.http.ParseException error) {
+        } catch (IOException | ParseException error) {
             System.out.printf("Error processing response of the request. Error: %s%n", error.getMessage());
             throw new InvalidJsonError(
                 String.format("Error processing response of the request. Error: %s", error.getMessage())
@@ -63,6 +65,7 @@ public class JSONResponse {
     Validate the status code of the API response and throw status code exception if the response status is not 2xx.
     */
     public void raiseForStatus () throws StatusCodeError {
+        int customErrorCode = 0;
         // Only throw for client or server error, all other responses are considered success response.
         if(this.statusCode >= 400) {
             if (this.statusCode == Constants.ErrorCodes.ACCOUNT_DEACTIVATED) {
@@ -74,8 +77,11 @@ public class JSONResponse {
                 if (errorObject != null && errorObject.containsKey("message")) {
                     errorMessage = (String) errorObject.get("message");
                 }
+                if (errorObject != null && errorObject.containsKey("error_code")) {
+                    customErrorCode = ((Number) errorObject.get("error_code")).intValue();
+                }
             }
-            throw new StatusCodeError(this.statusCode, errorMessage);
+            throw new StatusCodeError(this.statusCode, customErrorCode, errorMessage);
         }
     }
 }
