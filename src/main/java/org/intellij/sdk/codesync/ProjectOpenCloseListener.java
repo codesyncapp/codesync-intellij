@@ -131,7 +131,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       public void after(@NotNull List<? extends VFileEvent> events) {
         String repoPath;
 
-        // Abort if account is has been deactivated.
+        // Abort if account has been deactivated.
         if (StateUtils.getGlobalState().isAccountDeactivated) {
           return;
         }
