@@ -7,7 +7,7 @@ plugins {
 }
 
 group 'com.codesync'
-version '3.32.0'
+version '3.32.1'
 
 
 compileJava.options.encoding = "UTF-8"

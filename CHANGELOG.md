@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.32.1] 2024-02-28
+- Added a fix to handle exceptions independently for different flows inside handle buffer.
+
 ## [3.32.0] 2024-02-28
 - Added new error message "Only 1 private repository is allowed in Free Plan"
 - Added custom error codes class: CustomErrorCodes

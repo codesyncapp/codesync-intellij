@@ -109,7 +109,8 @@
         <li>Updated messaging for repo disconnect confirmation prompt.</li>
         <li>Only process diffs of the authenticated user.</li>
         <li>Disabled config file reset logic in case of yaml error.</li>
-        <li>Reload state to make sure the plugin is in the correct state after the repo sync:.</li>
+        <li>Reload state to make sure the plugin is in the correct state after the repo sync.</li>
+        <Added a fix to handle exceptions independently for different flows inside handle buffer.</li>
       </ul>
     ]]>
     </change-notes>
