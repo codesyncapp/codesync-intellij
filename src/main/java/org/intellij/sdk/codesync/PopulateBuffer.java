@@ -148,15 +148,23 @@ public class PopulateBuffer {
             return;
         }
 
-        // Abort if account is has been deactivated.
+        // Abort if account has been deactivated.
         if (StateUtils.getGlobalState().isAccountDeactivated) {
             return;
         }
 
-        S3FilesUploader.triggerS3Uploads(project);
+        try {
+            S3FilesUploader.triggerS3Uploads(project);
+        } catch (Exception e) {
+            CodeSyncLogger.error(String.format("S3 file upload failed with error: %s", e.getMessage()));
+        }
 
-        Map<String, String> reposToUpdate = detectBranchChange();
-        populateBufferForMissedEvents(reposToUpdate);
+        try {
+            Map<String, String> reposToUpdate = detectBranchChange();
+            populateBufferForMissedEvents(reposToUpdate);
+        } catch (Exception e) {
+            CodeSyncLogger.error(String.format("detect branch change or populate buffer failed with error: %s", e.getMessage()));
+        }
     }
 
     public static Map<String, String> detectBranchChange() {
