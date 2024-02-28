@@ -43,7 +43,7 @@ public class CodeSyncClient {
             return false;
         } catch (StatusCodeError error) {
             CodeSyncLogger.error(
-                    String.format("Server returned %s status code on health check endpoint.", error.getStatusCode())
+                String.format("Server returned %s status code on health check endpoint.", error.getStatusCode())
             );
             return false;
         }
