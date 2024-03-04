@@ -65,6 +65,7 @@ public class JSONResponse {
     Validate the status code of the API response and throw status code exception if the response status is not 2xx.
     */
     public void raiseForStatus () throws StatusCodeError {
+        Integer errorCode;
         int customErrorCode = 0;
         // Only throw for client or server error, all other responses are considered success response.
         if(this.statusCode >= 400) {
@@ -78,7 +79,8 @@ public class JSONResponse {
                     errorMessage = (String) errorObject.get("message");
                 }
                 if (errorObject != null && errorObject.containsKey("error_code")) {
-                    customErrorCode = ((Number) errorObject.get("error_code")).intValue();
+                    errorCode = ((Number) errorObject.get("error_code")).intValue();
+                    customErrorCode = errorCode;
                 }
             }
             throw new StatusCodeError(this.statusCode, customErrorCode, errorMessage);
