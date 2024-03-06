@@ -78,10 +78,13 @@ public class JSONResponse {
                 if (errorObject != null && errorObject.containsKey("message")) {
                     errorMessage = (String) errorObject.get("message");
                 }
-                if (errorObject != null && errorObject.containsKey("error_code")) {
-                    errorCode = ((Number) errorObject.get("error_code"));
-                    if (errorCode != null){
-                        customErrorCode = errorCode.intValue();
+                // Extract error_code only if a 402 is received
+                if(this.statusCode == 402){
+                    if (errorObject != null && errorObject.containsKey("error_code")) {
+                        errorCode = ((Number) errorObject.get("error_code"));
+                        if (errorCode != null) {
+                            customErrorCode = errorCode.intValue();
+                        }
                     }
                 }
             }
