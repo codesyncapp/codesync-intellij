@@ -92,7 +92,7 @@ public class JSONResponse {
                     }
                 }
             }
+            throw new StatusCodeError(this.statusCode, customErrorCode, errorMessage);
         }
-        throw new StatusCodeError(this.statusCode, customErrorCode, errorMessage);
     }
 }
