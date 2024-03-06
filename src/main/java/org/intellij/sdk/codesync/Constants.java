@@ -239,7 +239,7 @@ public final class Constants {
 
         public static final int INVALID_USAGE = 400;
         public static final int REPO_SIZE_LIMIT_REACHED = 402;
-        public static final int DIFFS_LIMIT_REACHED = 402;
+        public static final int PAYMENT_REQUIRED = 402;
         public static final int ACCOUNT_DEACTIVATED = 403;
     }
 
