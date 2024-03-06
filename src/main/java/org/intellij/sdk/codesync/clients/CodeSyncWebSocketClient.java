@@ -190,7 +190,7 @@ public class CodeSyncWebSocketClient {
                 Long statusCode = (Long) response.get("status");
                 String diffFilePath = (String) response.get("diff_file_path");
                 if (statusCode != 200) {
-                    if (statusCode == Constants.ErrorCodes.DIFFS_LIMIT_REACHED) {
+                    if (statusCode == Constants.ErrorCodes.PAYMENT_REQUIRED) {
                         CodeSyncLogger.error("Failed sending diff, Repo-Size Limit has been reached.");
                         PricingAlerts.setPlanLimitReached();
                     } else {
