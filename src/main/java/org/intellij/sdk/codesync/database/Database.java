@@ -25,18 +25,6 @@ public class Database {
         return instance;
     }
 
-    public ResultSet query(String query) throws SQLException {
-        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
-            return statement.executeQuery(query);
-        }
-    }
-
-    public void update(String query) throws SQLException {
-        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
-            statement.executeUpdate(query);
-        }
-    }
-
     public void setupDbFilesAndTables(String databasePath){
 
         /*

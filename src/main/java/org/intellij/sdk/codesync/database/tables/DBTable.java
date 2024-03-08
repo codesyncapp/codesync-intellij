@@ -2,10 +2,12 @@ package org.intellij.sdk.codesync.database.tables;
 
 
 import org.intellij.sdk.codesync.database.Database;
+import org.intellij.sdk.codesync.database.SQLiteConnection;
 import org.intellij.sdk.codesync.database.queries.CommonQueries;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 /*
     This is the base class for all tables in the database.
@@ -21,11 +23,15 @@ public abstract class DBTable {
     */
     public Boolean exists() throws SQLException {
         String query = new CommonQueries().getTableExistsQuery(getTableName());
-        ResultSet resultSet = Database.getInstance().query(query);
-        return resultSet.next();
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            ResultSet resultSet  = statement.executeQuery(query);
+            return resultSet.isBeforeFirst();
+        }
     }
 
     public void createTable() throws SQLException {
-        Database.getInstance().update(getCreateTableQuery());
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            statement.executeUpdate(getCreateTableQuery());
+        }
     }
 }

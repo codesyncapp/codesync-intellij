@@ -1,11 +1,13 @@
 package org.intellij.sdk.codesync.database.tables;
 
 import org.intellij.sdk.codesync.database.Database;
+import org.intellij.sdk.codesync.database.SQLiteConnection;
 import org.intellij.sdk.codesync.database.enums.MigrationState;
 import org.intellij.sdk.codesync.database.queries.MigrationsQueries;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 /*
     This class is used to interact with the Migrations table in the database.
@@ -42,9 +44,12 @@ public class MigrationsTable extends DBTable {
     }
 
     public MigrationState getMigrationState(String tableName) throws SQLException {
-        ResultSet resultSet = Database.getInstance().query(this.migrationsQueries.getFetchMigrationQuery(tableName, identifier));
-        if (resultSet.next()) {
-            return MigrationState.valueOf(resultSet.getString("state"));
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            ResultSet resultSet = statement.executeQuery(this.migrationsQueries.getFetchMigrationQuery(tableName, identifier));
+            if (resultSet.isBeforeFirst()) {
+                return MigrationState.valueOf(resultSet.getString("state"));
+
+            }
         }
         return MigrationState.NOT_STARTED;
     }
