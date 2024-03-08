@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync.database.tables;
 
 import org.intellij.sdk.codesync.database.Database;
+import org.intellij.sdk.codesync.database.SQLiteConnection;
 import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.database.queries.UserQueries;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
@@ -10,6 +11,7 @@ import org.intellij.sdk.codesync.utils.Queries;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -39,22 +41,29 @@ public class UserTable extends DBTable {
     }
 
     public User get(String email) throws SQLException {
-        ResultSet resultSet = Database.getInstance().query(this.userQueries.getSelectQuery(email));
-        if (resultSet.next()) {
-            return new User(
-                resultSet.getInt("id"),
-                resultSet.getString("email"),
-                resultSet.getString("access_token"),
-                resultSet.getString("access_key"),
-                resultSet.getString("secret_key"),
-                resultSet.getBoolean("is_active")
-            );
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            ResultSet resultSet = statement.executeQuery(this.userQueries.getSelectQuery(email));
+            if (resultSet.isBeforeFirst()){
+                return new User(
+                        resultSet.getInt("id"),
+                        resultSet.getString("email"),
+                        resultSet.getString("access_token"),
+                        resultSet.getString("access_key"),
+                        resultSet.getString("secret_key"),
+                        resultSet.getBoolean("is_active")
+                );
+            }
+
         }
         return null;
     }
 
     public User insert(User user) throws SQLException {
-        Database.getInstance().update(this.userQueries.getInsertQuery(user.getEmail(), user.getAccessToken(), user.getAccessKey(), user.getSecretKey(), user.isActive() ? "1": "0"));
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            statement.executeUpdate(
+                this.userQueries.getInsertQuery(user.getEmail(), user.getAccessToken(), user.getAccessKey(), user.getSecretKey(), user.isActive())
+            );
+        }
         // return the user object with the id
         return get(user.getEmail());
     }

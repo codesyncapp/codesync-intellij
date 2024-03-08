@@ -13,20 +13,24 @@ public class UserQueries extends CommonQueries {
             ")";
     }
 
-    public String getInsertQuery(String email, String accessToken, String accessKey, String secretKey, String isActive) {
+    /*
+        This method returns the query to insert a new user into the database.
+        email must not be null. Others can be null.
+     */
+    public String getInsertQuery(String email, String accessToken, String accessKey, String secretKey, boolean isActive) {
         return String.format(
             "INSERT INTO %s (email, access_token, access_key, secret_key, is_active) VALUES (%s, %s, %s, %s, %s)",
                 this.tableName,
-                email,
-                accessToken,
-                accessKey,
-                secretKey,
-                isActive
+                String.format("'%s'", email),
+                accessToken == null ? "NULL" : String.format("'%s'", accessKey),
+                accessKey == null ? "NULL" : String.format("'%s'", accessKey),
+                secretKey == null ? "NULL" : String.format("'%s'", secretKey),
+                isActive ? "1" : "0"
         );
     }
 
     public String getSelectQuery(String email) {
-        return String.format("SELECT * FROM %s WHERE email = %s;", this.tableName, email);
+        return String.format("SELECT * FROM %s WHERE email = '%s';", this.tableName, email);
     }
 
     public String getUpdateQuery() {

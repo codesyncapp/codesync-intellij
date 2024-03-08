@@ -23,10 +23,10 @@ public class RepoQueries extends CommonQueries {
         return String.format(
             "INSERT INTO %s (name, path, user_id, state) VALUES (%s, %s, %s, %s)",
                 this.tableName,
-                name,
-                path,
+                String.format("'%s'", name),
+                String.format("'%s'", path),
                 userId,
-                state
+                String.format("'%s'", state)
         );
     }
 }

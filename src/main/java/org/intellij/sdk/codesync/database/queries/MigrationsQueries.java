@@ -15,6 +15,6 @@ public class MigrationsQueries extends CommonQueries {
 
     public String getFetchMigrationQuery(String tableName, String identifier) {
         // Get the most recently applied migration for a table.
-        return String.format("SELECT * FROM %s  WHERE table_name=%s AND identifier=%s ORDER BY id DESC LIMIT 1;", this.tableName, tableName, identifier);
+        return String.format("SELECT * FROM %s  WHERE table_name='%s' AND identifier='%s' ORDER BY id DESC LIMIT 1;", this.tableName, tableName, identifier);
     }
 }
