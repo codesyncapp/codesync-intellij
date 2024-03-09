@@ -29,4 +29,19 @@ public class RepoQueries extends CommonQueries {
                 String.format("'%s'", state)
         );
     }
+
+    public String getSelectQuery(String name) {
+        return String.format("SELECT * FROM %s WHERE name = '%s';", this.tableName, name);
+    }
+
+    public String getUpdateQuery(Integer id, String name, String path, Integer userId, String state) {
+        return String.format(
+            "UPDATE %s SET path = %s, user_id = %s, state = %s WHERE name = %s",
+            this.tableName,
+            String.format("'%s'", path),
+            userId,
+            String.format("'%s'", state),
+            String.format("'%s'", name)
+        );
+    }
 }

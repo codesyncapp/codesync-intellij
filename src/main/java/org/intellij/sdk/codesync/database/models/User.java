@@ -64,12 +64,28 @@ public class User extends Model {
     public String getSecretKey() {
         return secretKey;
     }
-
-    public void save() throws SQLException {
-        this.table.insert(this);
-    }
-
     public boolean isActive() {
         return isActive;
+    }
+
+    private void create() throws SQLException {
+        User user = this.table.insert(this);
+        if (user != null) {
+            this.id = user.getId();
+        } else {
+            throw new SQLException("Error saving User");
+        }
+    }
+
+    private void update() throws SQLException {
+        this.table.update(this);
+    }
+
+    public void save() throws SQLException {
+        if (this.id == null) {
+            this.create();
+        } else {
+            this.update();
+        }
     }
 }

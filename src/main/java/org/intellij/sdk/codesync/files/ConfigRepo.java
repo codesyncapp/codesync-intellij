@@ -60,6 +60,10 @@ public class ConfigRepo {
         return repo;
     }
 
+    public Map<String, ConfigRepoBranch> getRepoBranches() {
+        return this.branches;
+    }
+
     public ConfigRepoBranch getRepoBranch(String branchName) {
         return this.branches.get(branchName);
     }

@@ -5,6 +5,8 @@ import org.intellij.sdk.codesync.enums.RepoState;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
 
+import java.sql.SQLException;
+
 /*
     This class is model for Repo table, and will contain all accessor and utility methods for managing Repo.
 */
@@ -40,9 +42,25 @@ public class Repo extends Model {
         this.table = RepoTable.getInstance();
     }
 
-    public Repo save() throws SQLiteDataError, SQLiteDBConnectionError {
-        table.insert(this.name, this.path, this.userId, this.state.toString());
-        return this;
+    private void create() throws SQLException {
+        Repo repo = this.table.insert(this);
+        if (repo != null) {
+            this.id = repo.getId();
+        } else {
+            throw new SQLiteDataError("Error saving Repo");
+        }
+    }
+
+    private void update() throws SQLException {
+        this.table.update(this);
+    }
+
+    public void save() throws SQLException {
+        if (this.id == null) {
+            this.create();
+        } else {
+            this.update();
+        }
     }
     public RepoTable getTable() {
         return table;

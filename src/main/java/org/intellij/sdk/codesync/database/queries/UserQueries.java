@@ -33,11 +33,16 @@ public class UserQueries extends CommonQueries {
         return String.format("SELECT * FROM %s WHERE email = '%s';", this.tableName, email);
     }
 
-    public String getUpdateQuery() {
-        return String.format("UPDATE %s SET email = ?, access_token = ?, access_key = ?, secret_key = ?, is_active = ? WHERE id = ?", this.tableName);
-    }
-
-    public String getDeleteQuery() {
-        return String.format("DELETE FROM %s WHERE id = ?", this.tableName);
+    public String getUpdateQuery(Integer id, String email, String accessToken, String accessKey, String secretKey, boolean isActive) {
+        return String.format(
+            "UPDATE %s SET email = %s, access_token = %s, access_key = %s, secret_key = %s, is_active = %s WHERE id = %s",
+            this.tableName,
+            String.format("'%s'", email),
+            accessToken == null ? "NULL" : String.format("'%s'", accessToken),
+            accessKey == null ? "NULL" : String.format("'%s'", accessKey),
+            secretKey == null ? "NULL" : String.format("'%s'", secretKey),
+            isActive ? "1" : "0",
+            id
+        );
     }
 }

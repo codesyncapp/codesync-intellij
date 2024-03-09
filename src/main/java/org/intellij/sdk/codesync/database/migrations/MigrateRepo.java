@@ -3,6 +3,8 @@ package org.intellij.sdk.codesync.database.migrations;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.database.enums.MigrationState;
 import org.intellij.sdk.codesync.database.models.Repo;
+import org.intellij.sdk.codesync.database.models.RepoBranch;
+import org.intellij.sdk.codesync.database.models.RepoFile;
 import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.database.tables.MigrationsTable;
 import org.intellij.sdk.codesync.database.tables.RepoTable;
@@ -11,9 +13,11 @@ import org.intellij.sdk.codesync.enums.RepoState;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
+import org.intellij.sdk.codesync.files.ConfigRepoBranch;
 
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.Map;
 
 import static org.intellij.sdk.codesync.Constants.CONFIG_PATH;
 
@@ -79,6 +83,15 @@ public class MigrateRepo implements Migration {
             User user = getOrCreateUser(configRepo.email);
             Repo repo = new Repo(repoName, configRepo.repoPath, user.getId(), getState(configRepo));
             repo.save();
+            for (ConfigRepoBranch configRepoBranch : configRepo.getRepoBranches().values()) {
+                RepoBranch repoBranch = new RepoBranch(configRepoBranch.branchName, repo.getId());
+                repoBranch.save();
+
+                for (Map.Entry<String, Integer> fileEntry : configRepoBranch.getFiles().entrySet()) {
+                    RepoFile repoFile = new RepoFile(fileEntry.getKey(), fileEntry.getValue(), repoBranch.getId());
+                    repoFile.save();
+                }
+            }
         }
     }
 

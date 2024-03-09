@@ -89,8 +89,5 @@ public class Database {
         } catch (SQLException e){
             throw new SQLiteDataError("Error while inserting data in SQLite database: " + e.getMessage());
         }
-
-
     }
-
 }

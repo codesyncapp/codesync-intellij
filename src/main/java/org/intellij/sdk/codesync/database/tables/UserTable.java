@@ -68,6 +68,14 @@ public class UserTable extends DBTable {
         return get(user.getEmail());
     }
 
+    public void update(User user) throws SQLException {
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            statement.executeUpdate(
+                this.userQueries.getUpdateQuery(user.getId(), user.getEmail(), user.getAccessToken(), user.getAccessKey(), user.getSecretKey(), user.isActive())
+            );
+        }
+    }
+
     public static void insertNewUser(UserAccount userAccount) throws SQLiteDBConnectionError, SQLiteDataError {
         Database.executeUpdate(Queries.User.insert(userAccount.getUserEmail(), userAccount.getAccessToken(), userAccount.getSecretKey(), userAccount.getAccessKey(), userAccount.getActive()));
     }
