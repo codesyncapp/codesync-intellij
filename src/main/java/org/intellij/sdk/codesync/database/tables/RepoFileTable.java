@@ -49,6 +49,18 @@ public class RepoFileTable extends DBTable {
         return null;
     }
 
+    public RepoFile getOrCreate(RepoFile repoFile) throws SQLException {
+        RepoFile existingRepoFile = get(repoFile.getPath(), repoFile.getRepoBranchId());
+        if (existingRepoFile == null) {
+            return insert(repoFile);
+        } else {
+            repoFile.setId(existingRepoFile.getId());
+            repoFile.setServerFileId(existingRepoFile.getServerFileId());
+            update(repoFile);
+        }
+        return repoFile;
+    }
+
     public RepoFile insert(RepoFile repoFile) throws SQLException {
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             statement.executeUpdate(this.repoFileQueries.getInsertQuery(repoFile.getPath(), repoFile.getRepoBranchId(), repoFile.getServerFileId()));

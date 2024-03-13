@@ -47,11 +47,20 @@ public class MigrationsTable extends DBTable {
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             ResultSet resultSet = statement.executeQuery(this.migrationsQueries.getFetchMigrationQuery(tableName, identifier));
             if (resultSet.isBeforeFirst()) {
-                return MigrationState.valueOf(resultSet.getString("state"));
-
+                return MigrationState.fromString(resultSet.getString("state"));
             }
         }
         return MigrationState.NOT_STARTED;
     }
 
+    public void setMigrationState(String tableName, MigrationState state) throws SQLException {
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            ResultSet resultSet = statement.executeQuery(this.migrationsQueries.getFetchMigrationQuery(tableName, identifier));
+            if (!resultSet.isBeforeFirst()) {
+                statement.executeUpdate(this.migrationsQueries.getInsertMigrationQuery(tableName, identifier, state.toString()));
+            } else {
+                statement.executeUpdate(this.migrationsQueries.getUpdateMigrationQuery(tableName, identifier, state.toString()));
+            }
+        }
+    }
 }

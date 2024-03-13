@@ -42,8 +42,12 @@ public class Repo extends Model {
         this.table = RepoTable.getInstance();
     }
 
-    private void create() throws SQLException {
-        Repo repo = this.table.insert(this);
+    /*
+    This method is used to create a new Repo object in the database.
+     */
+    private void getOrCreate() throws SQLException {
+        // Get the Repo object from the database if it exists, else create a new Repo object in the database.
+        Repo repo = this.table.getOrCreate(this);
         if (repo != null) {
             this.id = repo.getId();
         } else {
@@ -57,7 +61,7 @@ public class Repo extends Model {
 
     public void save() throws SQLException {
         if (this.id == null) {
-            this.create();
+            this.getOrCreate();
         } else {
             this.update();
         }
@@ -89,5 +93,9 @@ public class Repo extends Model {
 
     public Boolean isDisconnected() {
         return state == RepoState.DISCONNECTED;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 }

@@ -114,6 +114,9 @@ public class MigrateUser implements Migration {
         return this.migrationsTable.getMigrationState(this.userTable.getTableName());
     }
 
+    private void setMigrationState(MigrationState migrationState) throws SQLException {
+        this.migrationsTable.setMigrationState(this.userTable.getTableName(), migrationState);
+    }
 
     @Override
     public void migrate() {
@@ -121,14 +124,25 @@ public class MigrateUser implements Migration {
             switch (checkMigrationState()) {
                 case NOT_STARTED:
                 case ERROR:
+                    setMigrationState(MigrationState.IN_PROGRESS);
                     createUserTable();
                     migrateData();
+                    setMigrationState(MigrationState.DONE);
                     break;
                 case IN_PROGRESS:
                 case DONE:
                     break;
             }
         } catch (SQLException e) {
+            try {
+                setMigrationState(MigrationState.ERROR);
+            } catch (SQLException ex) {
+                CodeSyncLogger.critical(String.format(
+                    "[DATABASE_MIGRATION] Error '%s' while setting migration state for error: %s",
+                    ex.getMessage(),
+                    e.getMessage()
+                ));
+            }
             CodeSyncLogger.critical("[DATABASE_MIGRATION] SQL error while migrating User table: " + e.getMessage());
         }
     }

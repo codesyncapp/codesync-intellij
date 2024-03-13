@@ -48,6 +48,18 @@ public class RepoBranchTable extends DBTable {
         return null;
     }
 
+    public RepoBranch getOrCreate(RepoBranch repoBranch) throws SQLException {
+        RepoBranch existingRepoBranch = get(repoBranch.getName(), repoBranch.getRepoId());
+        if (existingRepoBranch == null) {
+            return insert(repoBranch);
+        } else {
+            repoBranch.setId(existingRepoBranch.getId());
+            repoBranch.setRepoId(existingRepoBranch.getRepoId());
+            update(repoBranch);
+        }
+        return repoBranch;
+    }
+
     public RepoBranch insert(RepoBranch repoBranch) throws SQLException {
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             statement.executeUpdate(this.repoBranchQueries.getInsertQuery(repoBranch.getName(), repoBranch.getRepoId()));

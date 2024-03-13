@@ -49,11 +49,23 @@ public class RepoTable extends DBTable {
                     resultSet.getString("name"),
                     resultSet.getString("path"),
                     resultSet.getInt("user_id"),
-                    RepoState.valueOf(resultSet.getString("state"))
+                    RepoState.fromString(resultSet.getString("state"))
                 );
             }
         }
         return null;
+    }
+
+    public Repo getOrCreate(Repo repo) throws SQLException {
+        Repo existingRepo = get(repo.getName());
+        if (existingRepo == null) {
+            return insert(repo);
+        } else {
+            // Update the existing repo with the contents of the new repo.
+            repo.setId(existingRepo.getId());
+            update(repo);
+        }
+        return repo;
     }
 
     public Repo insert(Repo repo) throws SQLException {

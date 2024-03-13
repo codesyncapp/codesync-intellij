@@ -16,4 +16,12 @@ public enum MigrationState {
     public String toString() {
         return state;
     }
+    public static MigrationState fromString(String text) {
+        for (MigrationState migrationState : MigrationState.values()) {
+            if (migrationState.state.equalsIgnoreCase(text)) {
+                return migrationState;
+            }
+        }
+        return null;
+    }
 }

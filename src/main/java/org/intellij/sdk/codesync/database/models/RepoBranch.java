@@ -39,8 +39,8 @@ public class RepoBranch extends Model {
         return id;
     }
 
-    private void create() throws SQLException {
-        RepoBranch repoBranch = this.table.insert(this);
+    private void getOrCreate() throws SQLException {
+        RepoBranch repoBranch = this.table.getOrCreate(this);
         if (repoBranch != null) {
             this.id = repoBranch.getId();
         } else {
@@ -54,9 +54,17 @@ public class RepoBranch extends Model {
 
     public void save() throws SQLException {
         if (this.id == null) {
-            this.create();
+            this.getOrCreate();
         } else {
             this.update();
         }
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public void setRepoId(Integer repoId) {
+        this.repoId = repoId;
     }
 }

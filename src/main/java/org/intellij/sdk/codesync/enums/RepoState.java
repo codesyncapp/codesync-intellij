@@ -16,4 +16,13 @@ public enum RepoState {
     public String toString() {
         return state;
     }
+
+    public static RepoState fromString(String state) {
+        for (RepoState repoState : RepoState.values()) {
+            if (repoState.state.equalsIgnoreCase(state)) {
+                return repoState;
+            }
+        }
+        return null;
+    }
 }

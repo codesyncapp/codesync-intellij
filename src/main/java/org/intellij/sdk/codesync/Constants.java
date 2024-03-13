@@ -49,7 +49,7 @@ public final class Constants {
     public static final Integer DELAY_BETWEEN_BUFFER_TASKS_IN_SECONDS = 5;
 
     //Database queries and strings
-    public static final String DATABASE_PATH = Paths.get(CODESYNC_ROOT, "test-codesyncdb.db").toString();
+    public static final String DATABASE_PATH = Paths.get(CODESYNC_ROOT, "codesyncdb.db").toString();
     public static final String CONNECTION_STRING = "jdbc:sqlite:" + DATABASE_PATH;
 
     public static final String DEFAULT_TIMEZONE = ZoneId.systemDefault().getId();

@@ -44,8 +44,8 @@ public class RepoFile extends Model {
         return serverFileId;
     }
 
-    private void create() throws SQLException {
-        RepoFile repoFile = this.table.insert(this);
+    private void getOrCreate() throws SQLException {
+        RepoFile repoFile = this.table.getOrCreate(this);
         if (repoFile != null) {
             this.id = repoFile.getId();
         } else {
@@ -59,9 +59,19 @@ public class RepoFile extends Model {
 
     public void save() throws SQLException {
         if (this.id == null) {
-            this.create();
+            this.getOrCreate();
         } else {
             this.update();
         }
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+    public void setRepoBranchId(Integer repoBranchId) {
+        this.repoBranchId = repoBranchId;
+    }
+    public void setServerFileId(Integer serverFileId) {
+        this.serverFileId = serverFileId;
     }
 }

@@ -6,9 +6,7 @@ import org.intellij.sdk.codesync.database.models.Repo;
 import org.intellij.sdk.codesync.database.models.RepoBranch;
 import org.intellij.sdk.codesync.database.models.RepoFile;
 import org.intellij.sdk.codesync.database.models.User;
-import org.intellij.sdk.codesync.database.tables.MigrationsTable;
-import org.intellij.sdk.codesync.database.tables.RepoTable;
-import org.intellij.sdk.codesync.database.tables.UserTable;
+import org.intellij.sdk.codesync.database.tables.*;
 import org.intellij.sdk.codesync.enums.RepoState;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.files.ConfigFile;
@@ -27,6 +25,8 @@ import static org.intellij.sdk.codesync.Constants.CONFIG_PATH;
 public class MigrateRepo implements Migration {
     private static MigrateRepo instance;
     private RepoTable repoTable;
+    private RepoBranchTable repoBranchTable;
+    private RepoFileTable repoFileTable;
     private MigrationsTable migrationsTable;
     MigrationState migrationState = null;
     public static MigrateRepo getInstance() {
@@ -39,10 +39,14 @@ public class MigrateRepo implements Migration {
     private MigrateRepo() {
         this.repoTable = RepoTable.getInstance();
         this.migrationsTable = MigrationsTable.getInstance();
+        this.repoBranchTable = RepoBranchTable.getInstance();
+        this.repoFileTable = RepoFileTable.getInstance();
     }
 
-    private void createRepoTable() throws SQLException {
+    private void createTables() throws SQLException {
         this.repoTable.createTable();
+        this.repoBranchTable.createTable();
+        this.repoFileTable.createTable();
     }
 
     private MigrationState checkMigrationState() throws SQLException {
@@ -51,6 +55,10 @@ public class MigrateRepo implements Migration {
             return MigrationState.NOT_STARTED;
         }
         return this.migrationsTable.getMigrationState(this.repoTable.getTableName());
+    }
+
+    private void setMigrationState(MigrationState migrationState) throws SQLException {
+        this.migrationsTable.setMigrationState(this.repoTable.getTableName(), migrationState);
     }
 
     private User getOrCreateUser(String email) throws SQLException {
@@ -101,14 +109,25 @@ public class MigrateRepo implements Migration {
             switch (checkMigrationState()) {
                 case NOT_STARTED:
                 case ERROR:
-                    createRepoTable();
+                    setMigrationState(MigrationState.IN_PROGRESS);
+                    createTables();
                     migrateData();
+                    setMigrationState(MigrationState.DONE);
                     break;
                 case IN_PROGRESS:
                 case DONE:
                     break;
             }
         } catch (SQLException | InvalidConfigFileError e) {
+            try {
+                setMigrationState(MigrationState.ERROR);
+            } catch (SQLException ex) {
+                CodeSyncLogger.critical(String.format(
+                    "[DATABASE_MIGRATION] Error '%s' while setting migration state for error: %s",
+                    ex.getMessage(),
+                    e.getMessage()
+                ));
+            }
             CodeSyncLogger.critical("[DATABASE_MIGRATION] SQL error while migrating Repo table: " + e.getMessage());
         }
     }

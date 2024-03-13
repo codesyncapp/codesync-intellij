@@ -68,8 +68,8 @@ public class User extends Model {
         return isActive;
     }
 
-    private void create() throws SQLException {
-        User user = this.table.insert(this);
+    private void getOrCreate() throws SQLException {
+        User user = this.table.getOrCreate(this);
         if (user != null) {
             this.id = user.getId();
         } else {
@@ -83,9 +83,13 @@ public class User extends Model {
 
     public void save() throws SQLException {
         if (this.id == null) {
-            this.create();
+            this.getOrCreate();
         } else {
             this.update();
         }
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 }

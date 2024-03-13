@@ -58,6 +58,17 @@ public class UserTable extends DBTable {
         return null;
     }
 
+    public User getOrCreate(User user) throws SQLException {
+        User existingUser = get(user.getEmail());
+        if (existingUser == null) {
+            return insert(user);
+        } else {
+            user.setId(existingUser.getId());
+            update(user);
+        }
+        return existingUser;
+    }
+
     public User insert(User user) throws SQLException {
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             statement.executeUpdate(
