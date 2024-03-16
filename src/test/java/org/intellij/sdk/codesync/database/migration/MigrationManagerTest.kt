@@ -1,14 +1,19 @@
 package org.intellij.sdk.codesync.database.migration
 
+import CodeSyncTestUtils.setupCodeSyncDirectory
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class MigrateUserTest {
+/*
+This will test the complete end-to-end flow of migration manager.
+*/
+class MigrationManagerTest {
 
     @BeforeEach
-    fun before(){
-
+    fun before() {
+        // Make sure the test directory is empty.
+        setupCodeSyncDirectory()
     }
 
     @AfterEach

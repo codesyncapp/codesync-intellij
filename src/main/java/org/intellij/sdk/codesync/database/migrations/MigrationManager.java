@@ -1,15 +1,12 @@
 package org.intellij.sdk.codesync.database.migrations;
 
-import java.io.File;
-
 /*
 Manager for handling migrations.
  */
 public class MigrationManager {
     private static MigrationManager instance;
 
-    private MigrationManager() {
-    }
+    private MigrationManager() {}
 
     public static MigrationManager getInstance() {
         if (instance == null) {
@@ -18,16 +15,7 @@ public class MigrationManager {
         return instance;
     }
 
-    private void createDBFiles(String  databasePath) {
-        File file = new File(databasePath);
-        if(file.exists()){
-            return;
-        }
-
-    }
-
-    public void runMigrations(String  databasePath) {
-//        createDBFiles(databasePath);
+    public void runMigrations() {
         MigrateUser.getInstance().migrate();
         MigrateRepo.getInstance().migrate();
     }

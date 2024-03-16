@@ -12,7 +12,7 @@ import java.sql.SQLException;
 */
 public class Repo extends Model {
     private String name, path;
-    private Integer id, userId;
+    private Integer id, userId, serverRepoId;
     private RepoState state;
     private RepoTable table;
 
@@ -20,10 +20,11 @@ public class Repo extends Model {
     This constructor is used to create a Repo object with the given parameters.
     This will be useful when we are creating a new Repo object from the database.
     */
-    public Repo(Integer id, String name, String path, Integer userId, RepoState state) {
+    public Repo(Integer id, Integer serverRepoId, String name, String path, Integer userId, RepoState state) {
         this.name = name;
         this.path = path;
         this.id = id;
+        this.serverRepoId = serverRepoId;
         this.userId = userId;
         this.state = state;
         this.table = RepoTable.getInstance();
@@ -33,8 +34,9 @@ public class Repo extends Model {
     This constructor is used to create a Repo object with the given parameters.
     This will be useful when we are creating a new Repo object to insert into the database.
     */
-    public Repo(String name, String path, Integer userId, RepoState state) {
+    public Repo(Integer serverRepoId, String name, String path, Integer userId, RepoState state) {
         this.id = null;
+        this.serverRepoId = serverRepoId;
         this.name = name;
         this.path = path;
         this.userId = userId;
@@ -80,6 +82,9 @@ public class Repo extends Model {
 
     public Integer getId() {
         return id;
+    }
+    public Integer getServerRepoId() {
+        return serverRepoId;
     }
     public Integer getUserId() {
         return userId;

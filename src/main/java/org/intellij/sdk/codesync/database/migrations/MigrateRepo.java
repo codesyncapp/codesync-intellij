@@ -89,7 +89,7 @@ public class MigrateRepo implements Migration {
             String repoPath = configRepo.repoPath;
             String repoName = Paths.get(repoPath).getFileName().toString();
             User user = getOrCreateUser(configRepo.email);
-            Repo repo = new Repo(repoName, configRepo.repoPath, user.getId(), getState(configRepo));
+            Repo repo = new Repo(configRepo.id, repoName, configRepo.repoPath, user.getId(), getState(configRepo));
             repo.save();
             for (ConfigRepoBranch configRepoBranch : configRepo.getRepoBranches().values()) {
                 RepoBranch repoBranch = new RepoBranch(configRepoBranch.branchName, repo.getId());

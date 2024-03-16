@@ -46,6 +46,7 @@ public class RepoTable extends DBTable {
             if (resultSet.isBeforeFirst()) {
                 return new Repo(
                     resultSet.getInt("id"),
+                    resultSet.getInt("server_repo_id"),
                     resultSet.getString("name"),
                     resultSet.getString("path"),
                     resultSet.getInt("user_id"),
@@ -71,7 +72,7 @@ public class RepoTable extends DBTable {
     public Repo insert(Repo repo) throws SQLException {
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             statement.executeUpdate(
-                this.repoQueries.getInsertQuery(repo.getName(), repo.getPath(), repo.getUserId(), repo.getState().toString())
+                this.repoQueries.getInsertQuery(repo.getServerRepoId(), repo.getName(), repo.getPath(), repo.getUserId(), repo.getState().toString())
             );
         }
         // return the user object with the id
@@ -81,7 +82,7 @@ public class RepoTable extends DBTable {
     public void update(Repo repo) throws SQLException {
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             statement.executeUpdate(
-                this.repoQueries.getUpdateQuery(repo.getId(), repo.getName(), repo.getPath(), repo.getUserId(), repo.getState().toString())
+                this.repoQueries.getUpdateQuery(repo.getName(), repo.getPath(), repo.getUserId(), repo.getState().toString())
             );
         }
     }

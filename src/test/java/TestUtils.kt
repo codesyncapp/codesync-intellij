@@ -1,6 +1,8 @@
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.util.io.FileUtil
 import java.nio.file.Paths
+import org.intellij.sdk.codesync.Constants.*
+import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup.createSystemDirectories
 
 object CodeSyncTestUtils {
     //TODO Test files/paths should also be accessed from configuration files.
@@ -21,5 +23,14 @@ object CodeSyncTestUtils {
 
     fun getTempPath(): String {
         return FileUtil.toCanonicalPath("${PathManager.getTempPath()}/")
+    }
+
+    /*
+    This makes sure the code sync directories for test are created and empty.
+     */
+    fun setupCodeSyncDirectory() {
+        // First delete the directory if it exists.
+        FileUtil.delete(Paths.get(CODESYNC_ROOT))
+        createSystemDirectories()
     }
 }
