@@ -1,8 +1,11 @@
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.util.io.FileUtil
-import java.nio.file.Paths
-import org.intellij.sdk.codesync.Constants.*
+import org.apache.commons.io.FileUtils
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup.createSystemDirectories
+import org.intellij.sdk.codesync.configuration.ConfigurationFactory
+import java.nio.file.Path
+import java.nio.file.Paths
+import kotlin.test.assertEquals
 
 object CodeSyncTestUtils {
     //TODO Test files/paths should also be accessed from configuration files.
@@ -11,6 +14,10 @@ object CodeSyncTestUtils {
 
     fun getTestDataPath(): String {
         return DIRECTORY_PATH.toString();
+    }
+
+    fun getTestFilePath(fileName: String): Path {
+        return Paths.get(DIRECTORY_PATH.toString(), "files", fileName)
     }
 
     fun getTestDBFilePath(): String {
@@ -28,9 +35,13 @@ object CodeSyncTestUtils {
     /*
     This makes sure the code sync directories for test are created and empty.
      */
-    fun setupCodeSyncDirectory() {
+    fun setupCodeSyncDirectory(codeSyncRoot: String) {
+        // Make sure correct configuration is in review. We do not want to delete prod configs
+        val configuration = ConfigurationFactory.getConfiguration()
+        assertEquals(configuration.pluginVersion, "unit.tests")
+
         // First delete the directory if it exists.
-        FileUtil.delete(Paths.get(CODESYNC_ROOT))
+        FileUtils.deleteDirectory(Paths.get(codeSyncRoot).toFile())
         createSystemDirectories()
     }
 }

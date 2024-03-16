@@ -39,9 +39,9 @@ public class RepoTable extends DBTable {
         return this.repoQueries.getCreateTableQuery();
     }
 
-    public Repo get(String name) throws SQLException {
+    public Repo get(String repoPath) throws SQLException {
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
-            ResultSet resultSet = statement.executeQuery(this.repoQueries.getSelectQuery(name));
+            ResultSet resultSet = statement.executeQuery(this.repoQueries.getSelectQuery(repoPath));
 
             if (resultSet.isBeforeFirst()) {
                 return new Repo(
@@ -58,7 +58,7 @@ public class RepoTable extends DBTable {
     }
 
     public Repo getOrCreate(Repo repo) throws SQLException {
-        Repo existingRepo = get(repo.getName());
+        Repo existingRepo = get(repo.getPath());
         if (existingRepo == null) {
             return insert(repo);
         } else {
@@ -76,13 +76,13 @@ public class RepoTable extends DBTable {
             );
         }
         // return the user object with the id
-        return get(repo.getName());
+        return get(repo.getPath());
     }
 
     public void update(Repo repo) throws SQLException {
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             statement.executeUpdate(
-                this.repoQueries.getUpdateQuery(repo.getName(), repo.getPath(), repo.getUserId(), repo.getState().toString())
+                this.repoQueries.getUpdateQuery(repo.getPath(), repo.getUserId(), repo.getState().toString())
             );
         }
     }

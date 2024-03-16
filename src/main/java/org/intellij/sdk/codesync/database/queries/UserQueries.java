@@ -22,7 +22,7 @@ public class UserQueries extends CommonQueries {
             "INSERT INTO %s (email, access_token, access_key, secret_key, is_active) VALUES (%s, %s, %s, %s, %s)",
                 this.tableName,
                 String.format("'%s'", email),
-                accessToken == null ? "NULL" : String.format("'%s'", accessKey),
+                accessToken == null ? "NULL" : String.format("'%s'", accessToken),
                 accessKey == null ? "NULL" : String.format("'%s'", accessKey),
                 secretKey == null ? "NULL" : String.format("'%s'", secretKey),
                 isActive ? "1" : "0"

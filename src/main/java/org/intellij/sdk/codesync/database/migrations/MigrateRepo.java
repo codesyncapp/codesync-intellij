@@ -72,7 +72,7 @@ public class MigrateRepo implements Migration {
     }
 
     private RepoState getState(ConfigRepo configRepo) {
-        if (configRepo.isInSync && !configRepo.isDisconnected) {
+        if (configRepo.isInSync && !configRepo.isDisconnected && !configRepo.isDeleted) {
             return RepoState.SYNCED;
         } else if (configRepo.isDisconnected) {
             return RepoState.DISCONNECTED;

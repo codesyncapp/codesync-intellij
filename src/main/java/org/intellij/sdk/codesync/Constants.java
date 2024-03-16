@@ -1,9 +1,7 @@
 package org.intellij.sdk.codesync;
 
-import com.intellij.openapi.application.ApplicationInfo;
 import org.intellij.sdk.codesync.configuration.Configuration;
 import org.intellij.sdk.codesync.configuration.ConfigurationFactory;
-import org.intellij.sdk.codesync.utils.ProjectUtils;
 
 import java.nio.file.Paths;
 import java.time.ZoneId;
@@ -56,9 +54,9 @@ public final class Constants {
     public static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS z";
     public static final String DATE_FORMAT = "yyyy-MM-dd";
     public static final String DATE_TIME_FORMAT_WITHOUT_TIMEZONE = "yyyy-MM-dd HH:mm:ss.SSS";
-    public static final String IDE_NAME = ApplicationInfo.getInstance().getVersionName();
+    public static final String IDE_NAME = configuration.getIDEName();
     public static final String DIFF_SOURCE = "intellij";
-    public static final String PLUGIN_VERSION = ProjectUtils.getPluginVersion();
+    public static final String PLUGIN_VERSION = configuration.getPluginVersion();
     public static final String GA4_PARAMS = String.format("utm_medium=plugin&utm_source=%s&utm_source_platform=%s", DIFF_SOURCE, IDE_NAME);
 
     public static final String MAGIC_STRING = "IntellijIdeaRulezzz";

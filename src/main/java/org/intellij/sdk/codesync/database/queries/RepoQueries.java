@@ -32,18 +32,17 @@ public class RepoQueries extends CommonQueries {
         );
     }
 
-    public String getSelectQuery(String name) {
-        return String.format("SELECT * FROM %s WHERE name = '%s';", this.tableName, name);
+    public String getSelectQuery(String repoPath) {
+        return String.format("SELECT * FROM %s WHERE path = '%s';", this.tableName, repoPath);
     }
 
-    public String getUpdateQuery(String name, String path, Integer userId, String state) {
+    public String getUpdateQuery(String path, Integer userId, String state) {
         return String.format(
-            "UPDATE %s SET path = %s, user_id = %s, state = %s WHERE name = %s",
+            "UPDATE %s SET user_id = %s, state = %s WHERE path = %s",
             this.tableName,
-            String.format("'%s'", path),
             userId,
             String.format("'%s'", state),
-            String.format("'%s'", name)
+            String.format("'%s'", path)
         );
     }
 }
