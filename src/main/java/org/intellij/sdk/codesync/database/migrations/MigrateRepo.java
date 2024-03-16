@@ -96,7 +96,7 @@ public class MigrateRepo implements Migration {
                 repoBranch.save();
 
                 for (Map.Entry<String, Integer> fileEntry : configRepoBranch.getFiles().entrySet()) {
-                    RepoFile repoFile = new RepoFile(fileEntry.getKey(), fileEntry.getValue(), repoBranch.getId());
+                    RepoFile repoFile = new RepoFile(fileEntry.getKey(), repoBranch.getId(), fileEntry.getValue());
                     repoFile.save();
                 }
             }
