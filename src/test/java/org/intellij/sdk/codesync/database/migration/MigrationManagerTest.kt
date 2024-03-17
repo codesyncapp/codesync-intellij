@@ -1,7 +1,7 @@
 package org.intellij.sdk.codesync.database.migration
 
 import CodeSyncTestUtils.getTestFilePath
-import CodeSyncTestUtils.setupCodeSyncDirectory
+import CodeSyncTestUtils.cleanupCodeSyncDirectory
 import org.intellij.sdk.codesync.Constants
 import org.intellij.sdk.codesync.database.enums.MigrationState
 import org.intellij.sdk.codesync.database.migrations.MigrationManager
@@ -26,7 +26,7 @@ class MigrationManagerTest {
     @BeforeEach
     fun before() {
         // Make sure the test directory is empty.
-        setupCodeSyncDirectory(Constants.CODESYNC_ROOT)
+        cleanupCodeSyncDirectory(Constants.CODESYNC_ROOT)
     }
 
     @AfterEach

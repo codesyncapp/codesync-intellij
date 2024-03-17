@@ -35,7 +35,7 @@ object CodeSyncTestUtils {
     /*
     This makes sure the code sync directories for test are created and empty.
      */
-    fun setupCodeSyncDirectory(codeSyncRoot: String) {
+    fun cleanupCodeSyncDirectory(codeSyncRoot: String) {
         // Make sure correct configuration is in review. We do not want to delete prod configs
         val configuration = ConfigurationFactory.getConfiguration()
         assertEquals(configuration.pluginVersion, "unit.tests")

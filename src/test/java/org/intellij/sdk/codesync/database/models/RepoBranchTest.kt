@@ -1,7 +1,8 @@
 package org.intellij.sdk.codesync.database.models
 
-import CodeSyncTestUtils.setupCodeSyncDirectory
+import CodeSyncTestUtils.cleanupCodeSyncDirectory
 import org.intellij.sdk.codesync.Constants
+import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup
 import org.intellij.sdk.codesync.database.migrations.MigrationManager
 import org.intellij.sdk.codesync.database.tables.RepoBranchTable
 import org.intellij.sdk.codesync.enums.RepoState
@@ -106,9 +107,7 @@ class RepoBranchTest {
         @JvmStatic
         @BeforeAll
         fun setup(): Unit {
-            // Make sure the test directory is empty.
-            setupCodeSyncDirectory(Constants.CODESYNC_ROOT)
-
+            CodeSyncSetup.createSystemDirectories()
             // Create the tables in the database. There is no data in the config file so empty tables will be created.
             MigrationManager.getInstance().runMigrations()
         }
