@@ -45,12 +45,30 @@ public class UserTable extends DBTable {
             ResultSet resultSet = statement.executeQuery(this.userQueries.getSelectQuery(email));
             if (resultSet.isBeforeFirst()){
                 return new User(
-                        resultSet.getInt("id"),
-                        resultSet.getString("email"),
-                        resultSet.getString("access_token"),
-                        resultSet.getString("access_key"),
-                        resultSet.getString("secret_key"),
-                        resultSet.getBoolean("is_active")
+                    resultSet.getInt("id"),
+                    resultSet.getString("email"),
+                    resultSet.getString("access_token"),
+                    resultSet.getString("access_key"),
+                    resultSet.getString("secret_key"),
+                    resultSet.getBoolean("is_active")
+                );
+            }
+
+        }
+        return null;
+    }
+
+    public User get(Integer userId) throws SQLException {
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            ResultSet resultSet = statement.executeQuery(this.userQueries.getSelectQuery(userId));
+            if (resultSet.isBeforeFirst()){
+                return new User(
+                    resultSet.getInt("id"),
+                    resultSet.getString("email"),
+                    resultSet.getString("access_token"),
+                    resultSet.getString("access_key"),
+                    resultSet.getString("secret_key"),
+                    resultSet.getBoolean("is_active")
                 );
             }
 

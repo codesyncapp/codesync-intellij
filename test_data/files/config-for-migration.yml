@@ -54,15 +54,14 @@ repos:
     is_disconnected: true
     id: 33
     branches:
-      test-branch-13:
+      test-branch-31:
         test-repo-3-1.txt: 311
         test-repo-3-2.txt: 312
         test-repo-3-3.txt: 313
-        test-6.txt: 316
-      test-branch-2:
+      test-branch-32:
         test-repo-3-1.txt: 321
         test-repo-3-2.txt: 322
-    email: test2@codesync.com
+    email: test3@codesync.com
   /Users/codesync/dev/test-repo-4:
     pause_notification: false
     is_deleted: true
@@ -70,10 +69,10 @@ repos:
     id: 44
     branches:
       test-branch-44:
-        test-repo-4-1.txt: 311
-        test-repo-4-2.txt: 312
-        test-repo-4-3.txt: 313
-        test-repo-4-4.txt: 314
-        test-repo-4-5.txt: 315
-        test-repo-4-6.txt: 316
-    email: test2@codesync.com
+        test-repo-4-1.txt: 411
+        test-repo-4-2.txt: 412
+        test-repo-4-3.txt: 413
+        test-repo-4-4.txt: 414
+        test-repo-4-5.txt: 415
+        test-repo-4-6.txt: 416
+    email: test4@codesync.com

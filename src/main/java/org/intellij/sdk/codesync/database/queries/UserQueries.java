@@ -33,6 +33,10 @@ public class UserQueries extends CommonQueries {
         return String.format("SELECT * FROM %s WHERE email = '%s';", this.tableName, email);
     }
 
+    public String getSelectQuery(Integer userId) {
+        return String.format("SELECT * FROM %s WHERE id = '%s';", this.tableName, userId);
+    }
+
     public String getUpdateQuery(Integer id, String email, String accessToken, String accessKey, String secretKey, boolean isActive) {
         return String.format(
             "UPDATE %s SET email = %s, access_token = %s, access_key = %s, secret_key = %s, is_active = %s WHERE id = %s",

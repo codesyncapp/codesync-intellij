@@ -1,11 +1,13 @@
 package org.intellij.sdk.codesync.database.models;
 
+import org.intellij.sdk.codesync.database.tables.RepoBranchTable;
 import org.intellij.sdk.codesync.database.tables.RepoTable;
+import org.intellij.sdk.codesync.database.tables.UserTable;
 import org.intellij.sdk.codesync.enums.RepoState;
-import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 /*
     This class is model for Repo table, and will contain all accessor and utility methods for managing Repo.
@@ -102,5 +104,13 @@ public class Repo extends Model {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public ArrayList<RepoBranch> getBranches() throws SQLException {
+        return RepoBranchTable.getInstance().get(this.id);
+    }
+
+    public User getUser() throws SQLException {
+        return UserTable.getInstance().get(this.userId);
     }
 }

@@ -31,6 +31,13 @@ public class RepoFileQueries extends CommonQueries {
         return String.format("SELECT * FROM %s WHERE path = '%s' AND repo_branch_id = %s;", this.tableName, path, repoBranchId);
     }
 
+    /*
+    Get query to select all files for a given branch.
+    */
+    public String getSelectQuery(Integer repoBranchId) {
+        return String.format("SELECT * FROM %s WHERE repo_branch_id = %s;", this.tableName, repoBranchId);
+    }
+
     public String getUpdateQuery(Integer id, String path, Integer repoBranchId, Integer serverFileId) {
         return String.format(
                 "UPDATE %s SET path = %s, repo_branch_id = %s, server_file_id = %s WHERE id = %s",

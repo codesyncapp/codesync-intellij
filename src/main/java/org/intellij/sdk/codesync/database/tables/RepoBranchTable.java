@@ -7,6 +7,7 @@ import org.intellij.sdk.codesync.database.queries.RepoBranchQueries;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 public class RepoBranchTable extends DBTable {
     private final String tableName = "repo_branch";
@@ -46,6 +47,26 @@ public class RepoBranchTable extends DBTable {
             }
         }
         return null;
+    }
+
+    public ArrayList<RepoBranch> get(Integer repoId) throws SQLException {
+        ArrayList<RepoBranch> repoBranches = new ArrayList<>();
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            ResultSet resultSet = statement.executeQuery(this.repoBranchQueries.getSelectQuery(repoId));
+            if (resultSet.isBeforeFirst()) {
+                while (resultSet.next()) {
+                    repoBranches.add(
+                        new RepoBranch(
+                            resultSet.getInt("id"),
+                            resultSet.getString("name"),
+                            resultSet.getInt("repo_id")
+                        )
+                    );
+                }
+                return repoBranches;
+            }
+        }
+        return repoBranches;
     }
 
     public RepoBranch getOrCreate(RepoBranch repoBranch) throws SQLException {

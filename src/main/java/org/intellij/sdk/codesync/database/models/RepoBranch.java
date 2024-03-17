@@ -1,8 +1,10 @@
 package org.intellij.sdk.codesync.database.models;
 
 import org.intellij.sdk.codesync.database.tables.RepoBranchTable;
+import org.intellij.sdk.codesync.database.tables.RepoFileTable;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 /*
     This class is model for RepoBranch table, and will contain all accessor and utility methods for managing RepoBranch.
@@ -66,5 +68,9 @@ public class RepoBranch extends Model {
 
     public void setRepoId(Integer repoId) {
         this.repoId = repoId;
+    }
+
+    public ArrayList<RepoFile> getFiles() throws SQLException {
+        return RepoFileTable.getInstance().get(this.id);
     }
 }

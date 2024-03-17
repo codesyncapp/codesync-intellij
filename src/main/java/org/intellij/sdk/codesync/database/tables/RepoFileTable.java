@@ -7,6 +7,7 @@ import org.intellij.sdk.codesync.database.queries.RepoFileQueries;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 public class RepoFileTable extends DBTable {
     private final String tableName = "repo_file";
@@ -47,6 +48,26 @@ public class RepoFileTable extends DBTable {
             }
         }
         return null;
+    }
+
+    public ArrayList<RepoFile> get(Integer repoBranchId) throws SQLException {
+        ArrayList<RepoFile> repoFiles = new ArrayList<>();
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            ResultSet resultSet = statement.executeQuery(this.repoFileQueries.getSelectQuery(repoBranchId));
+            if (resultSet.isBeforeFirst()) {
+                while (resultSet.next()) {
+                    repoFiles.add(
+                        new RepoFile(
+                            resultSet.getInt("id"),
+                            resultSet.getString("path"),
+                            resultSet.getInt("repo_branch_id"),
+                            resultSet.getInt("server_file_id")
+                        )
+                    );
+                }
+            }
+        }
+        return repoFiles;
     }
 
     public RepoFile getOrCreate(RepoFile repoFile) throws SQLException {
