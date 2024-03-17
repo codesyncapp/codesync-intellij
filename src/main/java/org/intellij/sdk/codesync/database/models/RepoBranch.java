@@ -33,6 +33,10 @@ public class RepoBranch extends Model {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public Integer getRepoId() {
         return repoId;
     }

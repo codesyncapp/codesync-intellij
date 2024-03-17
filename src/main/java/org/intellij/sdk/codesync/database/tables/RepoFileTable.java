@@ -76,7 +76,6 @@ public class RepoFileTable extends DBTable {
             return insert(repoFile);
         } else {
             repoFile.setId(existingRepoFile.getId());
-            repoFile.setServerFileId(existingRepoFile.getServerFileId());
             update(repoFile);
         }
         return repoFile;

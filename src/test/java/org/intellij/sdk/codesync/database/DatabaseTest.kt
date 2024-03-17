@@ -1,12 +1,10 @@
 package org.intellij.sdk.codesync.database
 
 import CodeSyncTestUtils
-import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError
 import org.intellij.sdk.codesync.utils.Queries
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.io.File
 import java.nio.file.Paths
 import kotlin.test.*

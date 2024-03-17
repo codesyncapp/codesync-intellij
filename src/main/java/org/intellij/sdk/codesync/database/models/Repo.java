@@ -94,6 +94,10 @@ public class Repo extends Model {
     public RepoState getState() {
         return state;
     }
+    public void setState(RepoState state) {
+        this.state = state;
+    }
+
     public Boolean isDeleted() {
         return state == RepoState.DELETED;
     }
