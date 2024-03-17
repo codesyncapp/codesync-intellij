@@ -4,9 +4,9 @@ import com.intellij.openapi.project.Project;
 import kotlin.Pair;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.clients.CodeSyncWebSocketClient;
+import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.files.*;
-import org.intellij.sdk.codesync.database.models.UserAccount;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
@@ -21,6 +21,7 @@ import org.intellij.sdk.codesync.utils.ProjectUtils;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.*;
 
 import static org.intellij.sdk.codesync.Constants.*;
@@ -241,7 +242,7 @@ public class HandleBuffer {
             }
 
             ConfigRepo configRepo = configFile.getRepo(diffFile.repoPath);
-            String accessToken = UserAccount.getAccessToken(configRepo.email);
+            String accessToken = User.getTable().getAccessToken(configRepo.email);
 
             if (accessToken == null) {
                 CodeSyncLogger.critical(String.format(
@@ -388,7 +389,8 @@ public class HandleBuffer {
         // Send Diffs in a single request.
 
         ConfigRepo configRepo = configFile.getRepo(currentRepo);
-        String accessToken = UserAccount.getAccessToken(configRepo.email);
+        String accessToken = User.getTable().getAccessToken(configRepo.email);
+
         if (accessToken ==  null) {
             CodeSyncLogger.warning(String.format(
                     "Access token for user '%s' not present so skipping diffs for repo '%s'.",

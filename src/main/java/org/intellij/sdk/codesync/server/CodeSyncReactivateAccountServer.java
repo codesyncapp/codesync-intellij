@@ -65,7 +65,7 @@ public class CodeSyncReactivateAccountServer {
             return uriBuilder.toString();
         } catch (URISyntaxException e) {
             CodeSyncLogger.critical(
-                String.format("[INTELLIJ_ACTIVATE_ACCOUNT_ERRPR]: Invalid `SETTINGS_PAGE_URL` settings. Error: %s", e.getMessage())
+                String.format("[INTELLIJ_ACTIVATE_ACCOUNT_ERROR]: Invalid `SETTINGS_PAGE_URL` settings. Error: %s", e.getMessage())
             );
             return null;
         }

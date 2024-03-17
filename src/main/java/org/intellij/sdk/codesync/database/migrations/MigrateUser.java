@@ -7,7 +7,6 @@ import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.database.tables.MigrationsTable;
 import org.intellij.sdk.codesync.database.tables.UserTable;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
-import org.intellij.sdk.codesync.database.models.UserAccount;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
@@ -22,7 +21,6 @@ public class MigrateUser implements Migration {
 
     private File userFile;
     private Map<String, Object> contentsMap;
-    private Map<String, UserAccount> users;
     private static MigrateUser instance;
     private UserTable userTable;
     private MigrationsTable migrationsTable;
@@ -38,7 +36,6 @@ public class MigrateUser implements Migration {
         this.userTable = UserTable.getInstance();
         this.migrationsTable = MigrationsTable.getInstance();
         this.userFile = new File(USER_FILE_PATH);
-        this.users = new HashMap<>();
     }
 
     private void readYml() throws FileNotFoundException, InvalidYmlFileError {
@@ -66,7 +63,6 @@ public class MigrateUser implements Migration {
             for (Map.Entry<String, Object> userEntry : this.contentsMap.entrySet()) {
                 if (userEntry.getValue() != null) {
                     Map<String, Object> userCredentials = (Map<String, Object>) userEntry.getValue();
-                    this.users.put(userEntry.getKey(), new UserAccount(userEntry.getKey(), userCredentials));
                     User user = new User(
                         userEntry.getKey(),
                         (String) userCredentials.getOrDefault("access_token", null),

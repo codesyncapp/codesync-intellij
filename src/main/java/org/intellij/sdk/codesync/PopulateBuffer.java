@@ -5,14 +5,13 @@ import org.apache.commons.text.similarity.*;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.codeSyncSetup.S3FilesUploader;
+import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.FileInfoError;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
-import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.factories.DiffFactory;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
-import org.intellij.sdk.codesync.database.models.UserAccount;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
@@ -184,15 +183,6 @@ public class PopulateBuffer {
             return reposToUpdate;
         }
         Map<String, ConfigRepo> configRepoMap = configFile.getRepos();
-        UserAccount userAccount = null;
-        try {
-            userAccount = new UserAccount();
-        } catch (SQLiteDBConnectionError error) {
-            CodeSyncLogger.critical(String.format(
-                    "[POPULATE_BUFFER] SQLite Database Connection Error, %s.\n", error.getMessage()
-            ));
-            return reposToUpdate;
-        }
 
         for (Map.Entry<String, ConfigRepo> configRepoEntry: configRepoMap.entrySet()) {
             String repoPath = configRepoEntry.getKey();
@@ -204,13 +194,7 @@ public class PopulateBuffer {
                 continue;
             }
 
-            userAccount = userAccount.getUser(configRepo.email);
-            if (userAccount == null) {
-                // Could not find the user with this email in user.yml file.
-                continue;
-            }
-
-            if (userAccount.getAccessToken() == null) {
+            if (User.getTable().getAccessToken(configRepo.email) == null) {
                 CodeSyncLogger.error(String.format("Access token not found for repo: %s, %s`.", repoPath, configRepo.email));
                 continue;
             }

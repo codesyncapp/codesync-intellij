@@ -1,12 +1,7 @@
 package org.intellij.sdk.codesync.database;
 
-import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.database.migrations.MigrateUser;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
-import org.intellij.sdk.codesync.utils.Queries;
-
-import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,37 +10,13 @@ public class Database {
 
     private static Database instance;
 
-    private Database() {
-    }
+    private Database() {}
 
     public static Database getInstance() {
         if (instance == null) {
             instance = new Database();
         }
         return instance;
-    }
-
-    public void setupDbFilesAndTables(String databasePath){
-
-        /*
-            This method will make sure to create db file and required tables,
-            make migration from files to db if necessary.
-        */
-
-        File file = new File(databasePath);
-        if(file.exists()){
-           return;
-        }
-
-        try {
-            executeUpdate(Queries.User.CREATE_TABLE);
-            MigrateUser migrateUser = MigrateUser.getInstance();
-            migrateUser.migrateData();
-        } catch (SQLiteDBConnectionError e) {
-            CodeSyncLogger.error("[DATABASE] SQLite db connection error while making migration/creating db file first time " + e.getMessage());
-        } catch (SQLiteDataError e) {
-            CodeSyncLogger.error("[DATABASE] SQLite db data error while making migration/creating db file first time " + e.getMessage());
-        }
     }
 
     /*

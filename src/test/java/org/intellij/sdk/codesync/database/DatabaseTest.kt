@@ -32,30 +32,6 @@ class DatabaseTest {
     }
 
     @Test
-    fun validateSetupDbFilesAndTables(){
-        SQLiteConnection.getInstance().connection.close()
-        File(CodeSyncTestUtils.getTestDBFilePath()).delete()
-
-        val userFilePath = Paths.get(CodeSyncTestUtils.getTestDataPath(), "userTest.yml").toAbsolutePath()
-        val userFile = File(userFilePath.toString())
-        userFile.createNewFile()
-
-        var file = File(CodeSyncTestUtils.getTestDBFilePath())
-        assertTrue(!file.exists())
-
-        Database.getInstance().setupDbFilesAndTables(CodeSyncTestUtils.getTestDBFilePath())
-
-        file = File(CodeSyncTestUtils.getTestDBFilePath())
-        assertTrue(file.exists())
-
-        var resultSet = Database.runQuery(Queries.User.TABLE_EXIST)
-        assertNotNull(resultSet)
-        assertEquals("user", resultSet[0].get("name"))
-
-        userFile.delete()
-    }
-
-    @Test
     fun validateRunQuery(){
         var email = "sample@gmail.com"
         var access_token = "ACCESS TOKEN"

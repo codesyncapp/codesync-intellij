@@ -11,7 +11,6 @@ public class User extends Model {
     private String email, accessToken, accessKey, secretKey;
     private Boolean isActive;
     private Integer id;
-    private UserTable table;
     /*
     This constructor is used to create a User object with the given parameters.
     This will be useful when we are creating a new User object from the database.
@@ -23,7 +22,6 @@ public class User extends Model {
         this.secretKey = secretKey;
         this.isActive = isActive;
         this.id = id;
-        this.table = UserTable.getInstance();
     }
 
     /*
@@ -37,12 +35,10 @@ public class User extends Model {
         this.accessKey = accessKey;
         this.secretKey = secretKey;
         this.isActive = isActive;
-
-        this.table = UserTable.getInstance();
     }
 
-    public UserTable getTable() {
-        return table;
+    public static UserTable getTable() {
+        return UserTable.getInstance();
     }
 
     public Integer getId() {
@@ -68,8 +64,21 @@ public class User extends Model {
         return isActive;
     }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+    public void setAccessKey(String accessKey) {
+        this.accessKey = accessKey;
+    }
+    public void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
+    }
+
     private void getOrCreate() throws SQLException {
-        User user = this.table.getOrCreate(this);
+        User user = getTable().getOrCreate(this);
         if (user != null) {
             this.id = user.getId();
         } else {
@@ -78,7 +87,7 @@ public class User extends Model {
     }
 
     private void update() throws SQLException {
-        this.table.update(this);
+        getTable().update(this);
     }
 
     public void save() throws SQLException {
@@ -87,6 +96,21 @@ public class User extends Model {
         } else {
             this.update();
         }
+    }
+
+    /*
+    Make this user active, there can be only one active user at a time.
+    So, this means all other users will be made inactive.
+     */
+    public void makeActive() throws SQLException {
+        // If user is not saved or is not active then mark it active and save.
+        if(this.id == null || !this.isActive) {
+            this.isActive = true;
+            this.save();
+        }
+
+        // Now mark all other users as inactive.
+        getTable().markInActive(this.id);
     }
 
     public void setId(Integer id) {

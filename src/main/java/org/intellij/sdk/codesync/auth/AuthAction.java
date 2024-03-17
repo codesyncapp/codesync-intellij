@@ -9,13 +9,13 @@ import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.actions.BaseModuleAction;
 import org.intellij.sdk.codesync.commands.ClearReposToIgnoreCache;
 import org.intellij.sdk.codesync.commands.ReloadStateCommand;
-import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
-import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
-import org.intellij.sdk.codesync.database.models.UserAccount;
+import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.server.CodeSyncReactivateAccountServer;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.jetbrains.annotations.NotNull;
+
+import java.sql.SQLException;
 
 import static org.intellij.sdk.codesync.Constants.Notification.ACCOUNT_REACTIVATE_BUTTON;
 
@@ -75,38 +75,17 @@ public class AuthAction extends BaseModuleAction {
             server =  CodeSyncAuthServer.getInstance();
             String targetURL = server.getAuthorizationUrl();
             if (pluginState.isAuthenticated) {
-                UserAccount userAccount;
-                try{
-                    userAccount = new UserAccount();
-                }catch (SQLiteDBConnectionError error){
-                    NotificationManager.getInstance().notifyError(
-                            "An error occurred trying to logout the user, please tyr again later.", project
-                    );
-                    CodeSyncLogger.error(
-                            String.format("[INTELLIJ_AUTH_ERROR]:  SQLite Database Connection Error, %s", error.getMessage())
-                    );
-                    return;
-                }
-
                 // Clear any cache that depends on user authentication status.
                 new ClearReposToIgnoreCache().execute();
 
-                try{
-                    userAccount.makeAllUsersInActive();
-                } catch (SQLiteDBConnectionError error){
+                try {
+                    User.getTable().markAllInActive();
+                } catch (SQLException error){
                     NotificationManager.getInstance().notifyError(
-                            "An error occurred trying to logout the user, please tyr again later.", project
+                        "An error occurred trying to logout the user, please tyr again later.", project
                     );
                     CodeSyncLogger.error(
-                            String.format("[INTELLIJ_AUTH_ERROR]: Could not write to database due to database connection error. Error: %s", error.getMessage())
-                    );
-                    return;
-                } catch (SQLiteDataError error){
-                    NotificationManager.getInstance().notifyError(
-                            "An error occurred trying to logout the user, please tyr again later.", project
-                    );
-                    CodeSyncLogger.error(
-                            String.format("[INTELLIJ_AUTH_ERROR]: Could not write to database due to SQL error. Error: %s", error.getMessage())
+                        String.format("[INTELLIJ_AUTH_ERROR]: Could not write to database due to database error. Error: %s", error.getMessage())
                     );
                     return;
                 }
@@ -115,18 +94,14 @@ public class AuthAction extends BaseModuleAction {
                 StateUtils.reloadState(project);
 
                 NotificationManager.getInstance().notifyInformation(
-                        "You have been logged out successfully.", project
+                    "You have been logged out successfully.", project
                 );
             } else {
-                CodeSyncLogger.debug(
-                        "[INTELLIJ_AUTH]: User initiated login flow."
-                );
+                CodeSyncLogger.debug("[INTELLIJ_AUTH]: User initiated login flow.");
                 BrowserUtil.browse(targetURL);
                 CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
             }
-
         } catch (Exception exc) {
-            exc.printStackTrace();
             CodeSyncLogger.critical(
                 String.format("[INTELLIJ_AUTH_ERROR]: IntelliJ Login Error, an error occurred during user authentication. Error: %s", exc.getMessage()),
                 pluginState.userEmail

@@ -16,13 +16,13 @@ import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.commands.ReloadStateCommand;
 import org.intellij.sdk.codesync.commands.ResumeCodeSyncCommand;
+import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.exceptions.file.UserFileError;
 import org.intellij.sdk.codesync.exceptions.network.RepoUpdateError;
 import org.intellij.sdk.codesync.exceptions.network.ServerConnectionError;
 import org.intellij.sdk.codesync.exceptions.repo.RepoNotActive;
 import org.intellij.sdk.codesync.files.*;
-import org.intellij.sdk.codesync.database.models.UserAccount;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.RepoStatus;
 import org.intellij.sdk.codesync.state.StateUtils;
@@ -45,6 +45,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -107,28 +108,16 @@ public class CodeSyncSetup {
         }
     }
 
-    public static void updateRepo(Integer repoId, String userEmail, String repoName, JSONObject payload) throws SQLiteDBConnectionError, SQLiteDataError, ServerConnectionError, RepoUpdateError {
-        UserAccount userAccount;
-        try {
-            userAccount = new UserAccount();
-        } catch (SQLiteDBConnectionError e) {
-            throw new SQLiteDBConnectionError(
-                String.format(
-                    "Repo '%s' could not be updated because there was an SQLite database error. Error: %s",
-                    repoName, e.getMessage()
-                )
-            );
-        }
-        userAccount = userAccount.getUser(userEmail);
-        if (userAccount == null) {
+    public static void updateRepo(Integer repoId, String userEmail, String repoName, JSONObject payload) throws SQLiteDataError, ServerConnectionError, RepoUpdateError {
+        String accessToken = User.getTable().getAccessToken();
+        if (accessToken == null) {
             throw new SQLiteDataError(
                 String.format(
-                    "Repo '%s' could not be updated because user data is missing from SQLite database.",
+                    "Repo '%s' could not be updated because user access token is missing from SQLite database.",
                     repoName
                 )
             );
         }
-        String accessToken = userAccount.getAccessToken();
         CodeSyncClient codeSyncClient = new CodeSyncClient();
 
         if (!codeSyncClient.isServerUp()) {
@@ -308,13 +297,7 @@ public class CodeSyncSetup {
     This will also trigger the authentication flow if user does not have access token setup.
      */
     public static boolean checkUserAccess(Project project, String repoPath, String repoName, String branchName, boolean skipSyncPrompt, boolean isSyncingBranch) {
-        String accessToken;
-        try {
-            UserAccount userAccount = new UserAccount();
-            accessToken = userAccount.getActiveAccessToken();
-        } catch (SQLiteDBConnectionError e) {
-            accessToken = null;
-        }
+        String accessToken = User.getTable().getAccessToken();
 
         // User already has access token, no need to proceed.
         if (accessToken != null) {
@@ -325,22 +308,18 @@ public class CodeSyncSetup {
             }
         }
 
-        CodeSyncLogger.debug(
-                "[INTELLIJ_AUTH]: Login prompt displayed to the user."
-        );
+        CodeSyncLogger.debug("[INTELLIJ_AUTH]: Login prompt displayed to the user.");
 
         boolean shouldSignup = CodeSyncMessages.showYesNoMessage(
-                "Do you want to login or sign up to use CodeSync?",
-                "To stream your code to the cloud, you'll need to authenticate.",
-                project
+            "Do you want to login or sign up to use CodeSync?",
+            "To stream your code to the cloud, you'll need to authenticate.",
+            project
         );
 
         // If user said no to signup request the return here.
         if (!shouldSignup) {
             // TODO: We should add logic here to not ask the user again next time he opens the project.
-            CodeSyncLogger.debug(
-                    "[INTELLIJ_AUTH]: User declined login prompt."
-            );
+            CodeSyncLogger.debug("[INTELLIJ_AUTH]: User declined login prompt.");
             return false;
         }
 
@@ -351,9 +330,7 @@ public class CodeSyncSetup {
             CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
             BrowserUtil.browse(server.getAuthorizationUrl());
 
-            CodeSyncLogger.debug(
-                    "[INTELLIJ_AUTH]: User redirected to the login page."
-            );
+            CodeSyncLogger.debug("[INTELLIJ_AUTH]: User redirected to the login page.");
         } catch (Exception exc) {
             exc.printStackTrace();
             CodeSyncLogger.critical(String.format(
@@ -540,7 +517,7 @@ public class CodeSyncSetup {
             }
         }
 
-        String accessToken = UserAccount.getAccessTokenByEmail();
+        String accessToken = User.getTable().getAccessToken();
         if (accessToken == null) {
             // Show error message.
             if (!isSyncingBranch) {
@@ -713,28 +690,18 @@ public class CodeSyncSetup {
     }
 
     public static void saveIamUser(String email, String iamAccessKey, String iamSecretKey) {
-        //TODO
-        //Previously user file was being created if did not exist, should we do same for database file?
-        //DB File and table will be created anyways on startup.
-        UserAccount userAccount;
         try {
-            userAccount = new UserAccount();
-        } catch (SQLiteDBConnectionError e) {
+            User user = User.getTable().get(email);
+            if (user != null) {
+                user.setAccessKey(iamAccessKey);
+                user.setSecretKey(iamSecretKey);
+            } else {
+                user = new User(email, null, iamAccessKey, iamSecretKey, true);
+            }
+            user.save();
+        } catch (SQLException e) {
             CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: auth SQLite Database error. Error: %s", e.getMessage())
-            );
-            return;
-        }
-
-        try {
-            userAccount.setActiveUser(email, iamAccessKey, iamSecretKey);
-        } catch (SQLiteDBConnectionError e) {
-            CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: Could not write user to database due to database connection error. Error %s", e.getMessage())
-            );
-        } catch (SQLiteDataError e) {
-            CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: Could not write user to database due to SQL error file. Error %s", e.getMessage())
+                String.format("[INTELLI_REPO_INIT_ERROR]: Auth SQLite Database error. Error: %s", e.getMessage())
             );
         }
     }

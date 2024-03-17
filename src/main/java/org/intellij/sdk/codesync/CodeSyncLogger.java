@@ -1,6 +1,6 @@
 package org.intellij.sdk.codesync;
 
-import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
+import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.json.simple.JSONObject;
@@ -11,9 +11,9 @@ import software.amazon.awssdk.services.cloudwatch.model.CloudWatchException;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
 import software.amazon.awssdk.services.cloudwatchlogs.model.*;
 
-import org.intellij.sdk.codesync.database.models.UserAccount;
 import static org.intellij.sdk.codesync.Constants.*;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Date;
 
@@ -111,25 +111,26 @@ public class CodeSyncLogger {
     }
 
     private static void logEvent(String message, String userEmail, String type) {
-        UserAccount userAccount = null;
         logConsoleMessage(message, type);
+        User user = null;
 
         try {
-            userAccount = new UserAccount();
-        } catch (SQLiteDBConnectionError e) {
-            e.printStackTrace();
-        }
-
-        if (userEmail != null && userAccount != null) {
-            userAccount = userAccount.getUser(userEmail);
-        } else if (userAccount != null) {
-            userAccount = userAccount.getActiveUser();
+            if (userEmail != null) {
+                user = User.getTable().get(userEmail);
+            } else {
+                user = User.getTable().getActive();
+            }
+        } catch (SQLException error) {
+            logConsoleMessage(
+                String.format("Error getting active user from database. Error: %s", error.getMessage()),
+                LogMessageType.CRITICAL
+            );
         }
 
         String streamName, accessKey, secretKey;
 
-        if (userAccount == null || userAccount.getAccessKey() == null || userAccount.getSecretKey() == null || userAccount.getUserEmail() == null) {
-            //Log with the plugin user.
+        if (user == null || user.getAccessKey() == null || user.getSecretKey() == null || user.getEmail() == null) {
+            // Log with the plugin user.
             streamName = PLUGIN_USER_LOG_STREAM;
             if (PLUGIN_USER_ACCESS_KEY == null || PLUGIN_USER_SECRET_KEY == null) {
                 // get directly from configuration, this will trigger config reload from the server.s
@@ -148,9 +149,9 @@ public class CodeSyncLogger {
                 return;
             }
         } else {
-            streamName = userAccount.getUserEmail();
-            accessKey = userAccount.getAccessKey();
-            secretKey = userAccount.getSecretKey();
+            streamName = user.getEmail();
+            accessKey = user.getAccessKey();
+            secretKey = user.getSecretKey();
         }
 
         try {

@@ -4,8 +4,8 @@ import com.intellij.openapi.project.Project;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.Constants;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
+import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.files.AlertsFile;
-import org.intellij.sdk.codesync.database.models.UserAccount;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.DataUtils;
@@ -14,6 +14,7 @@ import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.json.simple.JSONObject;
 
 import javax.swing.*;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -84,13 +85,25 @@ public class ActivityAlerts {
             return;
         }
         CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Activity alert lock acquired.");
-
-        String accessToken = UserAccount.getAccessTokenByEmail();
-        String email = UserAccount.getEmail();
-
-        if (accessToken == null) {
+        User user;
+        try {
+            user = User.getTable().getActive();
+        } catch (SQLException e) {
             ActivityAlerts.remindLater(5);
-            CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Access token is null, waiting for 5 minutes.");
+            CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Database error while fetching active user, waiting for 5 minutes.");
+            return;
+        }
+        if (user == null) {
+            ActivityAlerts.remindLater(5);
+            CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] No active user found, waiting for 5 minutes.");
+            return;
+        }
+        String accessToken = user.getAccessToken();
+        String email = user.getEmail();
+
+        if (accessToken == null || email == null) {
+            ActivityAlerts.remindLater(5);
+            CodeSyncLogger.debug("[CODESYNC_DAEMON] [ACTIVITY_ALERT] Access token/email is null, waiting for 5 minutes.");
             return;
         }
 

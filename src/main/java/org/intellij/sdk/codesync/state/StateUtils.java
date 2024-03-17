@@ -2,15 +2,15 @@ package org.intellij.sdk.codesync.state;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
-import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
-import org.intellij.sdk.codesync.database.models.UserAccount;
 import org.intellij.sdk.codesync.ui.notifications.DeactivatedAccountNotification;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,16 +31,14 @@ public class StateUtils {
         globalState.project = project;
 
         try {
-            UserAccount userAccount = new UserAccount();
-            userAccount = userAccount.getActiveUser();
-            globalState.isAuthenticated = userAccount != null;
-            if (userAccount != null) {
-                globalState.userEmail = userAccount.getUserEmail();
+            User user = User.getTable().getActive();
+            globalState.isAuthenticated = user != null;
+            if (user != null) {
+                globalState.userEmail = user.getEmail();
             }
-        } catch (SQLiteDBConnectionError error) {
+        } catch (SQLException e) {
             globalState.isAuthenticated = false;
         }
-
     }
 
     static public void populateState (Project project) {

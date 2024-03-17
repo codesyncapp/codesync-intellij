@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync.database.tables;
 
+import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.database.Database;
 import org.intellij.sdk.codesync.database.SQLiteConnection;
 import org.intellij.sdk.codesync.database.models.User;
@@ -105,6 +106,61 @@ public class UserTable extends DBTable {
         }
     }
 
+    /*
+    Mark all users except the given id as in-active.
+    This is needed because we want to make sure that only one user is active at a time.
+    */
+    public void markInActive(Integer id) throws SQLException {
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            statement.executeUpdate(this.userQueries.getMarkInActiveQuery(id));
+        }
+    }
+
+    /*
+    Mark all users as in-active.
+     */
+    public void markAllInActive() throws SQLException {
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            statement.executeUpdate(this.userQueries.getMarkAllInActiveQuery());
+        }
+    }
+
+    public User getActive() throws SQLException {
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            ResultSet resultSet = statement.executeQuery(this.userQueries.getSelectActiveQuery());
+            if (resultSet.isBeforeFirst()){
+                return new User(
+                    resultSet.getInt("id"),
+                    resultSet.getString("email"),
+                    resultSet.getString("access_token"),
+                    resultSet.getString("access_key"),
+                    resultSet.getString("secret_key"),
+                    resultSet.getBoolean("is_active")
+                );
+            }
+        }
+        return null;
+    }
+
+    /*
+    Get the access token of the active user from the database.
+     */
+    public String getAccessToken(String email) {
+        try {
+            User user = email == null ? getActive() : get(email);
+            if (user != null) {
+                return user.getAccessToken();
+            }
+        } catch (SQLException error) {
+            CodeSyncLogger.error(String.format("Error while fetching user: %s", error.getMessage()));
+        }
+        return null;
+    }
+
+    public String getAccessToken() {
+        return getAccessToken(null);
+    }
+
     public static void insertNewUser(UserAccount userAccount) throws SQLiteDBConnectionError, SQLiteDataError {
         Database.executeUpdate(Queries.User.insert(userAccount.getUserEmail(), userAccount.getAccessToken(), userAccount.getSecretKey(), userAccount.getAccessKey(), userAccount.getActive()));
     }
@@ -153,9 +209,6 @@ public class UserTable extends DBTable {
             }
             return userAccount;
         }
-
         return null;
-
     }
-
 }

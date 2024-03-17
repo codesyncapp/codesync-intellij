@@ -66,7 +66,7 @@ public class CodeSyncAuthServer {
             return uriBuilder.toString();
         } catch (URISyntaxException e) {
             CodeSyncLogger.critical(
-                    String.format("[INTELLIJ_AUTH_ERROR]: Invalid `CODESYNC_AUTHORIZE_URL` settings. Error: %s", e.getMessage())
+                String.format("[INTELLIJ_AUTH_ERROR]: Invalid `CODESYNC_AUTHORIZE_URL` settings. Error: %s", e.getMessage())
             );
             return null;
         }
