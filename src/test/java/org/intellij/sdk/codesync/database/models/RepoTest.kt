@@ -1,7 +1,5 @@
 package org.intellij.sdk.codesync.database.models
 
-import CodeSyncTestUtils.cleanupCodeSyncDirectory
-import org.intellij.sdk.codesync.Constants
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup
 import org.intellij.sdk.codesync.database.migrations.MigrationManager
 import org.intellij.sdk.codesync.database.tables.RepoTable

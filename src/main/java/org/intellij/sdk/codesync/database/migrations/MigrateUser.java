@@ -13,7 +13,6 @@ import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.*;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.intellij.sdk.codesync.Constants.USER_FILE_PATH;

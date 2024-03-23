@@ -1,79 +1,57 @@
 package org.intellij.sdk.codesync.database
 
-import CodeSyncTestUtils
-import org.intellij.sdk.codesync.utils.Queries
+import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup
+import org.intellij.sdk.codesync.database.migrations.MigrationManager
+import org.intellij.sdk.codesync.database.models.User
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.io.File
-import java.nio.file.Paths
 import kotlin.test.*
 
 
 class DatabaseTest {
 
     @BeforeEach
-    fun before() {
-        //1. Create user table
-        Database.executeUpdate(Queries.User.CREATE_TABLE)
-
-        //2. Add dummy user
-        Database.executeUpdate(Queries.User.insert("dummy@gmail.com","ASDFC", null, null, false));
-    }
+    fun before() {}
 
     @AfterEach
-    fun after() {
-        //1. Disconnect database
+    fun after() {}
+
+    @Test
+    fun validateReconnectingDB() {
+        // Save a user
+        val user = User(
+            "test@codesync.com", "access-token", "access-key", "secrete-key", true
+        )
+        user.save()
+
+        // Make sure id attribute is populated after saving the user.
+        assertNotNull(user.id)
+
+        // Close the database connection.
         SQLiteConnection.getInstance().disconnect()
 
-        //2. Remove test db file
-        var file = File(CodeSyncTestUtils.getTestDBFilePath())
-        file.delete()
-    }
-
-    @Test
-    fun validateRunQuery(){
-        var email = "sample@gmail.com"
-        var access_token = "ACCESS TOKEN"
-        Database.executeUpdate(Queries.User.insert(email, access_token, null, null, true));
-        var resultSet = Database.runQuery(Queries.User.get_by_email(email))
-
-        var row : HashMap<String, String> = resultSet.get(0)
-        assertEquals(1, resultSet.size, "1 row exist.")
-        assertEquals(email, row["EMAIL"])
-        assertEquals(access_token, row["ACCESS_TOKEN"])
-        assertNull(row["SECRET_KEY"])
-        assertNull(row["ACCESS_KEY"])
-        assertEquals(1, Integer.parseInt(row["IS_ACTIVE"]))
-    }
-
-    @Test
-    fun validateReconnectingDB(){
-        var email = "sample@gmail.com"
-        var access_token = "ACCESS TOKEN"
+        user.accessToken = "new-access"
+        user.save()
 
         SQLiteConnection.getInstance().disconnect()
 
-        Database.executeUpdate(Queries.User.insert(email, access_token, null, null, true));
-
-        SQLiteConnection.getInstance().disconnect()
-
-        var resultSet = Database.runQuery(Queries.User.get_by_email(email))
-
-        var row : HashMap<String, String> = resultSet.get(0)
-        assertEquals(1, resultSet.size, "1 row exist.")
-        assertEquals(email, row["EMAIL"])
-        assertEquals(access_token, row["ACCESS_TOKEN"])
-        assertNull(row["SECRET_KEY"])
-        assertNull(row["ACCESS_KEY"])
-        assertEquals(1, Integer.parseInt(row["IS_ACTIVE"]))
+        val userFromDB = User.getTable().get(user.email)
+        assert(userFromDB != null)
+        assert(userFromDB.id == user.id)
+        assert(userFromDB.email == user.email)
+        assert(userFromDB.accessToken == user.accessToken)
+        assert(userFromDB.accessKey == user.accessKey)
     }
 
-    @Test
-    fun userTableCreation(){
-        var resultSet = Database.runQuery(Queries.User.TABLE_EXIST)
-        assertNotNull(resultSet)
-        assertEquals("user", resultSet[0].get("name"))
+    companion object {
+        @JvmStatic
+        @BeforeAll
+        fun setup(): Unit {
+            CodeSyncSetup.createSystemDirectories()
+            // Create the tables in the database. There is no data in the config file so empty tables will be created.
+            MigrationManager.getInstance().runMigrations()
+        }
     }
-
 }
