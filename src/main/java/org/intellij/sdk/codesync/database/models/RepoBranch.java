@@ -2,6 +2,7 @@ package org.intellij.sdk.codesync.database.models;
 
 import org.intellij.sdk.codesync.database.tables.RepoBranchTable;
 import org.intellij.sdk.codesync.database.tables.RepoFileTable;
+import org.intellij.sdk.codesync.exceptions.database.RepoFileNotFound;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -13,20 +14,21 @@ public class RepoBranch extends Model {
     private String name;
     private Integer repoId, id;
 
-    private RepoBranchTable table;
 
     public RepoBranch(Integer id, String name, Integer repoId) {
         this.id = id;
         this.name = name;
         this.repoId = repoId;
-        this.table = RepoBranchTable.getInstance();
     }
 
     public RepoBranch(String name, Integer repoId) {
         this.id = null;
         this.name = name;
         this.repoId = repoId;
-        this.table = RepoBranchTable.getInstance();
+    }
+
+    public static RepoBranchTable getTable() {
+        return RepoBranchTable.getInstance();
     }
 
     public String getName() {
@@ -46,7 +48,7 @@ public class RepoBranch extends Model {
     }
 
     private void getOrCreate() throws SQLException {
-        RepoBranch repoBranch = this.table.getOrCreate(this);
+        RepoBranch repoBranch = getTable().getOrCreate(this);
         if (repoBranch != null) {
             this.id = repoBranch.getId();
         } else {
@@ -55,7 +57,7 @@ public class RepoBranch extends Model {
     }
 
     private void update() throws SQLException {
-        this.table.update(this);
+        getTable().update(this);
     }
 
     public void save() throws SQLException {
@@ -75,10 +77,29 @@ public class RepoBranch extends Model {
     }
 
     public ArrayList<RepoFile> getFiles() throws SQLException {
-        return RepoFileTable.getInstance().find(this.id);
+        return RepoFileTable.getInstance().findAll(this.id);
     }
 
-    public RepoFile getFile(String relativeFilePath) throws SQLException {
+    public RepoFile getFile(String relativeFilePath) throws SQLException, RepoFileNotFound {
         return RepoFileTable.getInstance().get(relativeFilePath, this.id);
+    }
+
+    /*
+    Check if this branch has valid files or not. Files with `null` values are considered invalid. This check is useful
+    to query if all files are invalid or not.
+    */
+    public boolean hasValidFiles() throws SQLException {
+        ArrayList<RepoFile> repoFiles = getFiles();
+        if (repoFiles.isEmpty()) {
+            // TODO: Verify this, should this be false?
+            return true;
+        }
+        for (RepoFile repoFile : repoFiles) {
+            // return `true` if even a single file is valid (i.e. is not `null`).
+            if (repoFile.getServerFileId() != null) {
+                return true;
+            }
+        }
+        return false;
     }
 }

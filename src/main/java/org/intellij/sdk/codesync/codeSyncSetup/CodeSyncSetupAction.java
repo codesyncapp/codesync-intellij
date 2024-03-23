@@ -13,6 +13,7 @@ import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
 import org.intellij.sdk.codesync.exceptions.base.BaseException;
 import org.intellij.sdk.codesync.exceptions.base.BaseNetworkException;
+import org.intellij.sdk.codesync.exceptions.database.UserNotFound;
 import org.intellij.sdk.codesync.exceptions.network.RepoUpdateError;
 import org.intellij.sdk.codesync.exceptions.network.ServerConnectionError;
 import org.intellij.sdk.codesync.state.RepoStatus;
@@ -101,7 +102,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
             case DISCONNECTED:
                 try {
                     CodeSyncSetup.reconnectRepo(project, repoPath, repoName);
-                } catch (InvalidConfigFileError | ServerConnectionError | RepoUpdateError | SQLiteDBConnectionError | SQLiteDataError error) {
+                } catch (UserNotFound | ServerConnectionError | RepoUpdateError | SQLException error) {
                     NotificationManager.getInstance().notifyError(Notification.REPO_RECONNECT_FAILED, project);
                     NotificationManager.getInstance().notifyError(error.getMessage(), project);
                     CodeSyncLogger.critical(

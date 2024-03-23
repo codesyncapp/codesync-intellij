@@ -3,11 +3,14 @@ package org.intellij.sdk.codesync.database.tables;
 import org.intellij.sdk.codesync.database.SQLiteConnection;
 import org.intellij.sdk.codesync.database.models.RepoFile;
 import org.intellij.sdk.codesync.database.queries.RepoFileQueries;
+import org.intellij.sdk.codesync.exceptions.database.RepoFileNotFound;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Objects;
 
 public class RepoFileTable extends DBTable {
     private final String tableName = "repo_file";
@@ -35,7 +38,7 @@ public class RepoFileTable extends DBTable {
         return repoFileQueries.getCreateTableQuery();
     }
 
-    public RepoFile get(String path, Integer repoBranchId) throws SQLException {
+    public RepoFile get(String path, Integer repoBranchId) throws SQLException, RepoFileNotFound {
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             ResultSet resultSet = statement.executeQuery(this.repoFileQueries.getSelectQuery(path, repoBranchId));
             if (resultSet.isBeforeFirst()) {
@@ -47,7 +50,15 @@ public class RepoFileTable extends DBTable {
                 );
             }
         }
-        return null;
+        throw new RepoFileNotFound(String.format("RepoFile with path '%s' and branch '%s' not found.", path, repoBranchId));
+    }
+
+    public RepoFile find(String path, Integer repoBranchId) throws SQLException {
+        try {
+            return get(path, repoBranchId);
+        } catch (RepoFileNotFound e) {
+            return null;
+        }
     }
 
     /*
@@ -55,7 +66,7 @@ public class RepoFileTable extends DBTable {
 
     This will join the related tables to get the RepoFile.
      */
-    public RepoFile get(String repoPath, String repoBranchName, String filePath) throws SQLException {
+    public RepoFile get(String repoPath, String repoBranchName, String filePath) throws SQLException, RepoFileNotFound {
         // TODO: Perform performance comparison between join and separate queries.
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             ResultSet resultSet = statement.executeQuery(this.repoFileQueries.getSelectQuery(repoPath, repoBranchName, filePath));
@@ -68,10 +79,10 @@ public class RepoFileTable extends DBTable {
                 );
             }
         }
-        return null;
+        throw new RepoFileNotFound(String.format("RepoFile with repo path '%s', branch '%s' and path not found.", repoPath, repoBranchName, filePath));
     }
 
-    public ArrayList<RepoFile> find(Integer repoBranchId) throws SQLException {
+    public ArrayList<RepoFile> findAll(Integer repoBranchId) throws SQLException {
         ArrayList<RepoFile> repoFiles = new ArrayList<>();
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             ResultSet resultSet = statement.executeQuery(this.repoFileQueries.getSelectQuery(repoBranchId));
@@ -92,7 +103,7 @@ public class RepoFileTable extends DBTable {
     }
 
     public RepoFile getOrCreate(RepoFile repoFile) throws SQLException {
-        RepoFile existingRepoFile = get(repoFile.getPath(), repoFile.getRepoBranchId());
+        RepoFile existingRepoFile = find(repoFile.getPath(), repoFile.getRepoBranchId());
         if (existingRepoFile == null) {
             return insert(repoFile);
         } else {
@@ -105,7 +116,16 @@ public class RepoFileTable extends DBTable {
     public RepoFile insert(RepoFile repoFile) throws SQLException {
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             statement.executeUpdate(this.repoFileQueries.getInsertQuery(repoFile.getPath(), repoFile.getRepoBranchId(), repoFile.getServerFileId()));
-            return get(repoFile.getPath(), repoFile.getRepoBranchId());
+            return find(repoFile.getPath(), repoFile.getRepoBranchId());
+        }
+    }
+
+    /*
+    Bulk insert repo files into the database.
+    */
+    public void bulkInsert(ArrayList<RepoFile> repoFiles) throws SQLException {
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            statement.executeUpdate(this.repoFileQueries.getBulkInsertQuery(repoFiles));
         }
     }
 

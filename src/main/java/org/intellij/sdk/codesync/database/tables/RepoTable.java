@@ -4,10 +4,12 @@ import org.intellij.sdk.codesync.database.SQLiteConnection;
 import org.intellij.sdk.codesync.database.models.Repo;
 import org.intellij.sdk.codesync.database.queries.RepoQueries;
 import org.intellij.sdk.codesync.enums.RepoState;
+import org.intellij.sdk.codesync.exceptions.database.RepoNotFound;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 /*
     This class is used to interact with the Repo table in the database.
@@ -39,7 +41,7 @@ public class RepoTable extends DBTable {
         return this.repoQueries.getCreateTableQuery();
     }
 
-    public Repo get(String repoPath) throws SQLException {
+    public Repo get(String repoPath) throws SQLException, RepoNotFound {
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             ResultSet resultSet = statement.executeQuery(this.repoQueries.getSelectQuery(repoPath));
 
@@ -54,11 +56,38 @@ public class RepoTable extends DBTable {
                 );
             }
         }
-        return null;
+
+        throw new RepoNotFound(String.format("Repo with path '%s' not found.", repoPath));
+    }
+
+    public Repo find(String repoPath) throws SQLException {
+        try {
+            return get(repoPath);
+        } catch (RepoNotFound e) {
+            return null;
+        }
+    }
+
+    public ArrayList<Repo> findAll() throws SQLException {
+        ArrayList<Repo> repos = new ArrayList<>();
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            ResultSet resultSet = statement.executeQuery(this.repoQueries.getSelectAllQuery());
+            while (resultSet.next()) {
+                repos.add(new Repo(
+                    resultSet.getInt("id"),
+                    resultSet.getInt("server_repo_id"),
+                    resultSet.getString("name"),
+                    resultSet.getString("path"),
+                    resultSet.getInt("user_id"),
+                    RepoState.fromString(resultSet.getString("state"))
+                ));
+            }
+        }
+        return repos;
     }
 
     public Repo getOrCreate(Repo repo) throws SQLException {
-        Repo existingRepo = get(repo.getPath());
+        Repo existingRepo = find(repo.getPath());
         if (existingRepo == null) {
             return insert(repo);
         } else {
@@ -76,7 +105,7 @@ public class RepoTable extends DBTable {
             );
         }
         // return the user object with the id
-        return get(repo.getPath());
+        return find(repo.getPath());
     }
 
     public void update(Repo repo) throws SQLException {

@@ -4,6 +4,7 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.database.SQLiteConnection;
 import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.database.queries.UserQueries;
+import org.intellij.sdk.codesync.exceptions.database.UserNotFound;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,7 +35,7 @@ public class UserTable extends DBTable {
         return userQueries.getCreateTableQuery();
     }
 
-    public User get(String email) throws SQLException {
+    public User get(String email) throws SQLException, UserNotFound {
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             ResultSet resultSet = statement.executeQuery(this.userQueries.getSelectQuery(email));
             if (resultSet.isBeforeFirst()){
@@ -49,10 +50,10 @@ public class UserTable extends DBTable {
             }
 
         }
-        return null;
+        throw new UserNotFound(String.format("User with email '%s' not found.", email));
     }
 
-    public User get(Integer userId) throws SQLException {
+    public User get(Integer userId) throws SQLException, UserNotFound {
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             ResultSet resultSet = statement.executeQuery(this.userQueries.getSelectQuery(userId));
             if (resultSet.isBeforeFirst()){
@@ -67,11 +68,27 @@ public class UserTable extends DBTable {
             }
 
         }
-        return null;
+        throw new UserNotFound(String.format("User with id '%s' not found.", userId));
+    }
+
+    public User find(String email) throws SQLException {
+        try {
+            return get(email);
+        } catch (UserNotFound e) {
+            return null;
+        }
+    }
+
+    public User find(Integer userId) throws SQLException {
+        try {
+            return get(userId);
+        } catch (UserNotFound e) {
+            return null;
+        }
     }
 
     public User getOrCreate(User user) throws SQLException {
-        User existingUser = get(user.getEmail());
+        User existingUser = find(user.getEmail());
         if (existingUser == null) {
             return insert(user);
         } else {
@@ -88,7 +105,7 @@ public class UserTable extends DBTable {
             );
         }
         // return the user object with the id
-        return get(user.getEmail());
+        return find(user.getEmail());
     }
 
     public void update(User user) throws SQLException {
@@ -140,7 +157,7 @@ public class UserTable extends DBTable {
      */
     public String getAccessToken(String email) {
         try {
-            User user = email == null ? getActive() : get(email);
+            User user = email == null ? getActive() : find(email);
             if (user != null) {
                 return user.getAccessToken();
             }

@@ -37,6 +37,13 @@ public class RepoBranchQueries extends CommonQueries {
         return String.format("SELECT * FROM %s WHERE repo_id = %s;", this.tableName, repoId);
     }
 
+    /*
+    Get query to select all branches for a given repo.
+     */
+    public String getBranchCountQuery(Integer repoId) {
+        return String.format("SELECT COUNT(*) FROM %s WHERE repo_id = %s;", this.tableName, repoId);
+    }
+
     public String getUpdateQuery(Integer id, String name, Integer repoId) {
         return String.format(
                 "UPDATE %s SET name = %s, repo_id = %s WHERE id = %s",

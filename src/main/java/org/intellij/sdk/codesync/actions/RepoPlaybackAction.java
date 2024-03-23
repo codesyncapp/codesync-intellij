@@ -9,6 +9,7 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.database.models.Repo;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
+import org.intellij.sdk.codesync.exceptions.database.RepoNotFound;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -117,13 +118,11 @@ public class RepoPlaybackAction extends BaseModuleAction {
             ));
 
             return;
-        }
-
-        if (repo == null) {
+        } catch (RepoNotFound ex) {
             NotificationManager.getInstance().notifyError(
                 String.format(
                     "An error occurred trying to perform repo playback action. Because Repo '%s' is not being synced.",
-                        repoName
+                    repoName
                 ),
                 project
             );

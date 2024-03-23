@@ -9,6 +9,7 @@ import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.database.tables.*;
 import org.intellij.sdk.codesync.enums.RepoState;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
+import org.intellij.sdk.codesync.exceptions.database.UserNotFound;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
@@ -62,13 +63,13 @@ public class MigrateRepo implements Migration {
     }
 
     private User getOrCreateUser(String email) throws SQLException {
-        User user = UserTable.getInstance().get(email);
-        if (user == null) {
-            user = UserTable.getInstance().insert(
-                    new User(email, null, null, null, true)
-            );
+        try {
+            return UserTable.getInstance().get(email);
+        } catch (UserNotFound e) {
+            User user  = new User(email, null, null, null, true);
+            user.save();
+            return user;
         }
-        return user;
     }
 
     private RepoState getState(ConfigRepo configRepo) {

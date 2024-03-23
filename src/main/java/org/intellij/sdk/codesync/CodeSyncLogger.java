@@ -116,7 +116,7 @@ public class CodeSyncLogger {
 
         try {
             if (userEmail != null) {
-                user = User.getTable().get(userEmail);
+                user = User.getTable().find(userEmail);
             } else {
                 user = User.getTable().getActive();
             }

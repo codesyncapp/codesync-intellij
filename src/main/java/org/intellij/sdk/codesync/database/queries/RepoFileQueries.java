@@ -1,7 +1,10 @@
 package org.intellij.sdk.codesync.database.queries;
 
+import org.intellij.sdk.codesync.database.models.RepoFile;
 import org.intellij.sdk.codesync.database.tables.RepoBranchTable;
 import org.intellij.sdk.codesync.database.tables.RepoTable;
+
+import java.util.ArrayList;
 
 public class RepoFileQueries extends CommonQueries {
     private final String tableName;
@@ -26,6 +29,34 @@ public class RepoFileQueries extends CommonQueries {
                 repoBranchId,
                 serverFileId
         );
+    }
+
+    public String getBulkInsertQuery(ArrayList<RepoFile> repoFiles) {
+        StringBuilder query = new StringBuilder(String.format(
+            "INSERT INTO %s (path, repo_branch_id, server_file_id) VALUES ", tableName
+        ));
+
+        // Process n-1 elements
+        for (int i = 0; i < repoFiles.size() - 1; i++) {
+            query.append(String.format(
+                " (%s, %s, %s),",
+                String.format("'%s'", repoFiles.get(i).getPath()),
+                repoFiles.get(i).getRepoBranchId(),
+                repoFiles.get(i).getServerFileId()
+            ));
+        }
+
+        int lastElement = repoFiles.size() - 1;
+
+        // Process the last element.
+        query.append(String.format(
+            " (%s, %s, %s);",
+            String.format("'%s'", repoFiles.get(lastElement).getPath()),
+            repoFiles.get(lastElement).getRepoBranchId(),
+            repoFiles.get(lastElement).getServerFileId()
+        ));
+
+        return query.toString();
     }
 
     public String getSelectQuery(String path, Integer repoBranchId) {

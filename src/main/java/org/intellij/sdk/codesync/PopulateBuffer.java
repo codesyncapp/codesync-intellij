@@ -5,13 +5,16 @@ import org.apache.commons.text.similarity.*;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.codeSyncSetup.S3FilesUploader;
+import org.intellij.sdk.codesync.database.models.Repo;
+import org.intellij.sdk.codesync.database.models.RepoBranch;
+import org.intellij.sdk.codesync.database.models.RepoFile;
 import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.FileInfoError;
-import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
+import org.intellij.sdk.codesync.exceptions.base.NotFound;
+import org.intellij.sdk.codesync.exceptions.database.RepoBranchNotFound;
+import org.intellij.sdk.codesync.exceptions.database.RepoNotFound;
+import org.intellij.sdk.codesync.exceptions.database.UserNotFound;
 import org.intellij.sdk.codesync.factories.DiffFactory;
-import org.intellij.sdk.codesync.files.ConfigFile;
-import org.intellij.sdk.codesync.files.ConfigRepo;
-import org.intellij.sdk.codesync.files.ConfigRepoBranch;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
@@ -23,6 +26,7 @@ import static org.intellij.sdk.codesync.Constants.*;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -52,9 +56,9 @@ public class PopulateBuffer {
     public Set<String> renamedFiles = new HashSet<>();
     public static final Set<String> reposBeingSynced = new HashSet<>();
     String repoPath, branchName;
-    ConfigFile configFile;
-    ConfigRepo configRepo;
-    ConfigRepoBranch configRepoBranch;
+    Repo repo;
+    RepoBranch repoBranch;
+    Map<String, RepoFile> repoFiles;
 
     ShadowRepoManager shadowRepoManager;
     DeletedRepoManager deletedRepoManager;
@@ -66,37 +70,18 @@ public class PopulateBuffer {
     String[] filePaths, relativeFilePaths;
     Map<String, Map<String, Object>> fileInfoMap = new HashMap<>();
 
-    public PopulateBuffer(String repoPath, String branchName) {
+    public PopulateBuffer(String repoPath, String branchName) throws SQLException, RepoNotFound {
         this.repoPath = repoPath;
         this.branchName = branchName;
 
         this.shadowRepoManager = new ShadowRepoManager(this.repoPath, this.branchName);
         this.deletedRepoManager = new DeletedRepoManager(this.repoPath, this.branchName);
         this.originalsRepoManager = new OriginalsRepoManager(this.repoPath, this.branchName);
-
-        ConfigFile configFile;
-        try {
-            configFile = new ConfigFile(CONFIG_PATH);
-        } catch (InvalidConfigFileError error) {
-            CodeSyncLogger.critical(String.format(
-                "[POPULATE_BUFFER] Config file error, %s.\n", error.getMessage()
-            ));
-            return ;
+        this.repo = Repo.getTable().get(repoPath);
+        this.repoBranch = RepoBranch.getTable().get(branchName, this.repo.getId());
+        for (RepoFile repoFile: this.repoBranch.getFiles()) {
+            this.repoFiles.put(repoFile.getPath(), repoFile);
         }
-        ConfigRepo configRepo = configFile.getRepo(repoPath);
-        if (configRepo == null) {
-            return;
-        }
-
-        ConfigRepoBranch configRepoBranch = configFile.getRepo(repoPath).getRepoBranch(branchName);
-        if (configRepoBranch == null) {
-            // Branch is not synced yet, we need to call init for this branch. That will be handled by other flows
-            // We can simply ignore this.
-            return ;
-        }
-        this.configFile = configFile;
-        this.configRepo = configFile.getRepo(repoPath);
-        this.configRepoBranch = configRepoBranch;
 
         this.filePaths = FileUtils.listFiles(repoPath);
         this.relativeFilePaths = Arrays.stream(this.filePaths)
@@ -173,29 +158,37 @@ public class PopulateBuffer {
             return reposToUpdate;
         }
 
-        ConfigFile configFile;
+        ArrayList<Repo> repos;
         try {
-            configFile = new ConfigFile(CONFIG_PATH);
-        } catch (InvalidConfigFileError error) {
+            repos = Repo.getTable().findAll();
+        } catch (SQLException error) {
             CodeSyncLogger.critical(String.format(
-                "[POPULATE_BUFFER] Config file error, %s.\n", error.getMessage()
+                "[POPULATE_BUFFER] Error while fetching repos from the database. Error: %s.\n", error.getMessage()
             ));
             return reposToUpdate;
         }
-        Map<String, ConfigRepo> configRepoMap = configFile.getRepos();
 
-        for (Map.Entry<String, ConfigRepo> configRepoEntry: configRepoMap.entrySet()) {
-            String repoPath = configRepoEntry.getKey();
-            String repoName = Paths.get(repoPath).getFileName().toString();
-            ConfigRepo configRepo = configRepoEntry.getValue();
+        for (Repo repo: repos) {
+            String repoPath = repo.getPath();
+            String repoName = repo.getName();
 
-            if (!configRepo.isActive()) {
+            if (!repo.isActive()) {
                 // Repo is not active so no need to check updates for this repo.
                 continue;
             }
+            User user;
+            try {
+                user = repo.getUser();
+            } catch (SQLException e) {
+                CodeSyncLogger.error(String.format("Error while fetching user for repo: %s", repoPath));
+                continue;
+            } catch (UserNotFound e) {
+                CodeSyncLogger.error(String.format("User not found for repo: %s", repoPath));
+                continue;
+            }
 
-            if (User.getTable().getAccessToken(configRepo.email) == null) {
-                CodeSyncLogger.error(String.format("Access token not found for repo: %s, %s`.", repoPath, configRepo.email));
+            if (user.getAccessToken() == null) {
+                CodeSyncLogger.error(String.format("Access token not found for repo: %s, %s`.", repoPath, user.getEmail()));
                 continue;
             }
             // If repo path does not exist anymore, skip it
@@ -220,8 +213,14 @@ public class PopulateBuffer {
                 // branch is already being synced.
                 continue;
             }
+            RepoBranch repoBranch;
 
-            if (!configRepo.containsBranch(branchName)) {
+            try {
+                repoBranch = repo.getBranch(branchName);
+            } catch (SQLException e) {
+                CodeSyncLogger.error(String.format("Error while fetching branch for repo: %s", repoPath));
+                continue;
+            } catch (RepoBranchNotFound e) {
                 Project project = CommonUtils.getCurrentProject(repoPath);
                 if (Paths.get(originalsRepoManager.getBaseRepoBranchDir()).toFile().exists()) {
                     String[] filePaths = FileUtils.listFiles(repoPath);
@@ -235,9 +234,15 @@ public class PopulateBuffer {
                 continue;
             }
 
-            ConfigRepoBranch configRepoBranch = configRepo.getRepoBranch(branchName);
+            boolean hasValidFiles;
+            try {
+                hasValidFiles = repoBranch.hasValidFiles();
+            } catch (SQLException e) {
+                CodeSyncLogger.error(String.format("Error while checking if branch has valid files: %s", repoPath));
+                continue;
+            }
 
-            if (!configRepoBranch.hasValidFiles()) {
+            if (!hasValidFiles) {
                 Project project = CommonUtils.getCurrentProject(repoPath);
 
                 String[] filePaths = FileUtils.listFiles(repoPath);
@@ -262,22 +267,23 @@ public class PopulateBuffer {
             Map<String, Object> diffsForDeletedFiles = new HashMap<>();
             Map<String, Object> diffs = new HashMap<>();
 
-            PopulateBuffer populateBuffer = new PopulateBuffer(repoPath, branchName);
-            if (populateBuffer.configFile == null || populateBuffer.configRepoBranch == null || populateBuffer.configRepo == null) {
+            PopulateBuffer populateBuffer = null;
+            try {
+                populateBuffer = new PopulateBuffer(repoPath, branchName);
+                if (populateBuffer.repo.isActive()) {
+                    if (populateBuffer.isModifiedSinceLastSync()) {
+                        diffsForFileUpdates = populateBuffer.getDiffsForFileUpdates();
+                    }
+                    diffsForDeletedFiles = populateBuffer.getDiffsOfDeletedFiles();
+                }
+            } catch (SQLException | NotFound e) {
+                // TODO: Handle this error.
                 // Skip it for now, it will be handled in the future.
                 CodeSyncLogger.critical(String.format(
                     "[NON_IDE_EVENTS] Could not populate for missed events, because config file for repo '%s' could not be opened.",
                     repoPath
                 ));
                 continue;
-            }
-
-            if (populateBuffer.configRepo.isActive()) {
-                if (populateBuffer.isModifiedSinceLastSync()) {
-                    diffsForFileUpdates = populateBuffer.getDiffsForFileUpdates();
-                }
-                diffsForDeletedFiles = populateBuffer.getDiffsOfDeletedFiles();
-
             }
 
             diffs.putAll(diffsForFileUpdates);
@@ -365,7 +371,7 @@ public class PopulateBuffer {
 
             // If file reference is present in the configFile, then we simply need to check if it was updated.
             // We only track changes to non-binary files, hence the check in here.
-            if (this.configRepoBranch.hasFile(relativeFilePath) && !isBinary) {
+            if (this.repoFiles.containsKey(relativeFilePath) && !isBinary) {
                 Map<String, Object> fileInfo = this.fileInfoMap.get(relativeFilePath);
 
                 if (shadowFile.exists()) {
@@ -412,7 +418,7 @@ public class PopulateBuffer {
             //  2. shadow file is not present
             // Then the file could either be a new file or a renamed file.
             //  We will first perform rename-check to either rule-out that possibility or handle file rename.
-            if (!this.configRepoBranch.hasFile(relativeFilePath) && !shadowFile.exists() && !FileUtils.isBinaryFile(filePath.toFile())) {
+            if (!this.repoFiles.containsKey(relativeFilePath) && !shadowFile.exists() && !FileUtils.isBinaryFile(filePath.toFile())) {
                 Map<String, Object> renameResult = checkForRename(filePath.toString());
                 String shadowFilePath = (String) renameResult.get("shadowFilePath");
                 isRename = (Boolean) renameResult.get("isRename");
@@ -430,7 +436,7 @@ public class PopulateBuffer {
                 }
             }
 
-            boolean isNewFile = !this.configRepoBranch.hasFile(relativeFilePath) &&
+            boolean isNewFile = !this.repoFiles.containsKey(relativeFilePath) &&
                     !isRename &&
                     !this.originalsRepoManager.hasFile(relativeFilePath) &&
                     !this.shadowRepoManager.hasFile(relativeFilePath);
@@ -515,13 +521,13 @@ public class PopulateBuffer {
         return jaroWinklerSimilarity.apply(first, second);
     }
 
-    public Map<String, Object> getDiffsOfDeletedFiles(){
+    public Map<String, Object> getDiffsOfDeletedFiles() throws SQLException {
         Map<String, Object> diffs = new HashMap<>();
 
         Set<String> relativeFilePaths = Arrays.stream(this.relativeFilePaths)
                 .collect(Collectors.toSet());
 
-        for (String relativeFilePath : this.configRepoBranch.getFiles().keySet()) {
+        for (String relativeFilePath : this.repoFiles.keySet()) {
             // Check if we should ignore this file.
             if (
                     relativeFilePaths.contains(relativeFilePath) ||

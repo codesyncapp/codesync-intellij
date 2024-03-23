@@ -5,6 +5,8 @@ import org.intellij.sdk.codesync.database.tables.RepoTable;
 import org.intellij.sdk.codesync.database.tables.UserTable;
 import org.intellij.sdk.codesync.enums.RepoState;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
+import org.intellij.sdk.codesync.exceptions.database.RepoBranchNotFound;
+import org.intellij.sdk.codesync.exceptions.database.UserNotFound;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -109,20 +111,32 @@ public class Repo extends Model {
     }
 
     public ArrayList<RepoBranch> getBranches() throws SQLException {
-        return RepoBranchTable.getInstance().get(this.id);
+        return RepoBranchTable.getInstance().findAll(this.id);
     }
 
     /*
     Utility method to get the user object from the database.
      */
-    public User getUser() throws SQLException {
+    public User getUser() throws SQLException, UserNotFound {
         return UserTable.getInstance().get(this.userId);
     }
 
     /*
     Utility method to get the branch object from the database.
      */
-    public RepoBranch getBranch(String branchName) throws SQLException {
+    public RepoBranch getBranch(String branchName) throws SQLException, RepoBranchNotFound {
         return RepoBranchTable.getInstance().get(branchName, this.id);
     }
+
+    public boolean hasSyncedBranches() throws SQLException {
+        return RepoBranchTable.getInstance().getBranchCount(this.id) > 0;
+    }
+
+    /*
+    Utility method to check if the repo is active.
+    */
+    public boolean isActive() {
+        return this.state == RepoState.SYNCED && this.userId != null && this.serverRepoId != null;
+    }
+
 }

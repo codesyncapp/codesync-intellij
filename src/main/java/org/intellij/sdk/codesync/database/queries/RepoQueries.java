@@ -36,6 +36,9 @@ public class RepoQueries extends CommonQueries {
         return String.format("SELECT * FROM %s WHERE path = '%s';", this.tableName, repoPath);
     }
 
+    public String getSelectAllQuery() {
+        return String.format("SELECT * FROM %s;", this.tableName);
+    }
     public String getUpdateQuery(String path, Integer userId, String state) {
         return String.format(
             "UPDATE %s SET user_id = %s, state = %s WHERE path = %s",
