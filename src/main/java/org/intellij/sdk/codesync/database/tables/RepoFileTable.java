@@ -50,7 +50,28 @@ public class RepoFileTable extends DBTable {
         return null;
     }
 
-    public ArrayList<RepoFile> get(Integer repoBranchId) throws SQLException {
+    /*
+    Get RepoFile by path, repoBranchName and filePath.
+
+    This will join the related tables to get the RepoFile.
+     */
+    public RepoFile get(String repoPath, String repoBranchName, String filePath) throws SQLException {
+        // TODO: Perform performance comparison between join and separate queries.
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            ResultSet resultSet = statement.executeQuery(this.repoFileQueries.getSelectQuery(repoPath, repoBranchName, filePath));
+            if (resultSet.isBeforeFirst()) {
+                return new RepoFile(
+                    resultSet.getInt("id"),
+                    resultSet.getString("path"),
+                    resultSet.getInt("repo_branch_id"),
+                    resultSet.getInt("server_file_id")
+                );
+            }
+        }
+        return null;
+    }
+
+    public ArrayList<RepoFile> find(Integer repoBranchId) throws SQLException {
         ArrayList<RepoFile> repoFiles = new ArrayList<>();
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             ResultSet resultSet = statement.executeQuery(this.repoFileQueries.getSelectQuery(repoBranchId));

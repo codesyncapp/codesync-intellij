@@ -75,6 +75,10 @@ public class RepoBranch extends Model {
     }
 
     public ArrayList<RepoFile> getFiles() throws SQLException {
-        return RepoFileTable.getInstance().get(this.id);
+        return RepoFileTable.getInstance().find(this.id);
+    }
+
+    public RepoFile getFile(String relativeFilePath) throws SQLException {
+        return RepoFileTable.getInstance().get(relativeFilePath, this.id);
     }
 }

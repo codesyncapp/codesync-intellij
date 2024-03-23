@@ -7,6 +7,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
+import org.intellij.sdk.codesync.database.models.Repo;
+import org.intellij.sdk.codesync.database.models.RepoBranch;
+import org.intellij.sdk.codesync.database.models.RepoFile;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.files.ConfigFile;
@@ -18,10 +21,10 @@ import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.sql.SQLException;
 import java.util.regex.Pattern;
 
-import static org.intellij.sdk.codesync.Constants.CONFIG_PATH;
-import static org.intellij.sdk.codesync.Constants.FILE_PLAYBACK_LINK;
+import static org.intellij.sdk.codesync.Constants.*;
 
 public class FilePlaybackAction extends BaseModuleAction {
     @Override
@@ -59,13 +62,12 @@ public class FilePlaybackAction extends BaseModuleAction {
             return;
         }
 
-        String repoPath, repoName;
+        String repoPath;
         VirtualFile virtualFile = e.getRequiredData(CommonDataKeys.PSI_FILE).getVirtualFile();
         String openedFilePath = virtualFile.getPath();
 
         try {
             repoPath = ProjectUtils.getRepoPath(virtualFile, project);
-            repoName = ProjectUtils.getRepoName(virtualFile, project);
         } catch (FileNotInModuleError error) {
             NotificationManager.getInstance().notifyError("An error occurred trying to perform file playback action.", project);
             CodeSyncLogger.warning(String.format(
@@ -80,76 +82,39 @@ public class FilePlaybackAction extends BaseModuleAction {
         String relativeFilePath = openedFilePath.replace(repoPath, "")
                 .replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), "");
 
-        ConfigRepo configRepo;
+        String branchName = GitUtils.getBranchName(repoPath);
+        RepoFile repoFile;
+
         try {
-            ConfigFile configFile = new ConfigFile(CONFIG_PATH);
-            configRepo = configFile.getRepo(repoPath);
-        } catch (InvalidConfigFileError error) {
+            repoFile = RepoFile.getTable().get(repoPath, branchName, relativeFilePath);
+        } catch (SQLException ex) {
             NotificationManager.getInstance().notifyError(
-                "An error occurred trying to perform file playback action. CodeSync configuration file is malformed.",
+                "An error occurred trying to perform file playback action. Could not get file record from the database.",
                 project
             );
             CodeSyncLogger.critical(String.format(
-                    "An error occurred trying to perform file playback action. Invalid Config File. Error: %s",
-                    error.getMessage()
+                "An error occurred trying to perform file playback action. Error while fetching file record. Error: %s",
+                ex.getMessage()
             ));
 
             return;
         }
 
-        if (configRepo == null) {
-            NotificationManager.getInstance().notifyError(
-                String.format(
-                    "An error occurred trying to perform file playback action. Because Repo '%s' is not being synced.",
-                        repoName
-                ),
-                project
-            );
-            CodeSyncLogger.warning(String.format(
-                "An error occurred trying to perform file playback action. Repo '%s' not found in the config file.",
-                repoPath
-            ));
-
-            return;
-        }
-        String branchName = GitUtils.getBranchName(repoPath);
-        ConfigRepoBranch configRepoBranch = configRepo.getRepoBranch(branchName);
-
-        if (configRepoBranch == null) {
-            NotificationManager.getInstance().notifyError(
-                String.format(
-                    "An error occurred trying to perform file playback action. Branch '%s' is not yet synced.",
-                    branchName
-                ),
-                project
-            );
-            CodeSyncLogger.warning(String.format(
-                "An error occurred trying to perform file playback action. " +
-                "Branch '%s' not found in the config file repo '%s'.",
-                branchName,
-                repoPath
-            ));
-
-            return;
-        }
-
-        Integer fileId = configRepoBranch.getFileId(relativeFilePath);
-
-        if (fileId == null) {
+        if (repoFile == null) {
             NotificationManager.getInstance().notifyError(
                 "An error occurred trying to perform file playback action. This file is not yet synced with CodeSync servers.",
                 project
             );
             CodeSyncLogger.warning(String.format(
                 "An error occurred trying to perform file playback action. " +
-                        "File '%s' not found in the config file repo '%s'.",
+                        "File '%s' not found in the database for repo '%s'.",
                 relativeFilePath,
                 repoPath
             ));
 
             return;
         }
-        String url = String.format(FILE_PLAYBACK_LINK, fileId);
+        String url = String.format(FILE_PLAYBACK_LINK, repoFile.getId());
         BrowserUtil.browse(url);
     }
 }

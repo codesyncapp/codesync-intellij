@@ -29,7 +29,6 @@ public class Repo extends Model {
         this.serverRepoId = serverRepoId;
         this.userId = userId;
         this.state = state;
-        this.table = RepoTable.getInstance();
     }
 
     /*
@@ -43,7 +42,6 @@ public class Repo extends Model {
         this.path = path;
         this.userId = userId;
         this.state = state;
-        this.table = RepoTable.getInstance();
     }
 
     /*
@@ -70,8 +68,8 @@ public class Repo extends Model {
             this.update();
         }
     }
-    public RepoTable getTable() {
-        return table;
+    public static RepoTable getTable() {
+        return RepoTable.getInstance();
     }
 
     public String getName() {
@@ -114,7 +112,17 @@ public class Repo extends Model {
         return RepoBranchTable.getInstance().get(this.id);
     }
 
+    /*
+    Utility method to get the user object from the database.
+     */
     public User getUser() throws SQLException {
         return UserTable.getInstance().get(this.userId);
+    }
+
+    /*
+    Utility method to get the branch object from the database.
+     */
+    public RepoBranch getBranch(String branchName) throws SQLException {
+        return RepoBranchTable.getInstance().get(branchName, this.id);
     }
 }

@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync.database.queries;
 
 import org.intellij.sdk.codesync.database.tables.RepoBranchTable;
+import org.intellij.sdk.codesync.database.tables.RepoTable;
 
 public class RepoFileQueries extends CommonQueries {
     private final String tableName;
@@ -36,6 +37,17 @@ public class RepoFileQueries extends CommonQueries {
     */
     public String getSelectQuery(Integer repoBranchId) {
         return String.format("SELECT * FROM %s WHERE repo_branch_id = %s;", this.tableName, repoBranchId);
+    }
+
+    public String getSelectQuery(String repoPath, String repoBranchName, String filePath) {
+        String repoBranchTable = RepoBranchTable.getInstance().getTableName();
+        String repoTable = RepoTable.getInstance().getTableName();
+        return String.format("SELECT * FROM %s ", this.tableName) +
+            String.format("INNER JOIN %s rb on rb.id = %s.repo_branch_id ", repoBranchTable, this.tableName) +
+            String.format("INNER JOIN %s r on r.id = rb.repo_id ", repoTable) +
+            String.format("WHERE r.path = '%s' ", repoPath) +
+            String.format("AND rb.name = '%s' ", repoBranchName) +
+            String.format("AND path = '%s'", filePath);
     }
 
     public String getUpdateQuery(Integer id, String path, Integer repoBranchId, Integer serverFileId) {

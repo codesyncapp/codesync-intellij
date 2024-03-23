@@ -11,15 +11,11 @@ public class RepoFile extends Model {
     private String path;
     private Integer repoBranchId, id, serverFileId;
 
-    private RepoFileTable table;
-
     public RepoFile(Integer id, String path, Integer repoBranchId, Integer serverFileId) {
         this.id = id;
         this.path = path;
         this.repoBranchId = repoBranchId;
         this.serverFileId = serverFileId;
-
-        this.table = RepoFileTable.getInstance();
     }
 
     public RepoFile(String path, Integer repoBranchId, Integer serverFileId) {
@@ -27,8 +23,10 @@ public class RepoFile extends Model {
         this.path = path;
         this.repoBranchId = repoBranchId;
         this.serverFileId = serverFileId;
+    }
 
-        this.table = RepoFileTable.getInstance();
+    public static RepoFileTable getTable() {
+        return RepoFileTable.getInstance();
     }
 
     public String getPath() {
@@ -45,7 +43,7 @@ public class RepoFile extends Model {
     }
 
     private void getOrCreate() throws SQLException {
-        RepoFile repoFile = this.table.getOrCreate(this);
+        RepoFile repoFile = getTable().getOrCreate(this);
         if (repoFile != null) {
             this.id = repoFile.getId();
         } else {
@@ -54,7 +52,7 @@ public class RepoFile extends Model {
     }
 
     private void update() throws SQLException {
-        this.table.update(this);
+        getTable().update(this);
     }
 
     public void save() throws SQLException {
