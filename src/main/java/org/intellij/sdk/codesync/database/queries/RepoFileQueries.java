@@ -91,4 +91,8 @@ public class RepoFileQueries extends CommonQueries {
                 id
         );
     }
+
+    public String getDeleteQuery(Integer id) {
+        return String.format("DELETE FROM %s WHERE id = %s", this.tableName, id);
+    }
 }

@@ -102,4 +102,17 @@ public class RepoBranch extends Model {
         }
         return false;
     }
+
+    public void updateFileId(String filePath, Integer serverFileId) throws SQLException {
+        RepoFile repoFile = new RepoFile(filePath, this.getId(), serverFileId);
+        repoFile.save();
+    }
+
+    public void removeFileId(String fileRelativePath) throws SQLException {
+        try {
+            getFile(fileRelativePath).delete();
+        } catch (RepoFileNotFound e) {
+            // Do nothing here.
+        }
+    }
 }

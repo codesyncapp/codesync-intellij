@@ -157,7 +157,7 @@ public class UserTable extends DBTable {
      */
     public String getAccessToken(String email) {
         try {
-            User user = email == null ? getActive() : find(email);
+            User user = email.isEmpty() ? getActive() : find(email);
             if (user != null) {
                 return user.getAccessToken();
             }
@@ -167,7 +167,25 @@ public class UserTable extends DBTable {
         return null;
     }
 
+    /*
+    Get the access token of the given user from the database.
+     */
+    public String getAccessToken(Integer userId) {
+        // TODO: Should we default to default user?
+        try {
+            User user = find(userId);
+            if (user != null) {
+                return user.getAccessToken();
+            } else {
+                getAccessToken();
+            }
+        } catch (SQLException error) {
+            CodeSyncLogger.error(String.format("Error while fetching user: %s", error.getMessage()));
+        }
+        return null;
+    }
+
     public String getAccessToken() {
-        return getAccessToken(null);
+        return getAccessToken("");
     }
 }

@@ -77,6 +77,9 @@ public class User extends Model {
         this.secretKey = secretKey;
     }
 
+    public boolean hasValidEmail() {
+        return this.email != null && !this.email.isEmpty();
+    }
     private void getOrCreate() throws SQLException {
         User user = getTable().getOrCreate(this);
         if (user != null) {

@@ -18,7 +18,6 @@ public class Repo extends Model {
     private String name, path;
     private Integer id, userId, serverRepoId;
     private RepoState state;
-    private RepoTable table;
 
     /*
     This constructor is used to create a Repo object with the given parameters.
@@ -51,7 +50,7 @@ public class Repo extends Model {
      */
     private void getOrCreate() throws SQLException {
         // Get the Repo object from the database if it exists, else create a new Repo object in the database.
-        Repo repo = this.table.getOrCreate(this);
+        Repo repo = getTable().getOrCreate(this);
         if (repo != null) {
             this.id = repo.getId();
         } else {
@@ -60,7 +59,7 @@ public class Repo extends Model {
     }
 
     private void update() throws SQLException {
-        this.table.update(this);
+        getTable().update(this);
     }
 
     public void save() throws SQLException {

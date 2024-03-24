@@ -63,6 +63,10 @@ public class RepoFile extends Model {
         }
     }
 
+    public void delete() throws SQLException {
+        getTable().delete(this);
+    }
+
     public void setId(Integer id) {
         this.id = id;
     }

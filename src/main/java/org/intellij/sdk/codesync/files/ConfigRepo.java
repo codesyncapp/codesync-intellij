@@ -2,7 +2,6 @@ package org.intellij.sdk.codesync.files;
 
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.utils.CommonUtils;
-import org.intellij.sdk.codesync.utils.GitUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,10 +16,6 @@ public class ConfigRepo {
     public Boolean isDisconnected;
 
     public Map<String, ConfigRepoBranch> branches = new HashMap<>();
-
-    public ConfigRepo (String repoPath) {
-        this.repoPath = repoPath;
-    }
 
     public ConfigRepo (String repoPath, Map<String, Object> configRepoMap) throws InvalidConfigFileError {
         this.repoPath = repoPath;
@@ -62,56 +57,5 @@ public class ConfigRepo {
 
     public Map<String, ConfigRepoBranch> getRepoBranches() {
         return this.branches;
-    }
-
-    public ConfigRepoBranch getRepoBranch(String branchName) {
-        return this.branches.get(branchName);
-    }
-    public boolean containsBranch(String branchName) { return this.branches.containsKey(branchName); }
-
-    public boolean hasValidEmail() {
-        return this.email != null && !this.email.isEmpty();
-    }
-
-    public boolean hasValidId() {
-        return this.id != null;
-    }
-
-    public void updateRepoBranch(String branchName, ConfigRepoBranch newBranch) {
-        this.branches.put(branchName, newBranch);
-    }
-
-    public void deleteRepoBranch(String branchName) {
-        this.branches.remove(branchName);
-    }
-
-    /*
-        Check if the repo is successfully synced with the server, ignore the branch.
-    */
-    public boolean isSynced() {
-        return !this.branches.isEmpty();
-    }
-
-    /*
-        Check if the repo is actively being synced with the server.
-    */
-    public boolean isActive() {
-        return !isDisconnected && isSynced() && hasValidId() && hasValidEmail();
-    }
-
-    /*
-    Make sure the current branch is successfully synced with the server.
-     */
-    public boolean isSuccessfullySyncedWithBranch() {
-        String branchName = GitUtils.getBranchName(this.repoPath);
-        if (!this.branches.containsKey(branchName)) {
-            // If branch is not synced, daemon will take care of it.
-            return false;
-        }
-
-        ConfigRepoBranch configRepoBranch = this.getRepoBranch(branchName);
-
-        // If all or some files Are valid then it means repo was synced successfully.
-        return configRepoBranch.hasValidFiles();
     }
 }

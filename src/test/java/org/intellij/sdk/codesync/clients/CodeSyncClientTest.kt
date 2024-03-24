@@ -2,9 +2,9 @@ package org.intellij.sdk.codesync.clients
 
 import com.intellij.openapi.application.ApplicationInfo
 import org.intellij.sdk.codesync.configuration.Configuration
+import org.intellij.sdk.codesync.database.models.Repo
 import org.intellij.sdk.codesync.exceptions.InvalidUsage
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError
-import org.intellij.sdk.codesync.files.ConfigRepo
 import org.intellij.sdk.codesync.files.DiffFile
 import org.intellij.sdk.codesync.utils.CodeSyncDateUtils
 import org.intellij.sdk.codesync.utils.FileUtils
@@ -43,7 +43,7 @@ class CodeSyncClientTest {
         val statusCodeErrorMock = StatusCodeError(400, "")
 
         val accessTokenMock = ""
-        val configRepoMock = mock(ConfigRepo::class.java)
+        val repoMock = mock(Repo::class.java)
         val diffFileMock = mock(DiffFile::class.java)
 
         `when`(configurationMock.getCodeSyncHost()).thenReturn(hostMock)
@@ -71,7 +71,7 @@ class CodeSyncClientTest {
                                 val codeSyncClient = CodeSyncClient()
                                 codeSyncClient.uploadFile(
                                     accessTokenMock,
-                                    configRepoMock,
+                                    repoMock,
                                     diffFileMock,
                                     originalsFileMock
                                 )

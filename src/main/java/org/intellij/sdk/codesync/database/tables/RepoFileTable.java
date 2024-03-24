@@ -134,4 +134,10 @@ public class RepoFileTable extends DBTable {
             statement.executeUpdate(this.repoFileQueries.getUpdateQuery(repoFile.getId(), repoFile.getPath(), repoFile.getRepoBranchId(), repoFile.getServerFileId()));
         }
     }
+
+    public void delete(RepoFile repoFile) throws SQLException {
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            statement.executeUpdate(this.repoFileQueries.getDeleteQuery(repoFile.getId()));
+        }
+    }
 }
