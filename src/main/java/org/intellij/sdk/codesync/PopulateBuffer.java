@@ -58,7 +58,7 @@ public class PopulateBuffer {
     String repoPath, branchName;
     Repo repo;
     RepoBranch repoBranch;
-    Map<String, RepoFile> repoFiles;
+    Map<String, RepoFile> repoFiles = new HashMap<>();
 
     ShadowRepoManager shadowRepoManager;
     DeletedRepoManager deletedRepoManager;
@@ -277,7 +277,7 @@ public class PopulateBuffer {
                     diffsForDeletedFiles = populateBuffer.getDiffsOfDeletedFiles();
                 }
             } catch (SQLException | NotFound e) {
-                // TODO: Handle this error.
+                // Ignore repos that are not synced yet.
                 // Skip it for now, it will be handled in the future.
                 CodeSyncLogger.critical(String.format(
                     "[NON_IDE_EVENTS] Could not populate for missed events, because config file for repo '%s' could not be opened.",

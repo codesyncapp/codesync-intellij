@@ -73,12 +73,12 @@ public class RepoFileQueries extends CommonQueries {
     public String getSelectQuery(String repoPath, String repoBranchName, String filePath) {
         String repoBranchTable = RepoBranchTable.getInstance().getTableName();
         String repoTable = RepoTable.getInstance().getTableName();
-        return String.format("SELECT * FROM %s ", this.tableName) +
-            String.format("INNER JOIN %s rb on rb.id = %s.repo_branch_id ", repoBranchTable, this.tableName) +
+        return String.format("SELECT * FROM %s as rf ", this.tableName) +
+            String.format("INNER JOIN %s rb on rb.id = rf.repo_branch_id ", repoBranchTable) +
             String.format("INNER JOIN %s r on r.id = rb.repo_id ", repoTable) +
             String.format("WHERE r.path = '%s' ", repoPath) +
             String.format("AND rb.name = '%s' ", repoBranchName) +
-            String.format("AND path = '%s'", filePath);
+            String.format("AND rf.path = '%s'", filePath);
     }
 
     public String getUpdateQuery(Integer id, String path, Integer repoBranchId, Integer serverFileId) {

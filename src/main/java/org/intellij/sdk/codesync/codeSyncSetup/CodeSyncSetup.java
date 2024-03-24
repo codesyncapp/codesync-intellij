@@ -85,7 +85,7 @@ public class CodeSyncSetup {
 
             JSONObject payload = new JSONObject();
             payload.put("is_in_sync", false);
-            updateRepo(repo.getId(), user.getEmail(), repoName, payload);
+            updateRepo(repo.getServerRepoId(), user.getEmail(), repoName, payload);
 
             repo.setState(RepoState.DISCONNECTED);
             repo.save();
@@ -108,7 +108,7 @@ public class CodeSyncSetup {
             }
             JSONObject payload = new JSONObject();
             payload.put("is_in_sync", true);
-            updateRepo(repo.getId(), user.getEmail(), repoName, payload);
+            updateRepo(repo.getServerRepoId(), user.getEmail(), repoName, payload);
 
             repo.setState(RepoState.SYNCED);
             repo.save();
@@ -626,26 +626,28 @@ public class CodeSyncSetup {
         String email, Integer serverRepoId, String repoName, String repoPath, String branchName, Map<String, Integer> filePathAndIds
     ) throws SQLException {
         // TODO: Add tests for this.
-        User user = User.getTable().getOrCreate(
-            new User(email, null, null, null, true)
-        );
-        if (user == null) {
+        User user;
+        try {
+            user = User.getTable().get(email);
+        } catch (UserNotFound e) {
             CodeSyncLogger.error(
-                "[INTELLI_REPO_INIT_ERROR]: Error while saving repo data. Could not save user to database."
+                "[INTELLI_REPO_INIT_ERROR]: Error while saving repo data. Could not find the user in the database."
             );
-        } else {
-            Repo repo = new Repo(serverRepoId, repoName, repoPath, user.getId(), RepoState.SYNCED);
-            repo.save();
-            RepoBranch repoBranch = new RepoBranch(branchName, repo.getId());
-            repoBranch.save();
-            ArrayList<RepoFile> repoFiles = new ArrayList<>();
 
-            for (Map.Entry<String, Integer> fileEntry: filePathAndIds.entrySet()) {
-                repoFiles.add(new RepoFile(fileEntry.getKey(), repoBranch.getId(), fileEntry.getValue()));
-            }
-
-            RepoFile.getTable().bulkInsert(repoFiles);
+            return;
         }
+
+        Repo repo = new Repo(serverRepoId, repoName, repoPath, user.getId(), RepoState.SYNCED);
+        repo.save();
+        RepoBranch repoBranch = new RepoBranch(branchName, repo.getId());
+        repoBranch.save();
+        ArrayList<RepoFile> repoFiles = new ArrayList<>();
+
+        for (Map.Entry<String, Integer> fileEntry: filePathAndIds.entrySet()) {
+            repoFiles.add(new RepoFile(fileEntry.getKey(), repoBranch.getId(), fileEntry.getValue()));
+        }
+
+        RepoFile.getTable().bulkInsert(repoFiles);
 
     }
 

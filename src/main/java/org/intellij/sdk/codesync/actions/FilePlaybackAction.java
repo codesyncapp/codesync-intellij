@@ -107,7 +107,7 @@ public class FilePlaybackAction extends BaseModuleAction {
 
             return;
         }
-        String url = String.format(FILE_PLAYBACK_LINK, repoFile.getId());
+        String url = String.format(FILE_PLAYBACK_LINK, repoFile.getServerFileId());
         BrowserUtil.browse(url);
     }
 }

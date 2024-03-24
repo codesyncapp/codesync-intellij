@@ -133,6 +133,6 @@ public class RepoPlaybackAction extends BaseModuleAction {
 
             return;
         }
-        BrowserUtil.browse(String.format(REPO_PLAYBACK_LINK, repo.getId()));
+        BrowserUtil.browse(String.format(REPO_PLAYBACK_LINK, repo.getServerRepoId()));
     }
 }

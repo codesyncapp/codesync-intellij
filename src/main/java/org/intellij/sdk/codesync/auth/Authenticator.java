@@ -3,6 +3,7 @@ package org.intellij.sdk.codesync.auth;
 import com.auth0.jwt.interfaces.Claim;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.commands.ClearReposToIgnoreCache;
 import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
@@ -80,7 +81,12 @@ public class Authenticator extends HttpServlet {
         // Clear any cache that depends on user authentication status.
         new ClearReposToIgnoreCache().execute();
         try {
-            User user = new User(userEmail, accessToken, null, null, true);
+            User user = User.getTable().find(userEmail);
+            if (user != null) {
+                user.setAccessToken(accessToken);
+            } else {
+                user = new User(userEmail, accessToken, null, null, true);
+            }
             user.save();
 
             // We need this to mark all other users as inactive.
@@ -91,7 +97,7 @@ public class Authenticator extends HttpServlet {
             );
             return false;
         }
-
+        NotificationManager.getInstance().notifyInformation("You have been logged in successfully.");
         CodeSyncLogger.debug("[INTELLIJ_AUTH]: User completed login flow.");
         return true;
     }

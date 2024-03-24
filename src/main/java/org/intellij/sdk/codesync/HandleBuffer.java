@@ -422,7 +422,7 @@ public class HandleBuffer {
                 if (diffFile.isDeleted) {
                     ShadowRepoManager shadowRepoManager = new ShadowRepoManager(diffFile.repoPath, diffFile.branch);
                     cleanUpDeletedDiff(
-                        repo, repoBranch, diffFile,
+                        repoBranch, diffFile,
                         shadowRepoManager.getFilePath(diffFile.fileRelativePath)
                     );
                     diffFile.delete();
@@ -451,7 +451,7 @@ public class HandleBuffer {
 
             if (diffFile.isDeleted) {
                 diffFile.setDiff(
-                    getDiffOfDeletedFile(repo, repoBranch, diffFile)
+                    getDiffOfDeletedFile(repoBranch, diffFile)
                 );
             }
             diffsToSend.add(new Pair<>(repoFile.getServerFileId(), diffFile));
@@ -573,7 +573,7 @@ public class HandleBuffer {
         }
     }
 
-    public static String getDiffOfDeletedFile(Repo repo, RepoBranch repoBranch, DiffFile diffFile ) {
+    public static String getDiffOfDeletedFile(RepoBranch repoBranch, DiffFile diffFile ) {
         ShadowRepoManager shadowRepoManager = new ShadowRepoManager(diffFile.repoPath, diffFile.branch);
         Path shadowPath = shadowRepoManager.getFilePath(diffFile.fileRelativePath);
 
@@ -581,26 +581,26 @@ public class HandleBuffer {
         String diff = "";
 
         if (!shadowFile.exists()) {
-            cleanUpDeletedDiff(repo, repoBranch, diffFile, shadowPath);
+            cleanUpDeletedDiff(repoBranch, diffFile, shadowPath);
             return diff;
         }
         try {
             Map<String, Object> fileInfo = FileUtils.getFileInfo(shadowPath.toString());
             if ((Boolean) fileInfo.get("isBinary")) {
-                cleanUpDeletedDiff(repo, repoBranch, diffFile, shadowPath);
+                cleanUpDeletedDiff(repoBranch, diffFile, shadowPath);
                 return diff;
             }
         } catch (FileInfoError error) {
-            error.printStackTrace();
+            CodeSyncLogger.error(String.format("Error while getting file information. \nError: %s", error.getMessage()));
         }
         String shadowText = FileUtils.readFileToString(shadowPath.toFile());
         diff = CommonUtils.computeDiff(shadowText, "");
-        cleanUpDeletedDiff(repo, repoBranch, diffFile, shadowPath);
+        cleanUpDeletedDiff(repoBranch, diffFile, shadowPath);
 
         return diff;
     }
 
-    public static void cleanUpDeletedDiff (Repo repo, RepoBranch repoBranch, DiffFile diffFile, Path shadowPath) {
+    public static void cleanUpDeletedDiff (RepoBranch repoBranch, DiffFile diffFile, Path shadowPath) {
         OriginalsRepoManager originalsRepoManager = new OriginalsRepoManager(diffFile.repoPath, diffFile.branch);
         DeletedRepoManager deletedRepoManager = new DeletedRepoManager(diffFile.repoPath, diffFile.branch);
 

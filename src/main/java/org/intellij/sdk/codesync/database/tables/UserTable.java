@@ -167,6 +167,11 @@ public class UserTable extends DBTable {
     }
 
     public String getAccessToken() {
-        return getAccessToken("");
+        try {
+            User user = getActive();
+            return user != null ? user.getAccessToken() : null;
+        } catch (SQLException e) {
+            return null;
+        }
     }
 }
