@@ -1,0 +1,169 @@
+package org.intellij.sdk.codesync.database.models
+
+import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup
+import org.intellij.sdk.codesync.database.migrations.MigrationManager
+import org.intellij.sdk.codesync.database.tables.RepoFileTable
+import org.intellij.sdk.codesync.enums.RepoState
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+
+
+class RepoFileTest {
+    @BeforeEach
+    fun before() {}
+
+    @AfterEach
+    fun after() {}
+
+    /*
+    Make sure user can create a repo file using save.
+     */
+    @Test
+    fun validateCreate() {
+        // Save a user
+        val user = User(
+            "test@codesync.com", "access-token", "access-key", "secrete-key", true
+        )
+        user.save()
+        // Save a repo
+        val repo = Repo(1, "test-repo", "/Users/codesync/dev/test-repo", user.id, RepoState.SYNCED)
+        repo.save()
+        assert(repo.id != null)
+
+        val repoBranch = RepoBranch("master", repo.id)
+        repoBranch.save()
+        assert(repoBranch.id != null)
+
+        val repoFile = RepoFile("test-file", repoBranch.id, 123)
+        repoFile.save()
+
+        // assert the repo file is saved in the database.
+        assert(repoFile.id != null)
+
+        // Make sure the repo is saved in the database.
+        val repoBranchFileFromDb = RepoFileTable.getInstance().get("test-file", repoBranch.id)
+        assert(repoBranchFileFromDb != null)
+        assert(repoBranchFileFromDb.id == repoFile.id)
+        assert(repoBranchFileFromDb.path == repoFile.path)
+        assert(repoBranchFileFromDb.repoBranchId == repoBranch.id)
+        assert(repoBranchFileFromDb.serverFileId == 123)
+    }
+
+    @Test
+    fun validateUpdate() {
+        // Save a user
+        val user = User(
+            "test@codesync.com", "access-token", "access-key", "secrete-key", true
+        )
+        user.save()
+        // Save a repo
+        val repo = Repo(1, "test-repo", "/Users/codesync/dev/test-repo", user.id, RepoState.SYNCED)
+        repo.save()
+        assert(repo.id != null)
+
+        val repoBranch = RepoBranch("master", repo.id)
+        repoBranch.save()
+        assert(repoBranch.id != null)
+
+        val repoFile = RepoFile("test-file", repoBranch.id, 123)
+        repoFile.save()
+        assert(repoFile.id != null)
+
+        val idBeforeSave = repoFile.id
+
+        repoFile.serverFileId = 124
+        repoFile.save()
+
+        // Make sure the repo is saved in the database.
+        val repoBranchFileFromDb = RepoFileTable.getInstance().get("test-file", repoBranch.id)
+        assert(repoBranchFileFromDb != null)
+        assert(repoBranchFileFromDb.id == idBeforeSave)
+        assert(repoFile.id == idBeforeSave)
+        assert(repoBranchFileFromDb.path == repoFile.path)
+        assert(repoBranchFileFromDb.repoBranchId == repoBranch.id)
+        assert(repoBranchFileFromDb.serverFileId == 124)
+    }
+
+    @Test
+    fun validateDelete() {
+        // Save a user
+        val user = User(
+            "test@codesync.com", "access-token", "access-key", "secrete-key", true
+        )
+        user.save()
+        // Save a repo
+        val repo = Repo(1, "test-repo", "/Users/codesync/dev/test-repo", user.id, RepoState.SYNCED)
+        repo.save()
+        assert(repo.id != null)
+
+        val repoBranch = RepoBranch("master", repo.id)
+        repoBranch.save()
+        assert(repoBranch.id != null)
+
+        val repoFile = RepoFile("test-file", repoBranch.id, 123)
+        repoFile.save()
+        assert(repoFile.id != null)
+
+        // Validate record in the database
+        assertNotNull(RepoFile.getTable().find(repoFile.path, repoFile.repoBranchId))
+
+        // Delete the record
+        repoFile.delete()
+
+        // Validate record not in the database
+        assertNull(RepoFile.getTable().find(repoFile.path, repoFile.repoBranchId))
+    }
+
+    /*
+    Validate the existing repo file is updated when a new repo file with the same path is saved.
+     */
+    @Test
+    fun validateSaveWithExistingPathAndBranchId() {
+        // Save a user
+        val user = User(
+            "test@codesync.com", "access-token", "access-key", "secrete-key", true
+        )
+        user.save()
+        // Save a repo
+        val repo = Repo(1, "test-repo", "/Users/codesync/dev/test-repo", user.id, RepoState.SYNCED)
+        repo.save()
+        assert(repo.id != null)
+
+        val repoBranch = RepoBranch("master", repo.id)
+        repoBranch.save()
+        assert(repoBranch.id != null)
+
+        val repoFile = RepoFile("test-file", repoBranch.id, 123)
+        repoFile.save()
+        assert(repoFile.id != null)
+
+        val repoFile2 = RepoFile("test-file", repoBranch.id, 130)
+        repoFile2.save()
+        assert(repoFile2.id != null)
+        assert(repoFile.id == repoFile2.id)
+
+
+        // Make sure the repo is saved in the database.
+        val repoBranchFileFromDb = RepoFileTable.getInstance().get("test-file", repoBranch.id)
+        assert(repoBranchFileFromDb != null)
+        assert(repoBranchFileFromDb.id == repoFile.id)
+        assert(repoBranchFileFromDb.path == repoFile.path)
+        assert(repoBranchFileFromDb.repoBranchId == repoBranch.id)
+        assert(repoBranchFileFromDb.serverFileId == 130)
+    }
+
+    companion object {
+        @JvmStatic
+        @BeforeAll
+        fun setup(): Unit {
+            CodeSyncSetup.createSystemDirectories()
+            // Create the tables in the database. There is no data in the config file so empty tables will be created.
+            MigrationManager.getInstance().runMigrations()
+        }
+    }
+
+}

@@ -5,6 +5,8 @@ on: [push]
 jobs:
   build-linux:
     runs-on: ubuntu-latest
+    env:
+      env: test
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 11
@@ -19,6 +21,8 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
+    env:
+      env: test
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 11
@@ -33,6 +37,8 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
+    env:
+      env: test
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 11

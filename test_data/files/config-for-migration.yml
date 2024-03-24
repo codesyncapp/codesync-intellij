@@ -1,0 +1,78 @@
+repos:
+  /Users/codesync/dev/test-repo-1:
+    pause_notification: false
+    is_deleted: false
+    is_disconnected: false
+    id: 11
+    branches:
+      test-branch-1:
+        test-1.txt: 11
+        test-2.txt: 12
+        test-3.txt: 13
+        test-4.txt: 14
+        test-5.txt: 15
+        test-6.txt: 16
+      test-branch-2:
+        test-1.txt: 21
+        test-2.txt: 22
+        test-3.txt: 23
+        test-4.txt: 24
+        test-5.txt: 25
+        test-6.txt: 26
+    email: test@codesync.com
+  /Users/codesync/dev/test-repo-2:
+    pause_notification: false
+    is_deleted: false
+    is_disconnected: true
+    id: 22
+    branches:
+      test-branch-1:
+        test-1.txt: 211
+        test-2.txt: 212
+        test-3.txt: 213
+        test-4.txt: 214
+        test-5.txt: 215
+        test-6.txt: 216
+      test-branch-2:
+        test-1.txt: 221
+        test-2.txt: 222
+        test-3.txt: 223
+        test-4.txt: 224
+        test-5.txt: 225
+        test-6.txt: 226
+      test-branch-3:
+        test-1.txt: 321
+        test-2.txt: 322
+        test-3.txt: 323
+        test-4.txt: 324
+        test-5.txt: 325
+        test-6.txt: 326
+    email: test@codesync.com
+  /Users/codesync/dev/test-repo-3:
+    pause_notification: false
+    is_deleted: true
+    is_disconnected: true
+    id: 33
+    branches:
+      test-branch-31:
+        test-repo-3-1.txt: 311
+        test-repo-3-2.txt: 312
+        test-repo-3-3.txt: 313
+      test-branch-32:
+        test-repo-3-1.txt: 321
+        test-repo-3-2.txt: 322
+    email: test3@codesync.com
+  /Users/codesync/dev/test-repo-4:
+    pause_notification: false
+    is_deleted: true
+    is_disconnected: false
+    id: 44
+    branches:
+      test-branch-44:
+        test-repo-4-1.txt: 411
+        test-repo-4-2.txt: 412
+        test-repo-4-3.txt: 413
+        test-repo-4-4.txt: 414
+        test-repo-4-5.txt: 415
+        test-repo-4-6.txt: 416
+    email: test4@codesync.com

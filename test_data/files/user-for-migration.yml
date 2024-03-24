@@ -1,0 +1,10 @@
+test@codesync.com:
+  access_key: test-access-key
+  secret_key: test-secret-key
+  access_token: test-access-token
+  is_active: true
+test2@codesync.com:
+  access_key: test-2-access-key
+  secret_key: test-2-secret-key
+  access_token: test-2-access-token
+  is_active: false

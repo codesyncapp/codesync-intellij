@@ -1,39 +1,22 @@
 package org.intellij.sdk.codesync.database;
 
-import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.database.migrations.MigrateUser;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
-import org.intellij.sdk.codesync.utils.Queries;
-
-import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Database {
 
-    public static void setupDbFilesAndTables(String databasePath){
+    private static Database instance;
 
-        /*
-            This method will make sure to create db file and required tables,
-            make migration from files to db if necessary.
-        */
+    private Database() {}
 
-        File file = new File(databasePath);
-        if(file.exists()){
-           return;
+    public static Database getInstance() {
+        if (instance == null) {
+            instance = new Database();
         }
-
-        try {
-            executeUpdate(Queries.User.CREATE_TABLE);
-            MigrateUser migrateUser = new MigrateUser();
-            migrateUser.migrateData();
-        } catch (SQLiteDBConnectionError e) {
-            CodeSyncLogger.error("[DATABASE] SQLite db connection error while making migration/creating db file first time " + e.getMessage());
-        } catch (SQLiteDataError e) {
-            CodeSyncLogger.error("[DATABASE] SQLite db data error while making migration/creating db file first time " + e.getMessage());
-        }
+        return instance;
     }
 
     /*
@@ -77,8 +60,5 @@ public class Database {
         } catch (SQLException e){
             throw new SQLiteDataError("Error while inserting data in SQLite database: " + e.getMessage());
         }
-
-
     }
-
 }

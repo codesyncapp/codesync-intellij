@@ -1,6 +1,8 @@
 package org.intellij.sdk.codesync.configuration;
 
+import com.intellij.openapi.application.ApplicationInfo;
 import org.intellij.sdk.codesync.utils.FileUtils;
+import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.json.simple.JSONObject;
 
 public class DevConfiguration implements Configuration {
@@ -94,6 +96,16 @@ public class DevConfiguration implements Configuration {
             this.fetchCredentials();
         }
         return this.PLUGIN_USER_SECRET_KEY;
+    }
+
+    @Override
+    public String getIDEName() {
+        return ApplicationInfo.getInstance().getVersionName();
+    }
+
+    @Override
+    public String getPluginVersion() {
+        return ProjectUtils.getPluginVersion();
     }
 
     @Override

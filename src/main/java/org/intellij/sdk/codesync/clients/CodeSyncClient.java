@@ -4,14 +4,14 @@ import kotlin.Pair;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.codeSyncSetup.S3FileUploader;
+import org.intellij.sdk.codesync.database.models.Repo;
+import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
-import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.DiffFile;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
-import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
@@ -100,7 +100,7 @@ public class CodeSyncClient {
         }
     }
 
-    public Integer uploadFile(String accessToken, ConfigRepo configRepo, DiffFile diffFile, File originalsFile) throws FileInfoError, InvalidJsonError, RequestError, InvalidUsage {
+    public Integer uploadFile(String accessToken, Repo repo, DiffFile diffFile, File originalsFile) throws FileInfoError, InvalidJsonError, RequestError, InvalidUsage {
         JSONObject payload = new JSONObject();
         Map<String, Object> fileInfo;
         try {
@@ -109,7 +109,7 @@ public class CodeSyncClient {
             throw new FileInfoError(String.format("File Info could not be found for %s. Error: %s", diffFile.fileRelativePath, error.getMessage()));
         }
 
-        payload.put("repo_id", configRepo.id);
+        payload.put("repo_id", repo.getServerRepoId());
         payload.put("branch", diffFile.branch);
         payload.put("commit_hash", diffFile.commitHash);
         payload.put("is_binary", (Boolean) fileInfo.get("isBinary"));
@@ -130,12 +130,12 @@ public class CodeSyncClient {
                 throw new InvalidUsage(statusCodeError.getMessage());
             }
 
-            if (statusCodeError.getStatusCode() == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
-                PluginState pluginState = StateUtils.getState(configRepo.repoPath);
+            if (statusCodeError.getStatusCode()  == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
+                PluginState pluginState = StateUtils.getState(repo.getPath());
                 PricingAlerts.setPlanLimitReached(
-                        accessToken,
-                        configRepo.id,
-                        pluginState != null ? pluginState.project : null
+                    accessToken,
+                    repo.getServerRepoId(),
+                    pluginState != null ? pluginState.project: null
                 );
             } else {
                 PricingAlerts.resetPlanLimitReached();
@@ -171,7 +171,7 @@ public class CodeSyncClient {
             if (fileSize > 0) {
                 Map<String, Object> filePathAndURLs = new HashMap<>();
                 filePathAndURLs.put(diffFile.fileRelativePath, preSignedURLData);
-                S3FileUploader s3FileUploader = new S3FileUploader(configRepo.repoPath, diffFile.branch, filePathAndURLs);
+                S3FileUploader s3FileUploader = new S3FileUploader(repo.getPath(), diffFile.branch, filePathAndURLs);
                 s3FileUploader.saveURLs();
             }
         } catch (ClassCastException error) {
@@ -283,7 +283,10 @@ public class CodeSyncClient {
         /*
         - GETs the user subscription
         */
-        String accessToken = UserAccount.getAccessTokenByEmail();
+        String accessToken = User.getTable().getAccessToken();
+        if (accessToken == null) {
+            return false;
+        }
         try {
             JSONResponse response = ClientUtils.sendGet(USER_SUBSCRIPTION_ENDPOINT, accessToken);
             JSONObject result = response.getJsonResponse();
