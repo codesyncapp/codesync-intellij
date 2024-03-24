@@ -120,7 +120,7 @@ public class UserTable extends DBTable {
     Mark all users except the given id as in-active.
     This is needed because we want to make sure that only one user is active at a time.
     */
-    public void markInActive(Integer id) throws SQLException {
+    public void markOthersInActive(Integer id) throws SQLException {
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             statement.executeUpdate(this.userQueries.getMarkInActiveQuery(id));
         }
@@ -157,30 +157,11 @@ public class UserTable extends DBTable {
      */
     public String getAccessToken(String email) {
         try {
-            User user = email.isEmpty() ? getActive() : find(email);
-            if (user != null) {
-                return user.getAccessToken();
-            }
+            return get(email).getAccessToken();
         } catch (SQLException error) {
             CodeSyncLogger.error(String.format("Error while fetching user: %s", error.getMessage()));
-        }
-        return null;
-    }
-
-    /*
-    Get the access token of the given user from the database.
-     */
-    public String getAccessToken(Integer userId) {
-        // TODO: Should we default to default user?
-        try {
-            User user = find(userId);
-            if (user != null) {
-                return user.getAccessToken();
-            } else {
-                getAccessToken();
-            }
-        } catch (SQLException error) {
-            CodeSyncLogger.error(String.format("Error while fetching user: %s", error.getMessage()));
+        } catch (UserNotFound e) {
+            return null;
         }
         return null;
     }

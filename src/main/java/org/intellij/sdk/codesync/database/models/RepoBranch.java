@@ -90,8 +90,9 @@ public class RepoBranch extends Model {
     */
     public boolean hasValidFiles() throws SQLException {
         ArrayList<RepoFile> repoFiles = getFiles();
+
+        // User can delete files in a branch, so if no files are present then return `true`.
         if (repoFiles.isEmpty()) {
-            // TODO: Verify this, should this be false?
             return true;
         }
         for (RepoFile repoFile : repoFiles) {
@@ -108,7 +109,7 @@ public class RepoBranch extends Model {
         repoFile.save();
     }
 
-    public void removeFileId(String fileRelativePath) throws SQLException {
+    public void removeFile(String fileRelativePath) throws SQLException {
         try {
             getFile(fileRelativePath).delete();
         } catch (RepoFileNotFound e) {

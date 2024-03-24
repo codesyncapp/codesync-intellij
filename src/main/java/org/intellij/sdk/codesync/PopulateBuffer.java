@@ -70,7 +70,7 @@ public class PopulateBuffer {
     String[] filePaths, relativeFilePaths;
     Map<String, Map<String, Object>> fileInfoMap = new HashMap<>();
 
-    public PopulateBuffer(String repoPath, String branchName) throws SQLException, RepoNotFound {
+    public PopulateBuffer(String repoPath, String branchName) throws SQLException, RepoNotFound, RepoBranchNotFound {
         this.repoPath = repoPath;
         this.branchName = branchName;
 

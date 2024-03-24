@@ -113,7 +113,7 @@ public class User extends Model {
         }
 
         // Now mark all other users as inactive.
-        getTable().markInActive(this.id);
+        getTable().markOthersInActive(this.id);
     }
 
     public void setId(Integer id) {

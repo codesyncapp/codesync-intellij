@@ -9,8 +9,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.Objects;
 
 public class RepoFileTable extends DBTable {
     private final String tableName = "repo_file";
@@ -79,7 +77,7 @@ public class RepoFileTable extends DBTable {
                 );
             }
         }
-        throw new RepoFileNotFound(String.format("RepoFile with repo path '%s', branch '%s' and path not found.", repoPath, repoBranchName, filePath));
+        throw new RepoFileNotFound(String.format("RepoFile with repo path '%s', branch '%s' and path '%s' not found.", repoPath, repoBranchName, filePath));
     }
 
     public ArrayList<RepoFile> findAll(Integer repoBranchId) throws SQLException {

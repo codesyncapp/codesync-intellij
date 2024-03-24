@@ -341,7 +341,6 @@ public class CodeSyncSetup {
 
             CodeSyncLogger.debug("[INTELLIJ_AUTH]: User redirected to the login page.");
         } catch (Exception exc) {
-            exc.printStackTrace();
             CodeSyncLogger.critical(String.format(
                 "[INTELLIJ_AUTH_ERROR]: IntelliJ Login Error, an error occurred during user authentication. Error: %s", exc.getMessage()
             ));

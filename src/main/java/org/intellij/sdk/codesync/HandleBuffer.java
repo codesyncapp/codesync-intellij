@@ -295,8 +295,7 @@ public class HandleBuffer {
                 continue;
             }
 
-            // TODO: Should we use default user here?
-            String accessToken = user.getAccessToken() != null ? user.getAccessToken() : User.getTable().getAccessToken();
+            String accessToken = user.getAccessToken();
 
             if (accessToken == null) {
                 CodeSyncLogger.critical(String.format(
@@ -458,8 +457,7 @@ public class HandleBuffer {
             diffsToSend.add(new Pair<>(repoFile.getServerFileId(), diffFile));
         }
 
-
-        if (diffsToSend.size() == 0) {
+        if (diffsToSend.isEmpty()) {
             return;
         }
 
@@ -469,34 +467,39 @@ public class HandleBuffer {
         }
 
         // Send Diffs in a single request.
-        String accessToken = User.getTable().getAccessToken(currentRepo.getUserId());
-        String userEmail = null;
+        User user;
         try {
-            User user = User.getTable().find(currentRepo.getUserId());
-            userEmail = user.getEmail();
+            user = currentRepo.getUser();
         } catch (SQLException e) {
             CodeSyncLogger.error(String.format("Error while fetching user from the database: %s", e.getMessage()));
+            return;
+        } catch (UserNotFound e) {
+            CodeSyncLogger.warning(String.format(
+                    "User with id '%s' not present in the database so skipping diffs for repo '%s'.",
+                    currentRepo.getUserId(), currentRepo
+                )
+            );
+            return;
         }
-        if (accessToken ==  null) {
+        if (user.getAccessToken() ==  null) {
             CodeSyncLogger.warning(String.format(
                     "Access token for user '%s' not present so skipping diffs for repo '%s'.",
-                    userEmail, currentRepo
+                    user.getEmail(), currentRepo
                 )
             );
             return;
         } else {
-            diffReposToIgnore.remove(currentRepo);
+            diffReposToIgnore.remove(currentRepo.getPath());
         }
 
-        CodeSyncWebSocketClient codeSyncWebSocketClient = client.getWebSocketClient(accessToken);
-        String finalUserEmail = userEmail;
+        CodeSyncWebSocketClient codeSyncWebSocketClient = client.getWebSocketClient(user.getAccessToken());
         codeSyncWebSocketClient.connect(isConnected -> {
             if (isConnected) {
                 try {
                     codeSyncWebSocketClient.sendDiffs(diffsToSend, (successfullyTransferred, diffFilePath) -> {
                         diffFilesBeingProcessed.remove(diffFilePath);
                         if (!successfullyTransferred) {
-                            CodeSyncLogger.error("Error while sending the diff files to the server.", finalUserEmail);
+                            CodeSyncLogger.error("Error while sending the diff files to the server.", user.getEmail());
                             return;
                         }
                         System.out.printf("Diff file '%s' successfully processed.\n", diffFilePath);
@@ -508,11 +511,11 @@ public class HandleBuffer {
                     });
                 } catch (WebSocketConnectionError error) {
                     diffFilesBeingProcessed.clear();
-                    CodeSyncLogger.critical(String.format("Connection error while sending diff to the server at %s.\n", WEBSOCKET_ENDPOINT), finalUserEmail);
+                    CodeSyncLogger.critical(String.format("Connection error while sending diff to the server at %s.\n", WEBSOCKET_ENDPOINT), user.getEmail());
                 }
             } else {
                 diffFilesBeingProcessed.clear();
-                CodeSyncLogger.error(String.format("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT), finalUserEmail);
+                CodeSyncLogger.error(String.format("Failed to connect to websocket endpoint: %s.\n", WEBSOCKET_ENDPOINT), user.getEmail());
             }
         });
     }
@@ -615,7 +618,7 @@ public class HandleBuffer {
             shadowFile.delete();
         }
         try {
-            repoBranch.removeFileId(diffFile.fileRelativePath);
+            repoBranch.removeFile(diffFile.fileRelativePath);
         } catch (SQLException e) {
             CodeSyncLogger.error(String.format("Error while removing file id in the database. Error: %s", e.getMessage()));
         }

@@ -6,6 +6,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 
 class UserTest {
@@ -92,6 +94,31 @@ class UserTest {
         assert(userFromDB != null)
         assert(userFromDB.id == user.id)
         assert(userFromDB.accessToken == "access-token-updated")
+    }
+
+    @Test
+    fun validateMakeActive() {
+        // Save a user
+        val user1 = User(
+            "test1@codesync.com", "access-token", "access-key", "secrete-key", true
+        )
+        user1.save()
+        val user2 = User(
+            "test2@codesync.com", "access-token", "access-key", "secrete-key", false
+        )
+        user2.save()
+
+        // Make sure the user is saved in the database.
+        assertTrue { user1.isActive }
+        assertFalse { user2.isActive }
+
+        user2.makeActive()
+
+        // Fetch again from database.
+        val user1FromDB = User.getTable().get(user1.id)
+        val user2FromDB = User.getTable().get(user2.id)
+        assertTrue { user2FromDB.isActive }
+        assertFalse { user1FromDB.isActive }
     }
 
     companion object {

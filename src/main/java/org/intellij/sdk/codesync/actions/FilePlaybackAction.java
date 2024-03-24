@@ -9,6 +9,7 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.database.models.RepoFile;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
+import org.intellij.sdk.codesync.exceptions.database.RepoFileNotFound;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.GitUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
@@ -92,9 +93,7 @@ public class FilePlaybackAction extends BaseModuleAction {
             ));
 
             return;
-        }
-
-        if (repoFile == null) {
+        } catch (RepoFileNotFound ex) {
             NotificationManager.getInstance().notifyError(
                 "An error occurred trying to perform file playback action. This file is not yet synced with CodeSync servers.",
                 project

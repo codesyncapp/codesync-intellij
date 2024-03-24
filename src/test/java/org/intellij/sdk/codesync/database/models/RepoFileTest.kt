@@ -8,6 +8,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 
 class RepoFileTest {
@@ -84,6 +86,36 @@ class RepoFileTest {
         assert(repoBranchFileFromDb.path == repoFile.path)
         assert(repoBranchFileFromDb.repoBranchId == repoBranch.id)
         assert(repoBranchFileFromDb.serverFileId == 124)
+    }
+
+    @Test
+    fun validateDelete() {
+        // Save a user
+        val user = User(
+            "test@codesync.com", "access-token", "access-key", "secrete-key", true
+        )
+        user.save()
+        // Save a repo
+        val repo = Repo(1, "test-repo", "/Users/codesync/dev/test-repo", user.id, RepoState.SYNCED)
+        repo.save()
+        assert(repo.id != null)
+
+        val repoBranch = RepoBranch("master", repo.id)
+        repoBranch.save()
+        assert(repoBranch.id != null)
+
+        val repoFile = RepoFile("test-file", repoBranch.id, 123)
+        repoFile.save()
+        assert(repoFile.id != null)
+
+        // Validate record in the database
+        assertNotNull(RepoFile.getTable().find(repoFile.path, repoFile.repoBranchId))
+
+        // Delete the record
+        repoFile.delete()
+
+        // Validate record not in the database
+        assertNull(RepoFile.getTable().find(repoFile.path, repoFile.repoBranchId))
     }
 
     /*
