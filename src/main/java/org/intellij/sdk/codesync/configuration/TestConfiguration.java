@@ -111,4 +111,7 @@ public class TestConfiguration implements Configuration {
         return LOG_GROUP_NAME;
     }
 
+    public boolean isTestMode() {
+        return true;
+    }
 }

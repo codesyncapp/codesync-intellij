@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync;
 
+import org.intellij.sdk.codesync.configuration.ConfigurationFactory;
 import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
@@ -112,6 +113,12 @@ public class CodeSyncLogger {
 
     private static void logEvent(String message, String userEmail, String type) {
         logConsoleMessage(message, type);
+
+        // Do not send event to cloudwatch when running in test mode.
+        if (ConfigurationFactory.getConfiguration().isTestMode()) {
+            return;
+        }
+
         User user = null;
 
         try {

@@ -130,7 +130,7 @@ public class CodeSyncClient {
                 throw new InvalidUsage(statusCodeError.getMessage());
             }
 
-            if (statusCodeError.getStatusCode()  == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
+            if (statusCodeError.getStatusCode() == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
                 PluginState pluginState = StateUtils.getState(repo.getPath());
                 PricingAlerts.setPlanLimitReached(
                     accessToken,

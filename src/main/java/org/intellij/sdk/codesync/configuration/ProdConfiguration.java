@@ -113,4 +113,7 @@ public class ProdConfiguration implements Configuration {
         return ProjectUtils.getPluginVersion();
     }
 
+    public boolean isTestMode() {
+        return false;
+    }
 }

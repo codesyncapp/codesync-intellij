@@ -14,4 +14,5 @@ public interface Configuration {
     public abstract String getPluginUserSecretKey();
     public abstract String getIDEName();
     public abstract String getPluginVersion();
+    public abstract boolean isTestMode();
 }

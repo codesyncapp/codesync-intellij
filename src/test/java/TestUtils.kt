@@ -6,6 +6,7 @@ import org.intellij.sdk.codesync.configuration.ConfigurationFactory
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 object CodeSyncTestUtils {
     //TODO Test files/paths should also be accessed from configuration files.
@@ -38,7 +39,7 @@ object CodeSyncTestUtils {
     fun cleanupCodeSyncDirectory(codeSyncRoot: String) {
         // Make sure correct configuration is in review. We do not want to delete prod configs
         val configuration = ConfigurationFactory.getConfiguration()
-        assertEquals(configuration.pluginVersion, "unit.tests")
+        assertTrue { configuration.isTestMode }
 
         // First delete the directory if it exists.
         FileUtils.deleteDirectory(Paths.get(codeSyncRoot).toFile())

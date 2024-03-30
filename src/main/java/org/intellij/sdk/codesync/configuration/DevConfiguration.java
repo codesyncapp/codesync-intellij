@@ -112,4 +112,8 @@ public class DevConfiguration implements Configuration {
     public String getLogGroupName() {
         return LOG_GROUP_NAME;
     }
+
+    public boolean isTestMode() {
+        return false;
+    }
 }
