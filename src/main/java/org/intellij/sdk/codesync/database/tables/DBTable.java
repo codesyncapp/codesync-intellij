@@ -1,7 +1,6 @@
 package org.intellij.sdk.codesync.database.tables;
 
 
-import org.intellij.sdk.codesync.database.Database;
 import org.intellij.sdk.codesync.database.SQLiteConnection;
 import org.intellij.sdk.codesync.database.queries.CommonQueries;
 

@@ -23,6 +23,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.intellij.sdk.codesync.alerts.ActivityAlerts;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.database.SQLiteConnection;
+import org.intellij.sdk.codesync.database.migrations.MigrateRepo;
+import org.intellij.sdk.codesync.database.migrations.MigrateUser;
 import org.intellij.sdk.codesync.database.migrations.MigrationManager;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
@@ -62,7 +64,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     }
     // Create system directories required by the plugin.
     createSystemDirectories();
-    MigrationManager.getInstance().runMigrations();
     String repoDirPath = ProjectUtils.getRepoPath(project);
     CodeSyncLock codeSyncProjectLock = new CodeSyncLock(
         LockFileType.PROJECT_LOCK,
@@ -82,6 +83,9 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     // Keep a very low expiry to make sure, if user switches between projects then lock does not cause issues.
     Instant expiry = Instant.now().plus(5, ChronoUnit.SECONDS);
     codeSyncProjectLock.acquireLock(project.getName(), expiry);
+
+    // Run migrations
+    MigrationManager.getInstance().runMigrationsAsync();
 
     // Populate state
     StateUtils.populateState(project);
@@ -105,12 +109,18 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       // in the IDE open dialog box.
       for (VirtualFile contentRoot: contentRoots) {
 
-        if(Utils.isIndividualFileOpen(contentRoot.getPath())){
+        if (Utils.isIndividualFileOpen(contentRoot.getPath())){
           continue;
         }
 
         String repoPath = FileUtils.normalizeFilePath(contentRoot.getPath());
         String repoName = contentRoot.getName();
+
+        // Ignore repos that are being migrated.
+        if (MigrateRepo.getInstance().getReposBeingMigrated().contains(repoPath)) {
+          continue;
+        }
+
         RepoStatus repoStatus = StateUtils.getRepoStatus(repoPath);
         if (repoStatus == RepoStatus.DISCONNECTED) {
           CodeSyncSetup.reconnectRepoAsync(project, repoPath, repoName);
@@ -191,7 +201,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       public void documentChanged(@NotNull DocumentEvent event) {
         if (!project.isDisposed()){
 
-          // Abort if account is has been deactivated.
+          // Abort if account has been deactivated.
           if (StateUtils.getGlobalState().isAccountDeactivated) {
             return;
           }

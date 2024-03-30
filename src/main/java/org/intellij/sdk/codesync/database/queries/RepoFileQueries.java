@@ -32,6 +32,12 @@ public class RepoFileQueries extends CommonQueries {
     }
 
     public String getBulkInsertQuery(ArrayList<RepoFile> repoFiles) {
+
+        // If there is only one element, return the insert query for that element.
+        if (repoFiles.size() == 1) {
+            RepoFile repoFile = repoFiles.get(0);
+            return getInsertQuery(repoFile.getPath(), repoFile.getRepoBranchId(), repoFile.getServerFileId());
+        }
         StringBuilder query = new StringBuilder(String.format(
             "INSERT INTO %s (path, repo_branch_id, server_file_id) VALUES ", tableName
         ));

@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import kotlin.Pair;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.clients.CodeSyncWebSocketClient;
+import org.intellij.sdk.codesync.database.migrations.MigrateRepo;
 import org.intellij.sdk.codesync.database.models.Repo;
 import org.intellij.sdk.codesync.database.models.RepoBranch;
 import org.intellij.sdk.codesync.database.models.RepoFile;
@@ -50,6 +51,15 @@ public class HandleBuffer {
     }
 
     public static boolean shouldSkipDiffFile(DiffFile diffFile, Map<String, Repo> repoMap) {
+        // Ignore repos that are being migrated.
+        if (MigrateRepo.getInstance().getReposBeingMigrated().contains(diffFile.repoPath)) {
+            CodeSyncLogger.info(String.format(
+                "Skipping diff file: %s, repo: %s is being migrated.",
+                diffFile.originalDiffFile.getPath(),
+                diffFile.repoPath
+            ));
+            return true;
+        }
         if (diffReposToIgnore.contains(diffFile.repoPath)) {
             System.out.printf("Ignoring diff file '%s'.%n", diffFile.originalDiffFile.getPath());
             return true;

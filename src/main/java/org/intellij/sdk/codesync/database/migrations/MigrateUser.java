@@ -112,6 +112,7 @@ public class MigrateUser implements Migration {
                     createUserTable();
                     migrateData();
                     setMigrationState(MigrationState.DONE);
+                    CodeSyncLogger.info("[DATABASE_MIGRATION] [DONE] User table migration complete.");
                     break;
                 case IN_PROGRESS:
                 case DONE:

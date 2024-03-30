@@ -1,6 +1,9 @@
 package org.intellij.sdk.codesync.database.queries;
 
+import org.intellij.sdk.codesync.database.models.RepoBranch;
 import org.intellij.sdk.codesync.database.tables.RepoTable;
+
+import java.util.ArrayList;
 
 public class RepoBranchQueries extends CommonQueries {
     String tableName;
@@ -26,8 +29,49 @@ public class RepoBranchQueries extends CommonQueries {
         );
     }
 
+    public String getBulkInsertQuery(ArrayList<RepoBranch> repoBranches) {
+
+        // If there is only one element, return the insert query for that element.
+        if (repoBranches.size() == 1) {
+            RepoBranch repoBranch = repoBranches.get(0);
+            return getInsertQuery(repoBranch.getName(), repoBranch.getRepoId());
+        }
+        StringBuilder query = new StringBuilder(String.format(
+            "INSERT INTO %s (name, repo_id) VALUES ", tableName
+        ));
+
+        // Process n-1 elements
+        for (int i = 0; i < repoBranches.size() - 1; i++) {
+            query.append(String.format(
+                " (%s, %s),",
+                String.format("'%s'", repoBranches.get(i).getName()),
+                repoBranches.get(i).getRepoId()
+            ));
+        }
+
+        int lastElement = repoBranches.size() - 1;
+
+        // Process the last element.
+        query.append(String.format(
+            " (%s, %s);",
+            String.format("'%s'", repoBranches.get(lastElement).getName()),
+            repoBranches.get(lastElement).getRepoId()
+        ));
+
+        return query.toString();
+    }
+
     public String getSelectQuery(String name, Integer repoId) {
         return String.format("SELECT * FROM %s WHERE name = '%s' AND repo_id = %s;", this.tableName, name, repoId);
+    }
+
+    public String getSelectQuery(Integer repoId, ArrayList<String> branchNames) {
+        return String.format(
+            "SELECT * FROM %s WHERE repo_id = %s AND name IN (%s);",
+            this.tableName,
+            repoId,
+            String.join(", ", branchNames.stream().map(name -> String.format("'%s'", name)).toArray(String[]::new))
+        );
     }
 
     /*

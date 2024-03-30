@@ -122,6 +122,9 @@ public class RepoFileTable extends DBTable {
     Bulk insert repo files into the database.
     */
     public void bulkInsert(ArrayList<RepoFile> repoFiles) throws SQLException {
+        if (repoFiles.isEmpty()){
+            return;
+        }
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             statement.executeUpdate(this.repoFileQueries.getBulkInsertQuery(repoFiles));
         }

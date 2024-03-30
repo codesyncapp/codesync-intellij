@@ -8,6 +8,7 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.actions.BaseModuleAction;
 import org.intellij.sdk.codesync.alerts.PricingAlerts;
+import org.intellij.sdk.codesync.database.migrations.MigrateRepo;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
@@ -51,7 +52,11 @@ public class CodeSyncSetupAction extends BaseModuleAction {
         if (!repoRoot.isDirectory()) {
             e.getPresentation().setEnabled(false);
         }
-
+        String repoPath = FileUtils.normalizeFilePath(repoRoot.getPath());
+        if (MigrateRepo.getInstance().getReposBeingMigrated().contains(repoPath)) {
+            this.setButtonRepresentation(e, RepoStatus.SYNC_IN_PROGRESS);
+            return;
+        }
         RepoStatus repoStatus = this.getRepoStatus(repoRoot);
         this.setButtonRepresentation(e, repoStatus);
     }

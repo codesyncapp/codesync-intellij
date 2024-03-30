@@ -1,5 +1,7 @@
 package org.intellij.sdk.codesync.database.migrations;
 
+import org.intellij.sdk.codesync.state.StateUtils;
+
 /*
 Manager for handling migrations.
  */
@@ -13,6 +15,14 @@ public class MigrationManager {
             instance = new MigrationManager();
         }
         return instance;
+    }
+
+    public void runMigrationsAsync() {
+        Thread thread = new Thread(() -> {
+            MigrationManager.getInstance().runMigrations();
+            StateUtils.reloadState(StateUtils.getGlobalState().project);
+        });
+        thread.start();
     }
 
     public void runMigrations() {

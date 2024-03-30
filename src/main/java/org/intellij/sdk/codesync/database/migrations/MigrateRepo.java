@@ -16,7 +16,10 @@ import org.intellij.sdk.codesync.files.ConfigRepoBranch;
 
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.intellij.sdk.codesync.Constants.CONFIG_PATH;
 
@@ -29,12 +32,18 @@ public class MigrateRepo implements Migration {
     private RepoBranchTable repoBranchTable;
     private RepoFileTable repoFileTable;
     private MigrationsTable migrationsTable;
-    MigrationState migrationState = null;
+
+    private Set<String> reposBeingMigrated = new HashSet<>();
     public static MigrateRepo getInstance() {
         if (instance == null) {
             instance = new MigrateRepo();
         }
         return instance;
+    }
+
+    // Get a list of repos that are being migrated. Useful to ignore operations on these while migration is in progress.
+    public Set<String> getReposBeingMigrated() {
+        return reposBeingMigrated;
     }
 
     private MigrateRepo() {
@@ -84,22 +93,102 @@ public class MigrateRepo implements Migration {
         }
     }
 
-    private void migrateData() throws InvalidConfigFileError, SQLException {
-        ConfigFile configFile = new ConfigFile(CONFIG_PATH);
-        for (ConfigRepo configRepo : configFile.getRepos().values()) {
+    /*
+        Insert repos into the database. Also return the inserted repos with their ids.
+    */
+    private ArrayList<Repo> insertRepos(Map<String, ConfigRepo> repoMap) throws SQLException {
+        ArrayList<Repo> reposToInsert = new ArrayList<>();
+        Set<String> reposToIgnore = new HashSet<>();
+
+        // Get existing repos in the database.
+        ArrayList<String> repoPaths = new ArrayList<>(repoMap.keySet());
+        ArrayList<Repo> existingRepos = Repo.getTable().findAll(repoPaths);
+        for (Repo repo: existingRepos) {
+            // Ignore repos that are present in the database.
+            reposToIgnore.add(repo.getPath());
+        }
+        // Insert repo data, using bulk insert query.
+        for (ConfigRepo configRepo : repoMap.values()) {
             String repoPath = configRepo.repoPath;
+            if (reposToIgnore.contains(repoPath)) {
+                continue;
+            }
+            // Add repo to the list of repos being migrated.
+            reposBeingMigrated.add(repoPath);
+
             String repoName = Paths.get(repoPath).getFileName().toString();
             User user = getOrCreateUser(configRepo.email);
             Repo repo = new Repo(configRepo.id, repoName, configRepo.repoPath, user.getId(), getState(configRepo));
-            repo.save();
-            for (ConfigRepoBranch configRepoBranch : configRepo.getRepoBranches().values()) {
-                RepoBranch repoBranch = new RepoBranch(configRepoBranch.branchName, repo.getId());
-                repoBranch.save();
+            reposToInsert.add(repo);
+        }
+        existingRepos.addAll(
+            Repo.getTable().bulkInsert(reposToInsert)
+        );
+        return existingRepos;
+    }
 
-                for (Map.Entry<String, Integer> fileEntry : configRepoBranch.getFiles().entrySet()) {
-                    RepoFile repoFile = new RepoFile(fileEntry.getKey(), repoBranch.getId(), fileEntry.getValue());
-                    repoFile.save();
-                }
+    private ArrayList<RepoBranch> insertBranches(Repo repo, Map<String, ConfigRepoBranch> branchMap) throws SQLException {
+        ArrayList<RepoBranch> branchesToInsert = new ArrayList<>();
+        Set<String> repoBranchesToIgnore = new HashSet<>();
+        ArrayList<RepoBranch> existingBranches = RepoBranch.getTable().findAll(repo.getId(), new ArrayList<>(branchMap.keySet()));
+
+        for (RepoBranch repoBranch: existingBranches) {
+            repoBranchesToIgnore.add(repoBranch.getName());
+        }
+
+        for (ConfigRepoBranch configRepoBranch : branchMap.values()) {
+            if (repoBranchesToIgnore.contains(configRepoBranch.branchName)) {
+                // Ignore branches that are already present in the database.
+                continue;
+            }
+            RepoBranch repoBranch = new RepoBranch(configRepoBranch.branchName, repo.getId());
+            branchesToInsert.add(repoBranch);
+        }
+
+        existingBranches.addAll(
+            RepoBranch.getTable().bulkInsert(branchesToInsert)
+        );
+        return existingBranches;
+    }
+
+    private void insertFiles(RepoBranch repoBranch, Map<String, Integer> files) throws SQLException {
+        ArrayList<RepoFile> repoFiles = new ArrayList<>();
+        Set<String> filesToIgnore = new HashSet<>();
+
+        for (RepoFile repoFile: RepoFile.getTable().findAll(repoBranch.getId())) {
+            filesToIgnore.add(repoFile.getPath());
+        }
+
+        for (Map.Entry<String, Integer> fileEntry : files.entrySet()) {
+            if (filesToIgnore.contains(fileEntry.getKey())) {
+                // Ignore files that are already present in the database.
+                continue;
+            }
+            repoFiles.add(
+                new RepoFile(fileEntry.getKey(), repoBranch.getId(), fileEntry.getValue())
+            );
+        }
+
+        RepoFile.getTable().bulkInsert(repoFiles);
+    }
+
+    private void migrateData() throws InvalidConfigFileError, SQLException {
+        ConfigFile configFile = new ConfigFile(CONFIG_PATH);
+
+        // Insert Repos.
+        CodeSyncLogger.info("[DATABASE_MIGRATION] Inserting Repos into the database.");
+        ArrayList<Repo> repos = this.insertRepos(configFile.getRepos());
+        CodeSyncLogger.info(String.format("[DATABASE_MIGRATION] Inserted %d Repos into the database.", repos.size()));
+
+        for (Repo repo: repos) {
+            CodeSyncLogger.info(String.format("[DATABASE_MIGRATION] Inserting branches for Repo: %s", repo.getPath()));
+            ConfigRepo configRepo = configFile.getRepos().get(repo.getPath());
+            ArrayList<RepoBranch> repoBranches = this.insertBranches(repo, configRepo.getRepoBranches());
+            CodeSyncLogger.info(String.format("[DATABASE_MIGRATION] Inserted %d branches for Repo: %s", repoBranches.size(), repo.getPath()));
+            for (RepoBranch repoBranch: repoBranches) {
+                CodeSyncLogger.info(String.format("[DATABASE_MIGRATION] Inserting files for branch: %s", repoBranch.getName()));
+                this.insertFiles(repoBranch, configRepo.getRepoBranches().get(repoBranch.getName()).getFiles());
+                CodeSyncLogger.info(String.format("[DATABASE_MIGRATION] Inserted files for branch: %s", repoBranch.getName()));
             }
         }
     }
@@ -114,6 +203,7 @@ public class MigrateRepo implements Migration {
                     createTables();
                     migrateData();
                     setMigrationState(MigrationState.DONE);
+                    CodeSyncLogger.info("[DATABASE_MIGRATION] [DONE] Repo table migration complete.");
                     break;
                 case IN_PROGRESS:
                 case DONE:
@@ -131,5 +221,8 @@ public class MigrateRepo implements Migration {
             }
             CodeSyncLogger.critical("[DATABASE_MIGRATION] SQL error while migrating Repo table: " + e.getMessage());
         }
+
+        // Clear repos being migrated set.
+        reposBeingMigrated.clear();
     }
 }

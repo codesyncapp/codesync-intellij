@@ -86,6 +86,24 @@ public class RepoTable extends DBTable {
         return repos;
     }
 
+    public ArrayList<Repo> findAll(ArrayList<String> repoPaths) throws SQLException {
+        ArrayList<Repo> repos = new ArrayList<>();
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            ResultSet resultSet = statement.executeQuery(this.repoQueries.getSelectAllQuery(repoPaths));
+            while (resultSet.next()) {
+                repos.add(new Repo(
+                    resultSet.getInt("id"),
+                    resultSet.getInt("server_repo_id"),
+                    resultSet.getString("name"),
+                    resultSet.getString("path"),
+                    resultSet.getInt("user_id"),
+                    RepoState.fromString(resultSet.getString("state"))
+                ));
+            }
+        }
+        return repos;
+    }
+
     public Repo getOrCreate(Repo repo) throws SQLException {
         Repo existingRepo = find(repo.getPath());
         if (existingRepo == null) {
@@ -106,6 +124,21 @@ public class RepoTable extends DBTable {
         }
         // return the user object with the id
         return find(repo.getPath());
+    }
+
+    public ArrayList<Repo> bulkInsert(ArrayList<Repo> repos) throws SQLException {
+        if (repos.isEmpty()) {
+            return new ArrayList<>();
+        }
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            statement.executeUpdate(this.repoQueries.getBulkInsertQuery(repos));
+        }
+
+        ArrayList<String> repoPaths = new ArrayList<>();
+        for (Repo repo : repos) {
+            repoPaths.add(repo.getPath());
+        }
+        return findAll(repoPaths);
     }
 
     public void update(Repo repo) throws SQLException {

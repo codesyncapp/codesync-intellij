@@ -9,6 +9,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RepoBranchTable extends DBTable {
     private final String tableName = "repo_branch";
@@ -78,6 +80,26 @@ public class RepoBranchTable extends DBTable {
         return repoBranches;
     }
 
+    public ArrayList<RepoBranch> findAll(Integer repoId, ArrayList<String> branchNames) throws SQLException {
+        ArrayList<RepoBranch> repoBranches = new ArrayList<>();
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            ResultSet resultSet = statement.executeQuery(this.repoBranchQueries.getSelectQuery(repoId, branchNames));
+            if (resultSet.isBeforeFirst()) {
+                while (resultSet.next()) {
+                    repoBranches.add(
+                        new RepoBranch(
+                            resultSet.getInt("id"),
+                            resultSet.getString("name"),
+                            resultSet.getInt("repo_id")
+                        )
+                    );
+                }
+                return repoBranches;
+            }
+        }
+        return repoBranches;
+    }
+
     public Integer getBranchCount(Integer repoId) throws SQLException {
         try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
             ResultSet resultSet = statement.executeQuery(this.repoBranchQueries.getBranchCountQuery(repoId));
@@ -105,6 +127,30 @@ public class RepoBranchTable extends DBTable {
             statement.executeUpdate(this.repoBranchQueries.getInsertQuery(repoBranch.getName(), repoBranch.getRepoId()));
             return find(repoBranch.getName(), repoBranch.getRepoId());
         }
+    }
+
+    public ArrayList<RepoBranch> bulkInsert(ArrayList<RepoBranch> repoBranches) throws SQLException {
+        if(repoBranches.isEmpty()) {
+            return new ArrayList<>();
+        }
+        ArrayList<RepoBranch> insertedRepoBranches = new ArrayList<>();
+        try (Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()) {
+            statement.executeUpdate(this.repoBranchQueries.getBulkInsertQuery(repoBranches));
+        }
+        Map<Integer, ArrayList<String>> insertedRepoBrancheMap = new HashMap<>();
+        for (RepoBranch repoBranch : repoBranches) {
+            if (!insertedRepoBrancheMap.containsKey(repoBranch.getRepoId())) {
+                insertedRepoBrancheMap.put(repoBranch.getRepoId(), new ArrayList<>());
+            }
+            insertedRepoBrancheMap.get(repoBranch.getRepoId()).add(repoBranch.getName());
+        }
+
+        for (Integer repoId : insertedRepoBrancheMap.keySet()) {
+            insertedRepoBranches.addAll(
+                findAll(repoId, insertedRepoBrancheMap.get(repoId))
+            );
+        }
+        return insertedRepoBranches;
     }
 
     public void update(RepoBranch repoBranch) throws SQLException {

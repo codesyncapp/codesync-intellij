@@ -5,6 +5,7 @@ import org.apache.commons.text.similarity.*;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.codeSyncSetup.S3FilesUploader;
+import org.intellij.sdk.codesync.database.migrations.MigrateRepo;
 import org.intellij.sdk.codesync.database.models.Repo;
 import org.intellij.sdk.codesync.database.models.RepoBranch;
 import org.intellij.sdk.codesync.database.models.RepoFile;
@@ -171,6 +172,11 @@ public class PopulateBuffer {
         for (Repo repo: repos) {
             String repoPath = repo.getPath();
             String repoName = repo.getName();
+
+            // Skip if repo is being migrated.
+            if (MigrateRepo.getInstance().getReposBeingMigrated().contains(repoPath)) {
+                continue;
+            }
 
             if (!repo.isActive()) {
                 // Repo is not active so no need to check updates for this repo.
