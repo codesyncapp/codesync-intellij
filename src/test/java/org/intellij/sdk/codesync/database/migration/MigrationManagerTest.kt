@@ -12,6 +12,7 @@ import org.intellij.sdk.codesync.database.tables.RepoTable
 import org.intellij.sdk.codesync.database.tables.UserTable
 import org.intellij.sdk.codesync.enums.RepoState
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths
@@ -24,14 +25,18 @@ This will test the complete end-to-end flow of migration manager.
 class MigrationManagerTest {
 
     @BeforeEach
-    fun before() {
-        // Make sure the test directory is empty.
-        cleanupCodeSyncDirectory(Constants.CODESYNC_ROOT)
-    }
+    fun before() { }
 
     @AfterEach
-    fun after(){
+    fun after() { }
 
+    companion object {
+        @JvmStatic
+        @BeforeAll
+        fun setup(): Unit {
+            // Make sure the test directory is empty.
+            cleanupCodeSyncDirectory(Constants.CODESYNC_ROOT)
+        }
     }
 
     /*

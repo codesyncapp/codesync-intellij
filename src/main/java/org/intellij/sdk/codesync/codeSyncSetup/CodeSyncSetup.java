@@ -625,7 +625,6 @@ public class CodeSyncSetup {
     public static void saveToDatabase(
         String email, Integer serverRepoId, String repoName, String repoPath, String branchName, Map<String, Integer> filePathAndIds
     ) throws SQLException {
-        // TODO: Add tests for this.
         User user;
         try {
             user = User.getTable().get(email);
