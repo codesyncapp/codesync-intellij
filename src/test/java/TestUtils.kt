@@ -32,17 +32,4 @@ object CodeSyncTestUtils {
     fun getTempPath(): String {
         return FileUtil.toCanonicalPath("${PathManager.getTempPath()}/")
     }
-
-    /*
-    This makes sure the code sync directories for test are created and empty.
-     */
-    fun cleanupCodeSyncDirectory(codeSyncRoot: String) {
-        // Make sure correct configuration is in review. We do not want to delete prod configs
-        val configuration = ConfigurationFactory.getConfiguration()
-        assertTrue { configuration.isTestMode }
-
-        // First delete the directory if it exists.
-        FileUtils.deleteDirectory(Paths.get(codeSyncRoot).toFile())
-        createSystemDirectories()
-    }
 }

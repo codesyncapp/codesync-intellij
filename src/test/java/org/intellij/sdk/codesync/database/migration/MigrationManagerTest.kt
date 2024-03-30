@@ -1,8 +1,8 @@
 package org.intellij.sdk.codesync.database.migration
 
 import CodeSyncTestUtils.getTestFilePath
-import CodeSyncTestUtils.cleanupCodeSyncDirectory
 import org.intellij.sdk.codesync.Constants
+import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup
 import org.intellij.sdk.codesync.database.enums.MigrationState
 import org.intellij.sdk.codesync.database.migrations.MigrationManager
 import org.intellij.sdk.codesync.database.tables.MigrationsTable
@@ -12,6 +12,7 @@ import org.intellij.sdk.codesync.database.tables.RepoTable
 import org.intellij.sdk.codesync.database.tables.UserTable
 import org.intellij.sdk.codesync.enums.RepoState
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths
@@ -24,10 +25,7 @@ This will test the complete end-to-end flow of migration manager.
 class MigrationManagerTest {
 
     @BeforeEach
-    fun before() {
-        // Make sure the test directory is empty.
-        cleanupCodeSyncDirectory(Constants.CODESYNC_ROOT)
-    }
+    fun before() {}
 
     @AfterEach
     fun after() {}
@@ -46,6 +44,8 @@ class MigrationManagerTest {
             getTestFilePath("user-for-migration.yml").toFile(),
             Paths.get(Constants.USER_FILE_PATH).toFile()
         )
+        // Delete the database if exists
+        org.apache.commons.io.FileUtils.deleteQuietly(Paths.get(Constants.DATABASE_PATH).toFile())
 
         // validate the tables do not exist.
         assert(!MigrationsTable.getInstance().exists())
@@ -249,5 +249,13 @@ class MigrationManagerTest {
 
         assertEquals(repo4branch1Files.map { file -> file.serverFileId }, listOf(411, 412, 413, 414, 415, 416))
         assertEquals(repo4branch1Files.map { file -> file.path }, listOf("test-repo-4-1.txt", "test-repo-4-2.txt", "test-repo-4-3.txt", "test-repo-4-4.txt", "test-repo-4-5.txt", "test-repo-4-6.txt"))
+    }
+
+    companion object {
+        @JvmStatic
+        @BeforeAll
+        fun setup(): Unit {
+            CodeSyncSetup.createSystemDirectories()
+        }
     }
 }
