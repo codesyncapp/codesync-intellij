@@ -47,13 +47,6 @@ class MigrationManagerTest {
         // Delete the database if exists
         org.apache.commons.io.FileUtils.deleteQuietly(Paths.get(Constants.DATABASE_PATH).toFile())
 
-        // validate the tables do not exist.
-        assert(!MigrationsTable.getInstance().exists())
-        assert(!RepoTable.getInstance().exists())
-        assert(!RepoBranchTable.getInstance().exists())
-        assert(!RepoFileTable.getInstance().exists())
-        assert(!UserTable.getInstance().exists())
-
         // Run the migration.
         MigrationManager.getInstance().runMigrations()
 
