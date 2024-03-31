@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import org.apache.http.client.utils.URIBuilder;
 import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.JSONArray;
@@ -87,10 +88,20 @@ public class CodeSyncWebSocketClient {
                 }
                 authenticationHandler.handleAuthenticated(statusCode == 200);
             } catch (org.json.simple.parser.ParseException error) {
-                CodeSyncLogger.critical(String.format("Invalid JSON from server while authenticating. %s.", error.getMessage()));
+                CodeSyncLogger.critical(
+                    String.format(
+                        "Invalid JSON from server while authenticating. %s.",
+                        CommonUtils.getStackTrace(error)
+                    )
+                );
                 authenticationHandler.handleAuthenticated(false);
             } catch (ClassCastException error) {
-                CodeSyncLogger.critical(String.format("Invalid JSON data from server while authenticating caused cast exception: %s.", error.getMessage()));
+                CodeSyncLogger.critical(
+                    String.format(
+                        "Invalid JSON data from server while authenticating caused cast exception: %s.",
+                        CommonUtils.getStackTrace(error)
+                    )
+                );
                 authenticationHandler.handleAuthenticated(false);
             }
         });
@@ -138,10 +149,20 @@ public class CodeSyncWebSocketClient {
                 }
                 dataTransmissionHandler.dataTransferStatusCallback(statusCode == 200, diffFilePath);
             } catch (org.json.simple.parser.ParseException error) {
-                CodeSyncLogger.critical(String.format("Invalid JSON from server while sending diff file.: %s.", error.getMessage()));
+                CodeSyncLogger.critical(
+                    String.format(
+                        "Invalid JSON from server while sending diff file.: %s",
+                        CommonUtils.getStackTrace(error)
+                    )
+                );
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             } catch (ClassCastException error) {
-                CodeSyncLogger.critical(String.format("Invalid JSON data  from server caused cast exception: %s.", error.getMessage()));
+                CodeSyncLogger.critical(
+                    String.format(
+                        "Invalid JSON data  from server caused cast exception: %s",
+                        CommonUtils.getStackTrace(error)
+                    )
+                );
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             }
         });
@@ -199,10 +220,20 @@ public class CodeSyncWebSocketClient {
                 }
                 dataTransmissionHandler.dataTransferStatusCallback(statusCode == 200, diffFilePath);
             } catch (org.json.simple.parser.ParseException error) {
-                CodeSyncLogger.critical(String.format("Invalid JSON from server while sending diff file.: %s.", error.getMessage()));
+                CodeSyncLogger.critical(
+                    String.format(
+                        "Invalid JSON from server while sending diff file. Error: %s",
+                        CommonUtils.getStackTrace(error)
+                    )
+                );
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             } catch (ClassCastException error) {
-                CodeSyncLogger.critical(String.format("Invalid JSON data  from server caused cast exception: %s.", error.getMessage()));
+                CodeSyncLogger.critical(
+                    String.format(
+                        "Invalid JSON data  from server caused cast exception: %s",
+                        CommonUtils.getStackTrace(error)
+                    )
+                );
                 dataTransmissionHandler.dataTransferStatusCallback(false, null);
             }
         });

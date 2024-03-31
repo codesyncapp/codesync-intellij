@@ -7,6 +7,7 @@ import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.InvalidAccessTokenError;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 /*
 This command first checks the existence of access token in user.yml file and if it is present
@@ -68,12 +69,12 @@ public class ResumeCodeSyncCommand implements Command {
                 CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
 
                 CodeSyncLogger.debug(
-                        "[INTELLIJ_AUTH]: User redirected again to the login page because of invalid access token."
+                    "[INTELLIJ_AUTH]: User redirected again to the login page because of invalid access token."
                 );
             } catch (Exception e) {
                 CodeSyncLogger.critical(String.format(
-                        "[RESUME_CODESYNC_COMMAND] could not instantiate codesync auth server. Error: %s",
-                        e.getMessage()
+                    "[RESUME_CODESYNC_COMMAND] could not instantiate CodeSync auth server. Error: %s",
+                    CommonUtils.getStackTrace(e)
                 ));
             }
         }

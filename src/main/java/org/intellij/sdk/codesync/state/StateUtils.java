@@ -7,6 +7,7 @@ import org.intellij.sdk.codesync.database.models.Repo;
 import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.database.RepoNotFound;
 import org.intellij.sdk.codesync.ui.notifications.DeactivatedAccountNotification;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 
@@ -104,7 +105,9 @@ public class StateUtils {
                     break;
             }
         } catch (SQLException error) {
-            CodeSyncLogger.error(String.format("Error getting repo from database. Error: %s", error.getMessage()));
+            CodeSyncLogger.error(
+                String.format("Error getting repo from database. Error: %s", CommonUtils.getStackTrace(error))
+            );
             pluginState.repoStatus = RepoStatus.UNKNOWN;
             pluginState.isRepoInSync = false;
         } catch (RepoNotFound e) {

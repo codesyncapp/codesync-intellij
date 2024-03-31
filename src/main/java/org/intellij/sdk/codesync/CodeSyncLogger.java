@@ -99,12 +99,12 @@ public class CodeSyncLogger {
             try {
                 logsClient.putLogEvents(putLogEventsRequest);
             } catch (SdkClientException error){
-                logConsoleMessage("Network Error: " + error.getMessage(), LogMessageType.ERROR);
+                logConsoleMessage("Network Error: " + CommonUtils.getStackTrace(error), LogMessageType.ERROR);
             }
 
         } catch (CloudWatchException error) {
             logConsoleMessage(
-                String.format("Cloudwatch exception while logging message: '%s'", error.getMessage()),
+                String.format("Cloudwatch exception while logging message: '%s'", CommonUtils.getStackTrace(error)),
                 LogMessageType.ERROR
             );
             throw error;
@@ -129,7 +129,7 @@ public class CodeSyncLogger {
             }
         } catch (SQLException error) {
             logConsoleMessage(
-                String.format("Error getting active user from database. Error: %s", error.getMessage()),
+                String.format("Error getting active user from database. Error: %s", CommonUtils.getStackTrace(error)),
                 LogMessageType.CRITICAL
             );
         }
@@ -167,13 +167,17 @@ public class CodeSyncLogger {
             );
         } catch (UnrecognizedClientException error) {
             String errorMessage = String.format(
-                "Error publishing message to cloudwatch. Error: %s%nOriginal Message: %s", error.getMessage(), message
+                "Error publishing message to cloudwatch. Error: %s%nOriginal Message: %s",
+                CommonUtils.getStackTrace(error),
+                message
             );
             if (retryCount > 10) {
                 // Do not try more than 10 times.
                 retryCount = 0;
                 logConsoleMessage(
-                    String.format("Could not log the message to cloud watch. Error: %s%n", error.getMessage()),
+                    String.format(
+                        "Could not log the message to cloud watch. Error: %s", CommonUtils.getStackTrace(error)
+                    ),
                     LogMessageType.CRITICAL
                 );
             } else {
@@ -193,7 +197,9 @@ public class CodeSyncLogger {
                 // Do not try more than 10 times.
                 retryCount = 0;
                 logConsoleMessage(
-                    String.format("Could not log the message to cloud watch. Error: %s%n", error.getMessage()),
+                    String.format(
+                        "Could not log the message to cloud watch. Error: %s", CommonUtils.getStackTrace(error)
+                    ),
                     LogMessageType.CRITICAL
                 );
             } else {

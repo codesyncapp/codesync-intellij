@@ -242,7 +242,12 @@ public class CodeSyncSetup {
                 );
             }
         } catch (SQLException error) {
-            CodeSyncLogger.critical(String.format("Error while getting repo from database/ Error: %s.", error.getMessage()));
+            CodeSyncLogger.critical(
+                String.format(
+                    "Error while getting repo from database. Error: %s",
+                    CommonUtils.getStackTrace(error)
+                )
+            );
         }
     }
 
@@ -342,7 +347,8 @@ public class CodeSyncSetup {
             CodeSyncLogger.debug("[INTELLIJ_AUTH]: User redirected to the login page.");
         } catch (Exception exc) {
             CodeSyncLogger.critical(String.format(
-                "[INTELLIJ_AUTH_ERROR]: IntelliJ Login Error, an error occurred during user authentication. Error: %s", exc.getMessage()
+                "[INTELLIJ_AUTH]: An error occurred during user authentication. Error: %s",
+                CommonUtils.getStackTrace(exc)
             ));
             NotificationManager.getInstance().notifyError("There was a problem with login, please try again later.", project);
         }
@@ -524,7 +530,7 @@ public class CodeSyncSetup {
             );
         } catch (ClassCastException err) {
             CodeSyncLogger.critical(String.format(
-                "Error parsing the response of /init endpoint. Error: %s", err.getMessage()
+                "Error parsing the response of /init endpoint. Error: %s", CommonUtils.getStackTrace(err)
             ));
 
             return false;
@@ -551,14 +557,17 @@ public class CodeSyncSetup {
             saveToDatabase(email, repoId, repoName, repoPath, branchName, filePathAndIds);
         } catch (ClassCastException | JsonProcessingException err) {
             CodeSyncLogger.critical(
-                String.format("Error parsing the response of /init endpoint. Error: %s", err.getMessage()),
+                String.format(
+                    "Error parsing the response of /init endpoint. Error: %s",
+                    CommonUtils.getStackTrace(err)
+                ),
                 email
             );
 
             return false;
         } catch (SQLException error) {
             CodeSyncLogger.error(String.format(
-                "Error saving repo data on the database. Error: %s", error.getMessage()
+                "Error saving repo data on the database. Error: %s", CommonUtils.getStackTrace(error)
             ));
 
             if (!isSyncingBranch) {
@@ -586,13 +595,13 @@ public class CodeSyncSetup {
             s3FileUploader.saveURLs();
         } catch (ClassCastException | JsonProcessingException err) {
             CodeSyncLogger.critical(
-                String.format("Error parsing the response of /init endpoint. Error: %s", err.getMessage()),
+                String.format("Error parsing the response of /init endpoint. Error: %s", CommonUtils.getStackTrace(err)),
                 email
             );
             return false;
         } catch (InvalidYmlFileError | FileNotFoundException error) {
             CodeSyncLogger.critical(
-                String.format("Error creating S3 upload queue file. Error: %s", error.getMessage()),
+                String.format("Error creating S3 upload queue file. Error: %s", CommonUtils.getStackTrace(error)),
                 email
             );
             return false;
@@ -614,7 +623,10 @@ public class CodeSyncSetup {
             user.save();
         } catch (SQLException e) {
             CodeSyncLogger.critical(
-                String.format("[INTELLI_REPO_INIT_ERROR]: Auth SQLite Database error. Error: %s", e.getMessage())
+                String.format(
+                    "[INTELLI_REPO_INIT_ERROR]: Auth SQLite Database error. Error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
             );
         }
     }

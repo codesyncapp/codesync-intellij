@@ -2,6 +2,8 @@ package org.intellij.sdk.codesync.database;
 
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
+import org.intellij.sdk.codesync.utils.CommonUtils;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,9 +45,13 @@ public class Database {
                 dataSet.add(row);
             }
         } catch (NullPointerException e){
-            throw new SQLiteDBConnectionError("SQLite Database Connection error: " + e.getMessage());
+            throw new SQLiteDBConnectionError(
+                String.format("SQLite Database Connection error: %s%n", CommonUtils.getStackTrace(e))
+            );
         } catch (SQLException e){
-            throw new SQLiteDataError("Error while read data from SQLite database: " + e.getMessage());
+            throw new SQLiteDataError(
+                String.format("Error while read data from SQLite database: %s%n",  CommonUtils.getStackTrace(e))
+            );
         }
 
         return dataSet;
@@ -56,9 +62,13 @@ public class Database {
         try(Statement statement = SQLiteConnection.getInstance().getConnection().createStatement()){
             statement.executeUpdate(query);
         } catch (NullPointerException e){
-            throw new SQLiteDBConnectionError("SQLite Database Connection error: " + e.getMessage());
+            throw new SQLiteDBConnectionError(
+                String.format("SQLite Database Connection error: %s%n", CommonUtils.getStackTrace(e))
+            );
         } catch (SQLException e){
-            throw new SQLiteDataError("Error while inserting data in SQLite database: " + e.getMessage());
+            throw new SQLiteDataError(
+                String.format("Error while inserting data in SQLite database: %s%n", CommonUtils.getStackTrace(e))
+            );
         }
     }
 }

@@ -47,7 +47,7 @@ public class MigrateUser implements Migration {
             text = CharStreams.toString(reader);
             this.contentsMap = yaml.load(text);
         } catch (IOException | YAMLException e) {
-            throw new InvalidYmlFileError(e.getMessage());
+            throw new InvalidYmlFileError(CommonUtils.getStackTrace(e));
         }
     }
 
@@ -82,7 +82,12 @@ public class MigrateUser implements Migration {
                     e.getMessage()
                 ));
             }
-            CodeSyncLogger.critical("[DATABASE_MIGRATION] SQL error while migrating User table: " + e.getMessage());
+            CodeSyncLogger.critical(
+                String.format(
+                    "[DATABASE_MIGRATION] SQL error while migrating User table: %s",
+                    CommonUtils.getStackTrace(e)
+                )
+            );
         }
     }
 
@@ -128,7 +133,12 @@ public class MigrateUser implements Migration {
                     e.getMessage()
                 ));
             }
-            CodeSyncLogger.critical("[DATABASE_MIGRATION] SQL error while migrating User table: " + e.getMessage());
+            CodeSyncLogger.critical(
+                String.format(
+                    "[DATABASE_MIGRATION] SQL error while migrating User table: %s",
+                    CommonUtils.getStackTrace(e)
+                )
+            );
         }
     }
 }

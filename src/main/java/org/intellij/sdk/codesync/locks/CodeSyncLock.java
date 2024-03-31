@@ -4,6 +4,7 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.files.LockFile;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -46,13 +47,13 @@ public class CodeSyncLock {
             return new LockFile(this.getLockFilePath(), true);
         } catch (FileNotFoundException | FileNotCreatedError error) {
             CodeSyncLogger.error(String.format(
-                "[LOCK_FILE] Lock file error, %s.\n", error.getMessage()
+                "[LOCK_FILE] Lock file error, %s.\n", CommonUtils.getStackTrace(error)
             ));
             return null;
         } catch (InvalidYmlFileError error) {
             CodeSyncLogger.error(String.format(
                 "[LOCK_FILE] Lock file error Invalid Yaml error, removing file contents. Error: %s.\n",
-                error.getMessage()
+                CommonUtils.getStackTrace(error)
             ));
             LockFile.removeFileContents(new File(this.getLockFilePath()));
             return null;

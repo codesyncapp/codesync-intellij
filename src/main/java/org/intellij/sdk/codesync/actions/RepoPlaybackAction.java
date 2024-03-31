@@ -10,6 +10,7 @@ import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.database.models.Repo;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.exceptions.database.RepoNotFound;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -85,7 +86,7 @@ public class RepoPlaybackAction extends BaseModuleAction {
                 CodeSyncLogger.warning(String.format(
                     "An error occurred trying to perform repo playback action. " +
                     "We could not detect the module of the opened file. Error: %s",
-                    error.getMessage()
+                    CommonUtils.getStackTrace(error)
                 ));
 
                 return;
@@ -114,7 +115,7 @@ public class RepoPlaybackAction extends BaseModuleAction {
             );
             CodeSyncLogger.critical(String.format(
                 "An error occurred trying to perform repo playback action. Error while fetching repo record. Error: %s",
-                error.getMessage()
+                CommonUtils.getStackTrace(error)
             ));
 
             return;

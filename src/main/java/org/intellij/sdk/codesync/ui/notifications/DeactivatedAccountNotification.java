@@ -8,6 +8,7 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.Constants.Notification;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.server.CodeSyncReactivateAccountServer;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -32,7 +33,8 @@ public class DeactivatedAccountNotification {
                         BrowserUtil.browse(codeSyncReactivateAccountServer.getReactivateAccountUrl());
                     } catch (Exception error) {
                         CodeSyncLogger.critical(String.format(
-                            "[REACTIVATE_ACCOUNT]: Error while activating the account. \nError: %s", error.getMessage()
+                            "[REACTIVATE_ACCOUNT]: Error while activating the account. \nError: %s",
+                            CommonUtils.getStackTrace(error)
                         ));
                     }
                 }

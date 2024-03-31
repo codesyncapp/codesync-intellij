@@ -13,6 +13,7 @@ import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.server.CodeSyncReactivateAccountServer;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
@@ -62,7 +63,8 @@ public class AuthAction extends BaseModuleAction {
                 BrowserUtil.browse(codeSyncReactivateAccountServer.getReactivateAccountUrl());
             } catch (Exception error) {
                 CodeSyncLogger.critical(String.format(
-                    "[REACTIVATE_ACCOUNT]: Error while activating the account. %nError: %s", error.getMessage()
+                    "[REACTIVATE_ACCOUNT]: Error while activating the account. %nError: %s",
+                    CommonUtils.getStackTrace(error)
                 ));
             }
             return;
@@ -85,7 +87,10 @@ public class AuthAction extends BaseModuleAction {
                         "An error occurred trying to logout the user, please tyr again later.", project
                     );
                     CodeSyncLogger.error(
-                        String.format("[INTELLIJ_AUTH_ERROR]: Could not write to database due to database error. Error: %s", error.getMessage())
+                        String.format(
+                            "[INTELLIJ_AUTH_ERROR]: Could not write to database due to database error. Error: %s",
+                            CommonUtils.getStackTrace(error)
+                        )
                     );
                     return;
                 }
@@ -103,7 +108,10 @@ public class AuthAction extends BaseModuleAction {
             }
         } catch (Exception exc) {
             CodeSyncLogger.critical(
-                String.format("[INTELLIJ_AUTH_ERROR]: IntelliJ Login Error, an error occurred during user authentication. Error: %s", exc.getMessage()),
+                String.format(
+                    "[INTELLIJ_AUTH]: An error occurred during user authentication. Error: %s",
+                    CommonUtils.getStackTrace(exc)
+                ),
                 pluginState.userEmail
             );
         }

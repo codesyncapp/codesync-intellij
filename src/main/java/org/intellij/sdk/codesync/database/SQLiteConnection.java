@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync.database;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -18,9 +19,19 @@ public class SQLiteConnection {
             Class.forName("org.sqlite.JDBC");
             connection = DriverManager.getConnection(CONNECTION_STRING);
         } catch (ClassNotFoundException e) {
-            CodeSyncLogger.critical("[DATABASE] JDBC library error while initiating SQLite database connection. Error: " + e.getMessage());
+            CodeSyncLogger.critical(
+                String.format(
+                    "[DATABASE] JDBC library error while initiating SQLite database connection. Error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
+            );
         } catch (SQLException e) {
-            CodeSyncLogger.error("[DATABASE] SQL error while re-initiating SQLite database connection. Error: " + e.getMessage());
+            CodeSyncLogger.error(
+                String.format(
+                    "[DATABASE] SQL error while re-initiating SQLite database connection. Error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
+            );
         }
     }
 
@@ -43,7 +54,12 @@ public class SQLiteConnection {
                 connection.close();
             }
         } catch (SQLException e) {
-            CodeSyncLogger.error("[DATABASE_DISCONNECTION] SQL error while disconnecting SQLite database connection. Error: " + e.getMessage());
+            CodeSyncLogger.error(
+                String.format(
+                    "[DATABASE_DISCONNECTION] SQL error while disconnecting SQLite database connection. Error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
+            );
         }
     }
 

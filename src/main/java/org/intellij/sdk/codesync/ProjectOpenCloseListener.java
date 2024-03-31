@@ -24,12 +24,12 @@ import org.intellij.sdk.codesync.alerts.ActivityAlerts;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.database.SQLiteConnection;
 import org.intellij.sdk.codesync.database.migrations.MigrateRepo;
-import org.intellij.sdk.codesync.database.migrations.MigrateUser;
 import org.intellij.sdk.codesync.database.migrations.MigrationManager;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.state.RepoStatus;
 import org.intellij.sdk.codesync.state.StateUtils;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -159,7 +159,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
             repoPath = ProjectUtils.getRepoPath(virtualFile, project);
           } catch (FileNotInModuleError error) {
             // Ignore events not belonging to current project.
-            CodeSyncLogger.logConsoleMessage("Ignoring event because event does not belong to any of the module files.");
             return;
           }
 
@@ -229,7 +228,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     try{
       SQLiteConnection.getInstance().disconnect();
     } catch (SQLException e){
-      CodeSyncLogger.error("Error while disconnecting database: " + e.getMessage());
+      CodeSyncLogger.error("Error while disconnecting database: " + CommonUtils.getStackTrace(e));
     }
 
     // Release all the locks acquired by this project.

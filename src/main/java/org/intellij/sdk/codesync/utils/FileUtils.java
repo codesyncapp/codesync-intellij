@@ -37,7 +37,9 @@ public class FileUtils
         try {
             return org.apache.commons.io.FileUtils.readFileToString(file, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            CodeSyncLogger.error(String.format("Could not read file '%s'. Error: %s", file.getPath(), e.getMessage()));
+            CodeSyncLogger.error(
+                String.format("Could not read file '%s'. Error: %s", file.getPath(), CommonUtils.getStackTrace(e))
+            );
             return null;
         }
     }
@@ -57,7 +59,12 @@ public class FileUtils
             try {
                 jsonObject = (JSONObject) JSONValue.parseWithException(jsonString);
             } catch (ParseException e) {
-                CodeSyncLogger.error(String.format("Error parsing json of plugin user json file. Error: %s", e.getMessage()));
+                CodeSyncLogger.error(
+                    String.format(
+                        "Error parsing json of plugin user json file. Error: %s",
+                        CommonUtils.getStackTrace(e)
+                    )
+                );
                 // Ignore error.
             }
         }
@@ -146,7 +153,7 @@ public class FileUtils
             fileInfo.put("modifiedTime", CodeSyncDateUtils.formatDate(fileAttributes.lastModifiedTime()));
             fileInfo.put("isBinary", isBinaryFile(file));
         } catch (IOException error) {
-            throw new FileInfoError(error.getMessage());
+            throw new FileInfoError(CommonUtils.getStackTrace(error));
         }
 
         return fileInfo;
@@ -160,7 +167,7 @@ public class FileUtils
         try {
             basicFileAttributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
         } catch (IOException error) {
-            throw new FileInfoError(error.getMessage());
+            throw new FileInfoError(CommonUtils.getStackTrace(error));
         }
 
         return Instant.ofEpochMilli(basicFileAttributes.creationTime().toMillis());

@@ -11,6 +11,7 @@ import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.exceptions.RequestError;
 import org.intellij.sdk.codesync.files.S3UploadQueueFile;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -77,7 +78,10 @@ public class S3FileUploader {
                 );
             } catch (ClassCastException error) {
                 CodeSyncLogger.critical(
-                    String.format("[S3_FILE_UPLOAD]: Could not process yaml content. Error %s", error.getMessage())
+                    String.format(
+                        "[S3_FILE_UPLOAD]: Could not process yaml content. Error %s",
+                        CommonUtils.getStackTrace(error)
+                    )
                 );
             }
         }
@@ -99,7 +103,7 @@ public class S3FileUploader {
                 CodeSyncLogger.critical(
                     String.format(
                         "[S3_FILE_UPLOAD]: Error while saving files that could not be uploaded. Error %s",
-                        error.getMessage()
+                        CommonUtils.getStackTrace(error)
                     )
                 );
             }

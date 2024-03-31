@@ -9,6 +9,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.commands.Command;
 import org.intellij.sdk.codesync.server.servlets.ReactivateAccountHandler;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.net.URISyntaxException;
 import java.util.LinkedList;
@@ -65,7 +66,10 @@ public class CodeSyncReactivateAccountServer {
             return uriBuilder.toString();
         } catch (URISyntaxException e) {
             CodeSyncLogger.critical(
-                String.format("[INTELLIJ_ACTIVATE_ACCOUNT_ERROR]: Invalid `SETTINGS_PAGE_URL` settings. Error: %s", e.getMessage())
+                String.format(
+                    "[INTELLIJ_ACTIVATE_ACCOUNT_ERROR]: Invalid `SETTINGS_PAGE_URL` settings. Error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
             );
             return null;
         }

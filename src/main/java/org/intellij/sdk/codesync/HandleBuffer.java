@@ -61,7 +61,7 @@ public class HandleBuffer {
             return true;
         }
         if (diffReposToIgnore.contains(diffFile.repoPath)) {
-            System.out.printf("Ignoring diff file '%s'.%n", diffFile.originalDiffFile.getPath());
+            CodeSyncLogger.info(String.format("Ignoring diff file '%s'.%n", diffFile.originalDiffFile.getPath()));
             return true;
         }
 
@@ -94,7 +94,9 @@ public class HandleBuffer {
             }
         } catch (SQLException e) {
             CodeSyncLogger.error(String.format(
-                "Error while getting branch information for repo %s. Error: %s", diffFile.repoPath, e.getMessage()
+                "Error while getting branch information for repo %s. Error: %s",
+                diffFile.repoPath,
+                CommonUtils.getStackTrace(e)
             ));
             // Skip this file for now, will be processed in the next iteration.
             return true;
@@ -105,7 +107,9 @@ public class HandleBuffer {
             user = repo.getUser();
         } catch (SQLException | UserNotFound e) {
             CodeSyncLogger.error(String.format(
-                "Error while getting user information for repo %s. Error: %s", diffFile.repoPath, e.getMessage()
+                "Error while getting user information for repo %s. Error: %s",
+                diffFile.repoPath,
+                CommonUtils.getStackTrace(e)
             ));
             // Skip this file for now, will be processed in the next iteration.
             return true;
@@ -115,7 +119,9 @@ public class HandleBuffer {
             repo.getBranch(diffFile.branch);
         } catch (SQLException e) {
             CodeSyncLogger.error(String.format(
-                "Error while getting branch information for repo %s. Error: %s", diffFile.repoPath, e.getMessage()
+                "Error while getting branch information for repo %s. Error: %s",
+                diffFile.repoPath,
+                CommonUtils.getStackTrace(e)
             ));
         } catch (RepoBranchNotFound e) {
             if (FileUtils.isStaleFile(diffFile.originalDiffFile)){
@@ -177,7 +183,9 @@ public class HandleBuffer {
                 try {
                     HandleBuffer.handleBuffer(project);
                 } catch (Exception e) {
-                    CodeSyncLogger.error(String.format("handleBuffer exited with error: %s", e.getMessage()));
+                    CodeSyncLogger.error(String.format(
+                        "HandleBuffer exited with error: %s", CommonUtils.getStackTrace(e)
+                    ));
                     if(e.getMessage().contains("Connection failed")){
                         CodeSyncLogger.critical(CONNECTION_ERROR_MESSAGE);
                     }
@@ -226,7 +234,9 @@ public class HandleBuffer {
                 repoMap.put(repo.getPath(), repo);
             }
         } catch (SQLException e) {
-            CodeSyncLogger.error(String.format("Error while fetching repos from the database: %s", e.getMessage()));
+            CodeSyncLogger.error(
+                String.format("Error while fetching repos from the database: %s", CommonUtils.getStackTrace(e))
+            );
             diffFilesBeingProcessed.clear();
             return;
         }
@@ -252,12 +262,15 @@ public class HandleBuffer {
             diffFiles, 0, diffFiles.length >= DIFFS_PER_ITERATION ? DIFFS_PER_ITERATION : diffFiles.length
         );
 
+        CodeSyncLogger.logConsoleMessage(String.format("Processing %d diff files.", diffFiles.length));
         for (final DiffFile diffFile : diffFiles) {
             if (currentRepo == null) {
                 try {
                     currentRepo = Repo.getTable().find(diffFile.repoPath);
                 } catch (SQLException e) {
-                    CodeSyncLogger.error(String.format("Error while fetching repo from the database: %s", e.getMessage()));
+                    CodeSyncLogger.error(
+                        String.format("Error while fetching repo from the database: %s", CommonUtils.getStackTrace(e))
+                    );
                     continue;
                 }
             }
@@ -283,8 +296,6 @@ public class HandleBuffer {
 
             diffFilesBeingProcessed.add(diffFile.originalDiffFile.getPath());
 
-            System.out.printf("Processing diff file: %s.\n", diffFile.originalDiffFile.getPath());
-
             if (!repoMap.containsKey(diffFile.repoPath)) {
                 CodeSyncLogger.error(String.format("Repo `%s` is in buffer but not in configFile.yml.\n", diffFile.repoPath));
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
@@ -296,11 +307,13 @@ public class HandleBuffer {
             try {
                 user = repo.getUser();
             } catch (SQLException e) {
-                CodeSyncLogger.error(String.format("Error while fetching user from the database: %s", e.getMessage()));
+                CodeSyncLogger.error(
+                    String.format("Error while fetching user from the database: %s", CommonUtils.getStackTrace(e))
+                );
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                 continue;
             } catch (UserNotFound e) {
-                CodeSyncLogger.error(String.format("User not found in the database: %s", e.getMessage()));
+                CodeSyncLogger.error(String.format("User not found in the database: %s", CommonUtils.getStackTrace(e)));
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                 continue;
             }
@@ -329,7 +342,9 @@ public class HandleBuffer {
             try {
                 repoBranch = repo.getBranch(diffFile.branch);
             } catch (SQLException e) {
-                CodeSyncLogger.error(String.format("Error while fetching branch from the database: %s", e.getMessage()));
+                CodeSyncLogger.error(
+                    String.format("Error while fetching branch from the database: %s", CommonUtils.getStackTrace(e))
+                );
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                 continue;
             } catch (RepoBranchNotFound e) {
@@ -350,13 +365,7 @@ public class HandleBuffer {
                 newFiles.add(diffFile.fileRelativePath);
                 boolean isSuccess = handleNewFile(client, accessToken, diffFile, repo, repoBranch);
                 if (isSuccess) {
-                    System.out.printf("Diff file '%s' successfully processed.\n", diffFile.originalDiffFile.getPath());
-                    if (diffFile.delete()) {
-                        System.out.printf("Diff file '%s' successfully deleted.\n", diffFile.originalDiffFile.getPath());
-                    } else {
-                        System.out.printf("Diff file '%s' could not be deleted.\n", diffFile.originalDiffFile.getPath());
-                    }
-
+                    diffFile.delete();
                     // We also need to disconnect existing connections here,
                     // otherwise the server cache causes an error and file updates end in error until the IDE restarts.
                     client.getWebSocketClient(accessToken).disconnect();
@@ -381,7 +390,9 @@ public class HandleBuffer {
                 try {
                     repoFile = repoBranch.getFile(diffFile.oldRelativePath);
                 } catch (SQLException e) {
-                    CodeSyncLogger.error(String.format("Error while fetching file from the database: %s", e.getMessage()));
+                    CodeSyncLogger.error(
+                        String.format("Error while fetching file from the database: %s", CommonUtils.getStackTrace(e))
+                    );
                     diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                     continue;
                 } catch (RepoFileNotFound e) {
@@ -406,7 +417,7 @@ public class HandleBuffer {
 
                 boolean isSuccess = handleFileRename(repoBranch, diffFile, oldFileId);
                 if (!isSuccess) {
-                    System.out.printf("Diff file '%s' could not be processed.\n", diffFile.originalDiffFile.getPath());
+                    CodeSyncLogger.warning(String.format("Diff file '%s' could not be processed.\n", diffFile.originalDiffFile.getPath()));
                     diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                     // Skip this iteration
                     continue;
@@ -414,7 +425,7 @@ public class HandleBuffer {
             }
 
             if (!diffFile.isBinary && !diffFile.isDeleted && diffFile.isEmptyDiff()) {
-                System.out.printf("Empty diff found in file: %s. Removing...\n", diffFile.fileRelativePath);
+                CodeSyncLogger.warning(String.format("Empty diff found in file: %s. Removing...\n", diffFile.fileRelativePath));
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                 // Delete empty diff files.
                 diffFile.delete();
@@ -425,7 +436,9 @@ public class HandleBuffer {
             try {
                 repoFile = repoBranch.getFile(diffFile.fileRelativePath);
             } catch (SQLException e) {
-                CodeSyncLogger.error(String.format("Error while fetching file from the database: %s", e.getMessage()));
+                CodeSyncLogger.error(
+                    String.format("Error while fetching file from the database: %s", CommonUtils.getStackTrace(e))
+                );
                 diffFilesBeingProcessed.remove(diffFile.originalDiffFile.getPath());
                 continue;
             } catch (RepoFileNotFound e) {
@@ -481,7 +494,9 @@ public class HandleBuffer {
         try {
             user = currentRepo.getUser();
         } catch (SQLException e) {
-            CodeSyncLogger.error(String.format("Error while fetching user from the database: %s", e.getMessage()));
+            CodeSyncLogger.error(
+                String.format("Error while fetching user from the database: %s", CommonUtils.getStackTrace(e))
+            );
             return;
         } catch (UserNotFound e) {
             CodeSyncLogger.warning(String.format(
@@ -512,12 +527,7 @@ public class HandleBuffer {
                             CodeSyncLogger.error("Error while sending the diff files to the server.", user.getEmail());
                             return;
                         }
-                        System.out.printf("Diff file '%s' successfully processed.\n", diffFilePath);
-                        if (DiffFile.delete(diffFilePath)) {
-                            System.out.printf("Diff file '%s' successfully deleted.\n", diffFilePath);
-                        } else {
-                            System.out.printf("Diff file '%s' could not be deleted.\n", diffFilePath);
-                        }
+                        DiffFile.delete(diffFilePath);
                     });
                 } catch (WebSocketConnectionError error) {
                     diffFilesBeingProcessed.clear();
@@ -554,17 +564,33 @@ public class HandleBuffer {
             Integer fileId = client.uploadFile(accessToken, repo, diffFile, originalsFile);
             repoBranch.updateFileId(diffFile.fileRelativePath, fileId);
         } catch (FileInfoError error) {
-            CodeSyncLogger.error(String.format("Error while getting file information. \n%s", error.getMessage()));
+            CodeSyncLogger.error(
+                String.format("Error while getting file information. \n%s", CommonUtils.getStackTrace(error))
+            );
             return false;
         } catch (RequestError | InvalidJsonError error) {
-            CodeSyncLogger.error(String.format("Error while uploading a new file '%s'. \n%s", diffFile.fileRelativePath, error.getMessage()));
+            CodeSyncLogger.error(
+                String.format(
+                    "Error while uploading a new file '%s'. \n%s",
+                    diffFile.fileRelativePath,
+                    CommonUtils.getStackTrace(error)
+                )
+            );
             return false;
         } catch (InvalidUsage e){
-            CodeSyncLogger.error(String.format("Invalid usage error while uploading a new file '%s'. Error: %s", diffFile.fileRelativePath, e.getMessage()));
+            CodeSyncLogger.error(
+                String.format(
+                    "Invalid usage error while uploading a new file '%s'. Error: %s",
+                    diffFile.fileRelativePath,
+                    CommonUtils.getStackTrace(e)
+                )
+            );
             // We can not process this file because so we need to remove the diff and mark this a successful upload.
             return true;
         } catch (SQLException e) {
-            CodeSyncLogger.error(String.format("Error while updating file id in the database. Error: %s", e.getMessage()));
+            CodeSyncLogger.error(
+                String.format("Error while updating file id in the database. Error: %s", CommonUtils.getStackTrace(e))
+            );
             return false;
         }
         return true;
@@ -578,7 +604,9 @@ public class HandleBuffer {
             repoBranch.updateFileId(diffFile.fileRelativePath, oldFileId);
             return true;
         } catch (SQLException e) {
-            CodeSyncLogger.error(String.format("Error while updating file id in the database. Error: %s", e.getMessage()));
+            CodeSyncLogger.error(
+                String.format("Error while updating file id in the database. Error: %s", CommonUtils.getStackTrace(e))
+            );
             return false;
         }
     }
@@ -601,7 +629,9 @@ public class HandleBuffer {
                 return diff;
             }
         } catch (FileInfoError error) {
-            CodeSyncLogger.error(String.format("Error while getting file information. \nError: %s", error.getMessage()));
+            CodeSyncLogger.error(
+                String.format("Error while getting file information. \nError: %s", CommonUtils.getStackTrace(error))
+            );
         }
         String shadowText = FileUtils.readFileToString(shadowPath.toFile());
         diff = CommonUtils.computeDiff(shadowText, "");
@@ -630,7 +660,9 @@ public class HandleBuffer {
         try {
             repoBranch.removeFile(diffFile.fileRelativePath);
         } catch (SQLException e) {
-            CodeSyncLogger.error(String.format("Error while removing file id in the database. Error: %s", e.getMessage()));
+            CodeSyncLogger.error(
+                String.format("Error while removing file id in the database. Error: %s", CommonUtils.getStackTrace(e))
+            );
         }
     }
 

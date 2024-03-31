@@ -17,7 +17,7 @@ Here are the dependencies for setting up a development environment for this plug
 Java Version
 ------------
 Java version required for this plugin can be found by looking at the `sourceCompatibility` attribute inside `build.gradle` file.
-Make sure your system has that version installed before you start the development.
+Make sure your system has that version installed before you start the development. You can se this from `Project Structure` in main menu commonly named `File`.
 
 Java JDK to use is ``openjdk-20`` i.e. ``Oracle OpenJDK version 20``
 

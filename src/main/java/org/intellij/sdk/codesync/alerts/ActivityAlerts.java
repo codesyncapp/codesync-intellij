@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync.alerts;
 
+import com.google.rpc.Code;
 import com.intellij.openapi.project.Project;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.Constants;
@@ -8,6 +9,7 @@ import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.files.AlertsFile;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.state.StateUtils;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.DataUtils;
 import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
@@ -193,7 +195,12 @@ public class ActivityAlerts {
                         showActivityAlert(project);
                     }
                 } catch (Exception e) {
-                    System.out.printf("Error Running the activity alert daemon. Error: %s%n", e.getMessage());
+                    CodeSyncLogger.error(
+                        String.format(
+                            "Error Running the activity alert daemon. Error: %s",
+                            CommonUtils.getStackTrace(e)
+                        )
+                    );
                 }
 
                 activityDaemon(timer, project);
