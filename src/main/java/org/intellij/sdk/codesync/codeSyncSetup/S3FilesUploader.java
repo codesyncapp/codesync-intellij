@@ -4,6 +4,7 @@ import com.intellij.openapi.project.Project;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.files.S3UploadQueueFile;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -47,7 +48,10 @@ public class S3FilesUploader {
                 );
             } catch (InvalidYmlFileError | FileNotFoundException error) {
                 CodeSyncLogger.error(
-                    String.format("[S3_FILE_UPLOAD]: Error while reading S3 yml file. Error: %s", error.getMessage())
+                    String.format(
+                        "[S3_FILE_UPLOAD]: Error while reading S3 yml file. Error: %s",
+                        CommonUtils.getStackTrace(error)
+                    )
                 );
             }
         }
@@ -57,6 +61,7 @@ public class S3FilesUploader {
     Process al s3 YML files and upload pending files to S3.
     */
     private void processFiles () {
+        Integer i = 1/0;
         for (S3FileUploader s3FileUploader: this.s3FileUploaderList) {
             String filePath = s3FileUploader.getQueueFilePath();
             if (!filesBeingProcessed.contains(filePath)){

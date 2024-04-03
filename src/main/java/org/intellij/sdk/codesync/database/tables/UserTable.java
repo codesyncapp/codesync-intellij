@@ -5,6 +5,7 @@ import org.intellij.sdk.codesync.database.SQLiteConnection;
 import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.database.queries.UserQueries;
 import org.intellij.sdk.codesync.exceptions.database.UserNotFound;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -159,7 +160,7 @@ public class UserTable extends DBTable {
         try {
             return get(email).getAccessToken();
         } catch (SQLException error) {
-            CodeSyncLogger.error(String.format("Error while fetching user: %s", error.getMessage()));
+            CodeSyncLogger.error(String.format("Error while fetching user: %s", CommonUtils.getStackTrace(error)));
         } catch (UserNotFound e) {
             return null;
         }

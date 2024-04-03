@@ -8,6 +8,7 @@ import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
 import org.intellij.sdk.codesync.exceptions.RequestError;
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
 import org.intellij.sdk.codesync.state.StateUtils;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.json.simple.JSONObject;
 
 import javax.servlet.http.HttpServlet;
@@ -71,7 +72,10 @@ public class ReactivateAccountHandler extends HttpServlet {
             }
         } catch (SQLException error) {
             CodeSyncLogger.critical(
-                String.format("[INTELLIJ_AUTH_ERROR]: SQLite Database Connection Error. Error: %s", error.getMessage())
+                String.format(
+                    "[INTELLIJ_AUTH_ERROR]: SQLite Database Connection Error. Error: %s",
+                    CommonUtils.getStackTrace(error)
+                )
             );
             NotificationManager.getInstance().notifyError(errorMessage);
             return;
@@ -83,7 +87,8 @@ public class ReactivateAccountHandler extends HttpServlet {
             );
         } catch (IOException error) {
             CodeSyncLogger.critical(String.format(
-                "[REACTIVATE_ACCOUNT]: Error while activating the account. %nError: %s", error.getMessage()
+                "[REACTIVATE_ACCOUNT]: Error while activating the account. %nError: %s",
+                CommonUtils.getStackTrace(error)
             ));
             NotificationManager.getInstance().notifyError(errorMessage);
         }

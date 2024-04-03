@@ -18,6 +18,7 @@ import org.intellij.sdk.codesync.exceptions.database.UserNotFound;
 import org.intellij.sdk.codesync.exceptions.network.RepoUpdateError;
 import org.intellij.sdk.codesync.exceptions.network.ServerConnectionError;
 import org.intellij.sdk.codesync.state.RepoStatus;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -91,7 +92,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                     NotificationManager.getInstance().notifyError(Notification.REPO_UNSYNC_FAILED, project);
                     NotificationManager.getInstance().notifyError(error.getMessage(), project);
                     CodeSyncLogger.critical(
-                        String.format("Could not disconnect the repo. Error: %s", error.getMessage())
+                        String.format("Could not disconnect the repo. Error: %s", CommonUtils.getStackTrace(error))
                     );
                 }
                 return;
@@ -111,7 +112,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                     NotificationManager.getInstance().notifyError(Notification.REPO_RECONNECT_FAILED, project);
                     NotificationManager.getInstance().notifyError(error.getMessage(), project);
                     CodeSyncLogger.critical(
-                        String.format("Could not reconnect the repo. Error: %s", error.getMessage())
+                        String.format("Could not reconnect the repo. Error: %s", CommonUtils.getStackTrace(error))
                     );
                 }
                 break;

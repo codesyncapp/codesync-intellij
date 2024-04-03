@@ -20,6 +20,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -213,6 +215,16 @@ public class CommonUtils {
             return String.join(".", hexadecimal);
         } catch (UnknownHostException | SocketException | NullPointerException e) {
             return "";
+        }
+    }
+
+    public static <T extends Throwable> String getStackTrace(T error) {
+        try {
+            StringWriter stringWriter = new StringWriter();
+            error.printStackTrace(new PrintWriter(stringWriter));
+            return stringWriter.toString();
+        } catch (Exception e) {
+            return error.getMessage();
         }
     }
 }

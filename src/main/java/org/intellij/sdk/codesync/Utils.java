@@ -38,7 +38,9 @@ public class Utils {
             Repo repo = Repo.getTable().find(repoPath);
             return repo == null || !repo.isActive();
         } catch (SQLException error) {
-            CodeSyncLogger.error(String.format("Error fetching repo from database. Error: %s", error.getMessage()));
+            CodeSyncLogger.error(
+                String.format("Error fetching repo from database. Error: %s", CommonUtils.getStackTrace(error))
+            );
             return true;
         }
     }
@@ -248,7 +250,6 @@ public class Utils {
             repoPath = ProjectUtils.getRepoPath(file, project);
         } catch (FileNotInModuleError error) {
             // Ignore events not belonging to current project.
-            CodeSyncLogger.logConsoleMessage("Ignoring event because event does not belong to any of the module files.");
             return;
         }
 
@@ -316,8 +317,9 @@ public class Utils {
             myWriter.write(currentText);
             myWriter.close();
         } catch (IOException e) {
-            CodeSyncLogger.error(String.format("Error updating the shadow file. Error: %s", e.getMessage()));
-            e.printStackTrace();
+            CodeSyncLogger.error(
+                String.format("Error updating the shadow file. Error: %s", CommonUtils.getStackTrace(e))
+            );
         }
         diff_match_patch dmp = new diff_match_patch();
         LinkedList<diff_match_patch.Patch> patches = dmp.patch_make(shadowText, currentText);

@@ -13,6 +13,7 @@ import org.intellij.sdk.codesync.exceptions.database.UserNotFound;
 import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.ConfigRepoBranch;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.nio.file.Paths;
 import java.sql.SQLException;
@@ -219,7 +220,12 @@ public class MigrateRepo implements Migration {
                     e.getMessage()
                 ));
             }
-            CodeSyncLogger.critical("[DATABASE_MIGRATION] SQL error while migrating Repo table: " + e.getMessage());
+            CodeSyncLogger.critical(
+                String.format(
+                    "[DATABASE_MIGRATION] SQL error while migrating Repo table: %s",
+                    CommonUtils.getStackTrace(e)
+                )
+            );
         }
 
         // Clear repos being migrated set.

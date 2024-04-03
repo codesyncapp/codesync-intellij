@@ -8,6 +8,7 @@ import org.intellij.sdk.codesync.Constants;
 import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
 import org.intellij.sdk.codesync.state.StateUtils;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -35,18 +36,16 @@ public class JSONResponse {
             responseStatusLine = response.getStatusLine();
             responseContent = EntityUtils.toString(response.getEntity());
         } catch (IOException | ParseException error) {
-            System.out.printf("Error processing response of the request. Error: %s%n", error.getMessage());
             throw new InvalidJsonError(
-                    String.format("Error processing response of the request. Error: %s", error.getMessage())
+                String.format("Error processing response of the request. Error: %s", CommonUtils.getStackTrace(error))
             );
         }
 
         try {
             jsonResponse = (JSONObject) JSONValue.parseWithException(responseContent);
         } catch (org.json.simple.parser.ParseException | ClassCastException error) {
-            System.out.printf("Error processing response of the request. Error: %s%n", error.getMessage());
             throw new InvalidJsonError(
-                    String.format("Error processing response of the request. Error: %s", error.getMessage())
+                String.format("Error processing response of the request. Error: %s", CommonUtils.getStackTrace(error))
             );
         }
 

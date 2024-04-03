@@ -97,7 +97,7 @@ public class PopulateBuffer {
             } catch (FileInfoError error) {
                 // Log the message and continue.
                 CodeSyncLogger.error(String.format(
-                    "Error while getting the file info for %s, Error: %s", filePath, error.getMessage()
+                    "Error while getting the file info for %s, Error: %s", filePath, CommonUtils.getStackTrace(error)
                 ));
             }
         }
@@ -109,7 +109,7 @@ public class PopulateBuffer {
                 try {
                     populateBuffer(project);
                 } catch (Exception e) {
-                    CodeSyncLogger.error(String.format("populateBuffer exited with error: %s", e.getMessage()));
+                    CodeSyncLogger.error(String.format("populateBuffer exited with error: %s", CommonUtils.getStackTrace(e)));
                 }
 
                 populateBufferDaemon(timer, project);
@@ -138,17 +138,23 @@ public class PopulateBuffer {
             return;
         }
 
+
         try {
             S3FilesUploader.triggerS3Uploads(project);
         } catch (Exception e) {
-            CodeSyncLogger.error(String.format("S3 file upload failed with error: %s", e.getMessage()));
+            CodeSyncLogger.error(String.format("S3 file upload failed with error: %s", CommonUtils.getStackTrace(e)));
         }
 
         try {
             Map<String, String> reposToUpdate = detectBranchChange();
             populateBufferForMissedEvents(reposToUpdate);
         } catch (Exception e) {
-            CodeSyncLogger.error(String.format("detect branch change or populate buffer failed with error: %s", e.getMessage()));
+            CodeSyncLogger.error(
+                String.format(
+                    "detect branch change or populate buffer failed with error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
+            );
         }
     }
 
@@ -164,7 +170,8 @@ public class PopulateBuffer {
             repos = Repo.getTable().findAll();
         } catch (SQLException error) {
             CodeSyncLogger.critical(String.format(
-                "[POPULATE_BUFFER] Error while fetching repos from the database. Error: %s.\n", error.getMessage()
+                "[POPULATE_BUFFER] Error while fetching repos from the database. Error: %s",
+                CommonUtils.getStackTrace(error)
             ));
             return reposToUpdate;
         }
@@ -402,9 +409,9 @@ public class PopulateBuffer {
                     } catch (FileInfoError error) {
                         // Log the message and continue.
                         CodeSyncLogger.error(String.format(
-                                "Error while getting the file info for shadow file %s, Error: %s",
-                                shadowFile.getPath(),
-                                error.getMessage()
+                            "Error while getting the file info for shadow file %s, Error: %s",
+                            shadowFile.getPath(),
+                            CommonUtils.getStackTrace(error)
                         ));
                         continue;
                     }

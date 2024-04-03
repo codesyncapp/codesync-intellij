@@ -9,6 +9,7 @@ import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
 import org.intellij.sdk.codesync.exceptions.RequestError;
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.json.simple.JSONObject;
 
 import javax.servlet.http.HttpServlet;
@@ -93,7 +94,10 @@ public class Authenticator extends HttpServlet {
             user.makeActive();
         } catch (SQLException e) {
             CodeSyncLogger.error(
-                String.format("[INTELLIJ_AUTH_ERROR]: Could not write due to SQLite Error. Error: %s", e.getMessage())
+                String.format(
+                    "[INTELLIJ_AUTH]: Could not write due to SQLite Error. Error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
             );
             return false;
         }

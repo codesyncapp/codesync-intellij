@@ -73,8 +73,7 @@ public class DiffUtils {
             writer.flush();
             writer.close();
         } catch (IOException e) {
-            CodeSyncLogger.error(String.format("Error writing to diff file. Error: %s", e.getMessage()));
-            e.printStackTrace();
+            CodeSyncLogger.error(String.format("Error writing to diff file. Error: %s", CommonUtils.getStackTrace(e)));
         }
     }
 }

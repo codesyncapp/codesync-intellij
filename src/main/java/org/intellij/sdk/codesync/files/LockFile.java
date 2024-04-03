@@ -4,6 +4,7 @@ import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.FileNotCreatedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.io.*;
 import java.time.Instant;
@@ -160,7 +161,9 @@ public class LockFile extends CodeSyncYmlFile {
         } catch (ClassCastException e){
             throw new InvalidYmlFileError(
                 String.format(
-                    "Lock yml file \"%s\" is not valid. Error: %s", this.getYmlFile().getPath(), e.getMessage()
+                    "Lock yml file \"%s\" is not valid. Error: %s",
+                    this.getYmlFile().getPath(),
+                    CommonUtils.getStackTrace(e)
                 )
             );
         }

@@ -12,6 +12,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
 import org.intellij.sdk.codesync.exceptions.RequestError;
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
@@ -43,7 +44,10 @@ public class ClientUtils {
             return new StringEntity(payload.toJSONString());
         } catch (UnsupportedEncodingException error) {
             throw new InvalidJsonError(
-                String.format("Invalid JSON encoding error while authenticating the user. Error: %s", error.getMessage())
+                String.format(
+                    "Invalid JSON encoding error while authenticating the user. Error: %s%n",
+                    CommonUtils.getStackTrace(error)
+                )
             );
         }
     }
@@ -107,7 +111,10 @@ public class ClientUtils {
             }
         } catch (IOException error) {
             throw new RequestError(
-                String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
+                String.format(
+                    "Could not make a successful request to CodeSync server. Error: %s%n",
+                    CommonUtils.getStackTrace(error)
+                )
             );
         }
     }
@@ -134,7 +141,10 @@ public class ClientUtils {
             }
         } catch (IOException error) {
             throw new RequestError(
-                String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
+                String.format(
+                    "Could not make a successful request to CodeSync server. Error: %s%n",
+                    CommonUtils.getStackTrace(error)
+                )
             );
         }
     }
@@ -165,7 +175,10 @@ public class ClientUtils {
             }
         } catch (IOException error) {
             throw new RequestError(
-                String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
+                String.format(
+                    "Could not make a successful request to CodeSync server. Error: %s%n",
+                    CommonUtils.getStackTrace(error)
+                )
             );
         }
     }
