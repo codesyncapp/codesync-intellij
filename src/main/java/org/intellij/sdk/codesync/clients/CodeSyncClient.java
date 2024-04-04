@@ -4,17 +4,18 @@ import kotlin.Pair;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.codeSyncSetup.S3FileUploader;
+import org.intellij.sdk.codesync.database.models.Repo;
+import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.*;
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
-import org.intellij.sdk.codesync.files.ConfigRepo;
 import org.intellij.sdk.codesync.files.DiffFile;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
-import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.json.simple.JSONObject;
@@ -61,15 +62,24 @@ public class CodeSyncClient {
             response = jsonResponse.getJsonResponse();
         } catch (RequestError | InvalidJsonError error) {
             CodeSyncLogger.error(
-                    String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
+                String.format(
+                    "Could not make a successful request to CodeSync server. Error: %s",
+                    CommonUtils.getStackTrace(error)
+                )
             );
             throw new RequestError("Could not make a successful request to CodeSync server.");
         } catch (StatusCodeError error) {
             CodeSyncLogger.error(
-                    String.format("Could not make a successful request to CodeSync server. Error: %s", error.getMessage())
+                String.format(
+                    "Could not make a successful request to CodeSync server. Error: %s",
+                    CommonUtils.getStackTrace(error)
+                )
             );
             throw new RequestError(
-                    String.format("Could not make a successful request to CodeSync server. %s", error.getMessage())
+                String.format(
+                    "Could not make a successful request to CodeSync server. %s",
+                    CommonUtils.getStackTrace(error)
+                )
             );
         }
 
@@ -84,7 +94,7 @@ public class CodeSyncClient {
             return new Pair<>(true, userEmail);
         } catch (ClassCastException err) {
             CodeSyncLogger.critical(String.format(
-                    "Error parsing the response of /users endpoint. Error: %s", err.getMessage()
+                "Error parsing the response of /users endpoint. Error: %s", CommonUtils.getStackTrace(err)
             ));
             throw new RequestError("Error parsing the response from the server.");
         }
@@ -100,16 +110,22 @@ public class CodeSyncClient {
         }
     }
 
-    public Integer uploadFile(String accessToken, ConfigRepo configRepo, DiffFile diffFile, File originalsFile) throws FileInfoError, InvalidJsonError, RequestError, InvalidUsage {
+    public Integer uploadFile(String accessToken, Repo repo, DiffFile diffFile, File originalsFile) throws FileInfoError, InvalidJsonError, RequestError, InvalidUsage {
         JSONObject payload = new JSONObject();
         Map<String, Object> fileInfo;
         try {
             fileInfo = FileUtils.getFileInfo(originalsFile.getAbsolutePath());
         } catch (FileInfoError error) {
-            throw new FileInfoError(String.format("File Info could not be found for %s. Error: %s", diffFile.fileRelativePath, error.getMessage()));
+            throw new FileInfoError(
+                String.format(
+                    "File Info could not be found for %s. Error: %s%n",
+                    diffFile.fileRelativePath,
+                    CommonUtils.getStackTrace(error)
+                )
+            );
         }
 
-        payload.put("repo_id", configRepo.id);
+        payload.put("repo_id", repo.getServerRepoId());
         payload.put("branch", diffFile.branch);
         payload.put("commit_hash", diffFile.commitHash);
         payload.put("is_binary", (Boolean) fileInfo.get("isBinary"));
@@ -124,24 +140,34 @@ public class CodeSyncClient {
         try {
             jsonResponse = ClientUtils.sendPost(this.filesURL, payload, accessToken);
         } catch (RequestError | InvalidJsonError error) {
-            throw new RequestError(String.format("Error processing response of the file upload  request. Error: %s", error.getMessage()));
+            throw new RequestError(
+                String.format(
+                    "Error processing response of the file upload  request. Error: %s",
+                    CommonUtils.getStackTrace(error)
+                )
+            );
         } catch (StatusCodeError statusCodeError) {
             if (statusCodeError.getStatusCode() == ErrorCodes.INVALID_USAGE) {
                 throw new InvalidUsage(statusCodeError.getMessage());
             }
 
             if (statusCodeError.getStatusCode() == ErrorCodes.REPO_SIZE_LIMIT_REACHED) {
-                PluginState pluginState = StateUtils.getState(configRepo.repoPath);
+                PluginState pluginState = StateUtils.getState(repo.getPath());
                 PricingAlerts.setPlanLimitReached(
-                        accessToken,
-                        configRepo.id,
-                        pluginState != null ? pluginState.project : null
+                    accessToken,
+                    repo.getServerRepoId(),
+                    pluginState != null ? pluginState.project: null
                 );
             } else {
                 PricingAlerts.resetPlanLimitReached();
             }
 
-            throw new RequestError(String.format("Error processing response of the file upload  request. Error: %s", statusCodeError.getMessage()));
+            throw new RequestError(
+                String.format(
+                    "Error processing response of the file upload  request. Error: %s",
+                    statusCodeError.getMessage()
+                )
+            );
         }
 
         Long fileId;
@@ -153,7 +179,12 @@ public class CodeSyncClient {
         try {
             fileId = (Long) responseObject.get("id");
         } catch (ClassCastException error) {
-            throw new RequestError(String.format("Error processing response of the file upload  request. Error: %s", error.getMessage()));
+            throw new RequestError(
+                String.format(
+                    "Error processing response of the file upload  request. Error: %s%n",
+                    CommonUtils.getStackTrace(error)
+                )
+            );
         }
 
         if (fileId == null) {
@@ -171,7 +202,7 @@ public class CodeSyncClient {
             if (fileSize > 0) {
                 Map<String, Object> filePathAndURLs = new HashMap<>();
                 filePathAndURLs.put(diffFile.fileRelativePath, preSignedURLData);
-                S3FileUploader s3FileUploader = new S3FileUploader(configRepo.repoPath, diffFile.branch, filePathAndURLs);
+                S3FileUploader s3FileUploader = new S3FileUploader(repo.getPath(), diffFile.branch, filePathAndURLs);
                 s3FileUploader.saveURLs();
             }
         } catch (ClassCastException error) {
@@ -179,7 +210,7 @@ public class CodeSyncClient {
             // this would probably mean that `url` is empty, and we can skip aws upload.
         } catch (InvalidYmlFileError | FileNotFoundException error) {
             CodeSyncLogger.critical(
-                    String.format("Error creating S3 upload queue file. Error: %s", error.getMessage())
+                String.format("Error creating S3 upload queue file. Error: %s", CommonUtils.getStackTrace(error))
             );
         }
 
@@ -212,7 +243,7 @@ public class CodeSyncClient {
             multipart.addFilePart("file", originalsFile);
             multipart.finish(HttpURLConnection.HTTP_NO_CONTENT);
         } catch (IOException e) {
-            throw new RequestError(String.format("Error uploading file. Error: %s", e.getMessage()));
+            throw new RequestError(String.format("Error uploading file. Error: %s%n", CommonUtils.getStackTrace(e)));
         }
     }
 
@@ -283,7 +314,10 @@ public class CodeSyncClient {
         /*
         - GETs the user subscription
         */
-        String accessToken = UserAccount.getAccessTokenByEmail();
+        String accessToken = User.getTable().getAccessToken();
+        if (accessToken == null) {
+            return false;
+        }
         try {
             JSONResponse response = ClientUtils.sendGet(USER_SUBSCRIPTION_ENDPOINT, accessToken);
             JSONObject result = response.getJsonResponse();

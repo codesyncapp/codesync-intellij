@@ -8,14 +8,17 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.actions.BaseModuleAction;
 import org.intellij.sdk.codesync.alerts.PricingAlerts;
+import org.intellij.sdk.codesync.database.migrations.MigrateRepo;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
 import org.intellij.sdk.codesync.exceptions.base.BaseException;
 import org.intellij.sdk.codesync.exceptions.base.BaseNetworkException;
+import org.intellij.sdk.codesync.exceptions.database.UserNotFound;
 import org.intellij.sdk.codesync.exceptions.network.RepoUpdateError;
 import org.intellij.sdk.codesync.exceptions.network.ServerConnectionError;
 import org.intellij.sdk.codesync.state.RepoStatus;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +53,11 @@ public class CodeSyncSetupAction extends BaseModuleAction {
         if (!repoRoot.isDirectory()) {
             e.getPresentation().setEnabled(false);
         }
-
+        String repoPath = FileUtils.normalizeFilePath(repoRoot.getPath());
+        if (MigrateRepo.getInstance().getReposBeingMigrated().contains(repoPath)) {
+            this.setButtonRepresentation(e, RepoStatus.SYNC_IN_PROGRESS);
+            return;
+        }
         RepoStatus repoStatus = this.getRepoStatus(repoRoot);
         this.setButtonRepresentation(e, repoStatus);
     }
@@ -85,7 +92,7 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                     NotificationManager.getInstance().notifyError(Notification.REPO_UNSYNC_FAILED, project);
                     NotificationManager.getInstance().notifyError(error.getMessage(), project);
                     CodeSyncLogger.critical(
-                        String.format("Could not disconnect the repo. Error: %s", error.getMessage())
+                        String.format("Could not disconnect the repo. Error: %s", CommonUtils.getStackTrace(error))
                     );
                 }
                 return;
@@ -101,11 +108,11 @@ public class CodeSyncSetupAction extends BaseModuleAction {
             case DISCONNECTED:
                 try {
                     CodeSyncSetup.reconnectRepo(project, repoPath, repoName);
-                } catch (InvalidConfigFileError | ServerConnectionError | RepoUpdateError | SQLiteDBConnectionError | SQLiteDataError error) {
+                } catch (UserNotFound | ServerConnectionError | RepoUpdateError | SQLException error) {
                     NotificationManager.getInstance().notifyError(Notification.REPO_RECONNECT_FAILED, project);
                     NotificationManager.getInstance().notifyError(error.getMessage(), project);
                     CodeSyncLogger.critical(
-                        String.format("Could not reconnect the repo. Error: %s", error.getMessage())
+                        String.format("Could not reconnect the repo. Error: %s", CommonUtils.getStackTrace(error))
                     );
                 }
                 break;

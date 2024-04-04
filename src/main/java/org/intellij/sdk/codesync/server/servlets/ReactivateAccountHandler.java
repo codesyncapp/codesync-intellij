@@ -3,18 +3,19 @@ package org.intellij.sdk.codesync.server.servlets;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.clients.ClientUtils;
+import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
 import org.intellij.sdk.codesync.exceptions.RequestError;
-import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
-import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.state.StateUtils;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.json.simple.JSONObject;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Objects;
 
 import static org.intellij.sdk.codesync.Constants.API_USERS;
@@ -54,24 +55,30 @@ public class ReactivateAccountHandler extends HttpServlet {
             return;
         }
         String email = (String) userDetails.get("email");
-        UserAccount userAccount;
+
+        String message;
         try {
-            userAccount = new UserAccount();
-        } catch (SQLiteDBConnectionError error) {
+            User user = User.getTable().getActive();
+            if (user != null) {
+                if (Objects.equals(user.getEmail(), email)) {
+                    // Mark account as active.
+                    StateUtils.reactivateAccount();
+                    message = "Your account has been activated, you can close this window now.";
+                } else {
+                    message = "Invalid access token in the request parameters, please try again.";
+                }
+            } else {
+                message = "No active account found, please try again.";
+            }
+        } catch (SQLException error) {
             CodeSyncLogger.critical(
-                String.format("[INTELLIJ_AUTH_ERROR]: SQLite Database Connection Error. Error: %s", error.getMessage())
+                String.format(
+                    "[INTELLIJ_AUTH_ERROR]: SQLite Database Connection Error. Error: %s",
+                    CommonUtils.getStackTrace(error)
+                )
             );
             NotificationManager.getInstance().notifyError(errorMessage);
             return;
-        }
-
-        String message;
-        if (Objects.equals(userAccount.getActiveUser().getUserEmail(), email)) {
-            // Mark account as active.
-            StateUtils.reactivateAccount();
-            message = "Your account has been activated, you can close this window now.";
-        } else {
-            message = "Invalid access token in the request parameters, please try again.";
         }
 
         try {
@@ -80,7 +87,8 @@ public class ReactivateAccountHandler extends HttpServlet {
             );
         } catch (IOException error) {
             CodeSyncLogger.critical(String.format(
-                "[REACTIVATE_ACCOUNT]: Error while activating the account. %nError: %s", error.getMessage()
+                "[REACTIVATE_ACCOUNT]: Error while activating the account. %nError: %s",
+                CommonUtils.getStackTrace(error)
             ));
             NotificationManager.getInstance().notifyError(errorMessage);
         }

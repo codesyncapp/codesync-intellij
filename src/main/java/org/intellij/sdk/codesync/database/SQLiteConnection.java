@@ -1,10 +1,8 @@
 package org.intellij.sdk.codesync.database;
 
-import com.intellij.openapi.application.ApplicationManager;
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -17,22 +15,23 @@ public class SQLiteConnection {
     private Connection connection;
 
     private SQLiteConnection(){
-
-        boolean unitTestMode = ApplicationManager.getApplication() == null;
-
         try{
             Class.forName("org.sqlite.JDBC");
-            if(unitTestMode){
-                Path testDirPath = Paths.get(System.getProperty("user.dir"), "test_data").toAbsolutePath();
-                Path userTestFile = Paths.get(testDirPath.toString(), "test.db").toAbsolutePath();
-                connection = DriverManager.getConnection("jdbc:sqlite:" + userTestFile);
-            }else{
-                connection = DriverManager.getConnection(CONNECTION_STRING);
-            }
+            connection = DriverManager.getConnection(CONNECTION_STRING);
         } catch (ClassNotFoundException e) {
-            CodeSyncLogger.critical("[DATABASE] JDBC library error while initiating SQLite database connection. Error: " + e.getMessage());
+            CodeSyncLogger.critical(
+                String.format(
+                    "[DATABASE] JDBC library error while initiating SQLite database connection. Error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
+            );
         } catch (SQLException e) {
-            CodeSyncLogger.error("[DATABASE] SQL error while re-initiating SQLite database connection. Error: " + e.getMessage());
+            CodeSyncLogger.error(
+                String.format(
+                    "[DATABASE] SQL error while re-initiating SQLite database connection. Error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
+            );
         }
     }
 
@@ -55,7 +54,12 @@ public class SQLiteConnection {
                 connection.close();
             }
         } catch (SQLException e) {
-            CodeSyncLogger.error("[DATABASE_DISCONNECTION] SQL error while disconnecting SQLite database connection. Error: " + e.getMessage());
+            CodeSyncLogger.error(
+                String.format(
+                    "[DATABASE_DISCONNECTION] SQL error while disconnecting SQLite database connection. Error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
+            );
         }
     }
 

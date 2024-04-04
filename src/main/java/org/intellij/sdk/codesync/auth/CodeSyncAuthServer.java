@@ -9,6 +9,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.apache.http.client.utils.URIBuilder;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.commands.Command;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.net.URISyntaxException;
 import java.util.LinkedList;
@@ -66,7 +67,10 @@ public class CodeSyncAuthServer {
             return uriBuilder.toString();
         } catch (URISyntaxException e) {
             CodeSyncLogger.critical(
-                    String.format("[INTELLIJ_AUTH_ERROR]: Invalid `CODESYNC_AUTHORIZE_URL` settings. Error: %s", e.getMessage())
+                String.format(
+                    "[INTELLIJ_AUTH]: Invalid `CODESYNC_AUTHORIZE_URL` settings. Error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
             );
             return null;
         }

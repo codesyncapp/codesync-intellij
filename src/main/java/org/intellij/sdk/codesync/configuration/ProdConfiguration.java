@@ -1,6 +1,8 @@
 package org.intellij.sdk.codesync.configuration;
 
+import com.intellij.openapi.application.ApplicationInfo;
 import org.intellij.sdk.codesync.utils.FileUtils;
+import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.json.simple.JSONObject;
 
 public class ProdConfiguration implements Configuration {
@@ -99,5 +101,19 @@ public class ProdConfiguration implements Configuration {
     @Override
     public String getLogGroupName() {
         return LOG_GROUP_NAME;
+    }
+
+    @Override
+    public String getIDEName() {
+        return ApplicationInfo.getInstance().getVersionName();
+    }
+
+    @Override
+    public String getPluginVersion() {
+        return ProjectUtils.getPluginVersion();
+    }
+
+    public boolean isTestMode() {
+        return false;
     }
 }

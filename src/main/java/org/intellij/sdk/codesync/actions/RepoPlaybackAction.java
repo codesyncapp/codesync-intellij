@@ -7,13 +7,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
-import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
+import org.intellij.sdk.codesync.database.models.Repo;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
-import org.intellij.sdk.codesync.files.ConfigFile;
-import org.intellij.sdk.codesync.files.ConfigRepo;
+import org.intellij.sdk.codesync.exceptions.database.RepoNotFound;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
+
+import java.sql.SQLException;
 
 import static org.intellij.sdk.codesync.Constants.*;
 
@@ -84,7 +86,7 @@ public class RepoPlaybackAction extends BaseModuleAction {
                 CodeSyncLogger.warning(String.format(
                     "An error occurred trying to perform repo playback action. " +
                     "We could not detect the module of the opened file. Error: %s",
-                    error.getMessage()
+                    CommonUtils.getStackTrace(error)
                 ));
 
                 return;
@@ -104,41 +106,34 @@ public class RepoPlaybackAction extends BaseModuleAction {
             );
             return;
         }
-
-        ConfigRepo configRepo;
+        Repo repo;
         try {
-            ConfigFile configFile = new ConfigFile(CONFIG_PATH);
-             configRepo = configFile.getRepo(repoPath);
-        } catch (InvalidConfigFileError error) {
+            repo  = Repo.getTable().get(repoPath);
+        } catch (SQLException error) {
             NotificationManager.getInstance().notifyError(
-                "An error occurred trying to perform repo playback action. CodeSync configuration file is malformed.", project
+                "An error occurred trying to perform repo playback action. Could not get repo record from the database.", project
             );
             CodeSyncLogger.critical(String.format(
-                "An error occurred trying to perform repo playback action. Invalid Config File. Error: %s",
-                error.getMessage()
+                "An error occurred trying to perform repo playback action. Error while fetching repo record. Error: %s",
+                CommonUtils.getStackTrace(error)
             ));
 
             return;
-        }
-
-        if (configRepo == null) {
+        } catch (RepoNotFound ex) {
             NotificationManager.getInstance().notifyError(
                 String.format(
                     "An error occurred trying to perform repo playback action. Because Repo '%s' is not being synced.",
-                        repoName
+                    repoName
                 ),
                 project
             );
             CodeSyncLogger.warning(String.format(
-                    "An error occurred trying to perform repo playback action. Repo '%s' not found in the config file.",
-                    repoPath
+                "An error occurred trying to perform repo playback action. Repo '%s' not found in the database.",
+                repoPath
             ));
 
             return;
         }
-        Integer repoId = configRepo.id;
-
-        String url = String.format(REPO_PLAYBACK_LINK, repoId);
-        BrowserUtil.browse(url);
+        BrowserUtil.browse(String.format(REPO_PLAYBACK_LINK, repo.getServerRepoId()));
     }
 }

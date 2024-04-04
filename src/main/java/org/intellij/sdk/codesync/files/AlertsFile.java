@@ -4,6 +4,7 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 import org.intellij.sdk.codesync.utils.CodeSyncDateUtils;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -57,7 +58,7 @@ public class AlertsFile extends CodeSyncYmlFile{
             CodeSyncLogger.error(
                 String.format(
                     "Error while instantiating AlertsFile instance. Error: %s",
-                    error.getMessage()
+                    CommonUtils.getStackTrace(error)
                 )
             );
         }
@@ -76,12 +77,14 @@ public class AlertsFile extends CodeSyncYmlFile{
         try {
             alertsFile.writeYml();
         } catch (FileNotFoundException | FileLockedError error) {
-            CodeSyncLogger.error(String.format("Error while writing to alerts.yml file. Error: %s", error.getMessage()));
+            CodeSyncLogger.error(
+                String.format("Error while writing to alerts.yml file. Error: %s", CommonUtils.getStackTrace(error))
+            );
         } catch (InvalidYmlFileError error) {
             CodeSyncLogger.error(
                 String.format(
                     "Error while writing to alerts.yml file, removing file contents to avoid further errors. Error: %s",
-                    error.getMessage()
+                    CommonUtils.getStackTrace(error)
                 )
             );
             removeFileContents(alertsFile.getYmlFile());
@@ -100,12 +103,14 @@ public class AlertsFile extends CodeSyncYmlFile{
         try {
             alertsFile.writeYml();
         } catch (FileNotFoundException | FileLockedError error) {
-            CodeSyncLogger.error(String.format("Error while writing to alerts.yml file. Error: %s", error.getMessage()));
+            CodeSyncLogger.error(
+                String.format("Error while writing to alerts.yml file. Error: %s", CommonUtils.getStackTrace(error))
+            );
         } catch (InvalidYmlFileError error) {
             CodeSyncLogger.error(
                 String.format(
                     "Error while writing to alerts.yml file, removing file contents to avoid further errors. Error: %s",
-                    error.getMessage()
+                    CommonUtils.getStackTrace(error)
                 )
             );
             removeFileContents(alertsFile.getYmlFile());
@@ -182,12 +187,14 @@ public class AlertsFile extends CodeSyncYmlFile{
         try {
             alertsFile.writeYml();
         } catch (FileNotFoundException | FileLockedError error) {
-            CodeSyncLogger.error(String.format("Error while writing to alerts.yml file. Error: %s", error.getMessage()));
+            CodeSyncLogger.error(
+                String.format("Error while writing to alerts.yml file. Error: %s", CommonUtils.getStackTrace(error))
+            );
         } catch (InvalidYmlFileError error) {
             CodeSyncLogger.error(
                 String.format(
                     "Error while writing to alerts.yml file, removing file contents to avoid further errors. Error: %s",
-                    error.getMessage()
+                    CommonUtils.getStackTrace(error)
                 )
             );
             removeFileContents(alertsFile.getYmlFile());

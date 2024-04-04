@@ -1,6 +1,7 @@
 package org.intellij.sdk.codesync;
 
-import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
+import org.intellij.sdk.codesync.configuration.ConfigurationFactory;
+import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.json.simple.JSONObject;
@@ -11,9 +12,9 @@ import software.amazon.awssdk.services.cloudwatch.model.CloudWatchException;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
 import software.amazon.awssdk.services.cloudwatchlogs.model.*;
 
-import org.intellij.sdk.codesync.models.UserAccount;
 import static org.intellij.sdk.codesync.Constants.*;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Date;
 
@@ -98,12 +99,12 @@ public class CodeSyncLogger {
             try {
                 logsClient.putLogEvents(putLogEventsRequest);
             } catch (SdkClientException error){
-                logConsoleMessage("Network Error: " + error.getMessage(), LogMessageType.ERROR);
+                logConsoleMessage("Network Error: " + CommonUtils.getStackTrace(error), LogMessageType.ERROR);
             }
 
         } catch (CloudWatchException error) {
             logConsoleMessage(
-                String.format("Cloudwatch exception while logging message: '%s'", error.getMessage()),
+                String.format("Cloudwatch exception while logging message: '%s'", CommonUtils.getStackTrace(error)),
                 LogMessageType.ERROR
             );
             throw error;
@@ -111,25 +112,32 @@ public class CodeSyncLogger {
     }
 
     private static void logEvent(String message, String userEmail, String type) {
-        UserAccount userAccount = null;
         logConsoleMessage(message, type);
 
-        try {
-            userAccount = new UserAccount();
-        } catch (SQLiteDBConnectionError e) {
-            e.printStackTrace();
+        // Do not send event to cloudwatch when running in test mode.
+        if (ConfigurationFactory.getConfiguration().isTestMode()) {
+            return;
         }
 
-        if (userEmail != null && userAccount != null) {
-            userAccount = userAccount.getUser(userEmail);
-        } else if (userAccount != null) {
-            userAccount = userAccount.getActiveUser();
+        User user = null;
+
+        try {
+            if (userEmail != null) {
+                user = User.getTable().find(userEmail);
+            } else {
+                user = User.getTable().getActive();
+            }
+        } catch (SQLException error) {
+            logConsoleMessage(
+                String.format("Error getting active user from database. Error: %s", CommonUtils.getStackTrace(error)),
+                LogMessageType.CRITICAL
+            );
         }
 
         String streamName, accessKey, secretKey;
 
-        if (userAccount == null || userAccount.getAccessKey() == null || userAccount.getSecretKey() == null || userAccount.getUserEmail() == null) {
-            //Log with the plugin user.
+        if (user == null || user.getAccessKey() == null || user.getSecretKey() == null || user.getEmail() == null) {
+            // Log with the plugin user.
             streamName = PLUGIN_USER_LOG_STREAM;
             if (PLUGIN_USER_ACCESS_KEY == null || PLUGIN_USER_SECRET_KEY == null) {
                 // get directly from configuration, this will trigger config reload from the server.s
@@ -148,9 +156,9 @@ public class CodeSyncLogger {
                 return;
             }
         } else {
-            streamName = userAccount.getUserEmail();
-            accessKey = userAccount.getAccessKey();
-            secretKey = userAccount.getSecretKey();
+            streamName = user.getEmail();
+            accessKey = user.getAccessKey();
+            secretKey = user.getSecretKey();
         }
 
         try {
@@ -159,13 +167,17 @@ public class CodeSyncLogger {
             );
         } catch (UnrecognizedClientException error) {
             String errorMessage = String.format(
-                "Error publishing message to cloudwatch. Error: %s%nOriginal Message: %s", error.getMessage(), message
+                "Error publishing message to cloudwatch. Error: %s%nOriginal Message: %s",
+                CommonUtils.getStackTrace(error),
+                message
             );
             if (retryCount > 10) {
                 // Do not try more than 10 times.
                 retryCount = 0;
                 logConsoleMessage(
-                    String.format("Could not log the message to cloud watch. Error: %s%n", error.getMessage()),
+                    String.format(
+                        "Could not log the message to cloud watch. Error: %s", CommonUtils.getStackTrace(error)
+                    ),
                     LogMessageType.CRITICAL
                 );
             } else {
@@ -185,7 +197,9 @@ public class CodeSyncLogger {
                 // Do not try more than 10 times.
                 retryCount = 0;
                 logConsoleMessage(
-                    String.format("Could not log the message to cloud watch. Error: %s%n", error.getMessage()),
+                    String.format(
+                        "Could not log the message to cloud watch. Error: %s", CommonUtils.getStackTrace(error)
+                    ),
                     LogMessageType.CRITICAL
                 );
             } else {

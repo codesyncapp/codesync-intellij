@@ -2,19 +2,19 @@ package org.intellij.sdk.codesync.state;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
-import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
-import org.intellij.sdk.codesync.files.ConfigFile;
-import org.intellij.sdk.codesync.files.ConfigRepo;
-import org.intellij.sdk.codesync.models.UserAccount;
+import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.database.models.Repo;
+import org.intellij.sdk.codesync.database.models.User;
+import org.intellij.sdk.codesync.exceptions.database.RepoNotFound;
 import org.intellij.sdk.codesync.ui.notifications.DeactivatedAccountNotification;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.intellij.sdk.codesync.Constants.CONFIG_PATH;
 
 public class StateUtils {
     private static final Map<String, PluginState> projectStateMap = new HashMap<>();
@@ -31,16 +31,14 @@ public class StateUtils {
         globalState.project = project;
 
         try {
-            UserAccount userAccount = new UserAccount();
-            userAccount = userAccount.getActiveUser();
-            globalState.isAuthenticated = userAccount != null;
-            if (userAccount != null) {
-                globalState.userEmail = userAccount.getUserEmail();
+            User user = User.getTable().getActive();
+            globalState.isAuthenticated = user != null;
+            if (user != null) {
+                globalState.userEmail = user.getEmail();
             }
-        } catch (SQLiteDBConnectionError error) {
+        } catch (SQLException e) {
             globalState.isAuthenticated = false;
         }
-
     }
 
     static public void populateState (Project project) {
@@ -81,25 +79,39 @@ public class StateUtils {
         pluginState.isAccountDeactivated = globalState.isAccountDeactivated;
 
         try {
-            ConfigFile configFile = new ConfigFile(CONFIG_PATH);
-
-            if (configFile.hasRepo(repoPath)) {
-                ConfigRepo configRepo = configFile.getRepo(repoPath);
-                pluginState.isRepoInSync = configRepo.isSynced() && !configRepo.isDisconnected;
-
-                if (configRepo.isSynced() && !configRepo.isDisconnected) {
-                    pluginState.repoStatus = RepoStatus.IN_SYNC;
-                } else if (!configRepo.isSynced()) {
+            Repo repo = Repo.getTable().get(repoPath);
+            switch (repo.getState()) {
+                case SYNCED:
+                    if (repo.hasSyncedBranches()){
+                        pluginState.repoStatus = RepoStatus.IN_SYNC;
+                        pluginState.isRepoInSync = true;
+                    } else {
+                        pluginState.repoStatus = RepoStatus.NOT_SYNCED;
+                        pluginState.isRepoInSync = false;
+                    }
+                    break;
+                case NOT_SYNCED:
                     pluginState.repoStatus = RepoStatus.NOT_SYNCED;
-                } else if (configRepo.isDisconnected) {
+                    pluginState.isRepoInSync = false;
+                    break;
+                case DELETED:
+                case DISCONNECTED:
                     pluginState.repoStatus = RepoStatus.DISCONNECTED;
-                }
-            } else {
-                pluginState.repoStatus = RepoStatus.NOT_SYNCED;
-                pluginState.isRepoInSync = false;
+                    pluginState.isRepoInSync = false;
+                    break;
+                default:
+                    pluginState.repoStatus = RepoStatus.UNKNOWN;
+                    pluginState.isRepoInSync = false;
+                    break;
             }
-        } catch (InvalidConfigFileError error) {
+        } catch (SQLException error) {
+            CodeSyncLogger.error(
+                String.format("Error getting repo from database. Error: %s", CommonUtils.getStackTrace(error))
+            );
             pluginState.repoStatus = RepoStatus.UNKNOWN;
+            pluginState.isRepoInSync = false;
+        } catch (RepoNotFound e) {
+            pluginState.repoStatus = RepoStatus.NOT_SYNCED;
             pluginState.isRepoInSync = false;
         }
 

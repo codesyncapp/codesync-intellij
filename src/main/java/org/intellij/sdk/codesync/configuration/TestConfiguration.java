@@ -97,8 +97,21 @@ public class TestConfiguration implements Configuration {
     }
 
     @Override
+    public String getIDEName() {
+        return "intelliJ IDEA Test";
+    }
+
+    @Override
+    public String getPluginVersion() {
+        return "unit.tests";
+    }
+
+    @Override
     public String getLogGroupName() {
         return LOG_GROUP_NAME;
     }
 
+    public boolean isTestMode() {
+        return true;
+    }
 }

@@ -17,7 +17,7 @@ Here are the dependencies for setting up a development environment for this plug
 Java Version
 ------------
 Java version required for this plugin can be found by looking at the `sourceCompatibility` attribute inside `build.gradle` file.
-Make sure your system has that version installed before you start the development.
+Make sure your system has that version installed before you start the development. You can se this from `Project Structure` in main menu commonly named `File`.
 
 Java JDK to use is ``openjdk-20`` i.e. ``Oracle OpenJDK version 20``
 
@@ -48,3 +48,9 @@ This is the one that you will be mostly using, if you edit this configuration th
 1. ``dev``: This one means locally running server and webapp will be used.
 2. ``prod``: This one mean production server and webapp will be used.
 3. ``test``: This one is only for unit/integration tests.
+
+Running Tests
+=============
+You can run the tests by running the ``codesync-intellij [test].run`` task from the Gradle tool window.
+
+Note: All tests require the environment variable ``env=test`` to be set.

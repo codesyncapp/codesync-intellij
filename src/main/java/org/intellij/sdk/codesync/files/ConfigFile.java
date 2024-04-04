@@ -1,13 +1,10 @@
 package org.intellij.sdk.codesync.files;
 
 import java.io.*;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.HashMap;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
-import org.intellij.sdk.codesync.exceptions.FileLockedError;
 import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
 import org.intellij.sdk.codesync.exceptions.InvalidYmlFileError;
 
@@ -16,8 +13,6 @@ public class ConfigFile extends CodeSyncYmlFile {
     File configFile;
     Map<String, Object> contentsMap;
     public Map<String, ConfigRepo> repos = new HashMap<>();
-
-    private static Instant fileWriteLockExpiry = null;
 
     public ConfigFile(String filePath) throws InvalidConfigFileError {
         File configFile = new File(filePath);
@@ -58,39 +53,6 @@ public class ConfigFile extends CodeSyncYmlFile {
         return configFile;
     }
 
-    private static void acquireLock() {
-        // This is a temporary fix to wait till the file contents are flushed before writing content of the next call.
-        if (fileWriteLockExpiry != null) {
-            try {
-                long waitInMillis = Instant.now().until(fileWriteLockExpiry, ChronoUnit.MILLIS);
-                if (waitInMillis > 0) {
-                    Thread.sleep(waitInMillis);
-                }
-            } catch (InterruptedException e) {
-                // Ignore the exception.
-                CodeSyncLogger.error("Error calling Thread.sleep to handle config file locking.");
-                Thread.currentThread().interrupt();
-            }
-        }
-
-        // Set the expiry to 5 seconds into the future.
-        fileWriteLockExpiry = Instant.now().plus(5, ChronoUnit.SECONDS);
-    }
-
-    private static void releaseLock() {
-        // Clear the lock
-        fileWriteLockExpiry = null;
-    }
-
-    private void reloadFromFile() throws InvalidConfigFileError {
-        try {
-            this.contentsMap = this.readYml();
-        } catch (FileNotFoundException | InvalidYmlFileError e) {
-            throw new InvalidConfigFileError(e.getMessage());
-        }
-        this.loadYmlContent();
-    }
-
     private void loadYmlContent () throws InvalidConfigFileError {
         if (this.contentsMap == null || !this.contentsMap.containsKey("repos")) {
             // Empty config file.
@@ -109,84 +71,8 @@ public class ConfigFile extends CodeSyncYmlFile {
             throw new InvalidConfigFileError(String.format("Config file is not valid. Error: %s", e.getMessage()));
         }
     }
-
-    public ConfigRepo getRepo(String repoPath) {
-        return this.repos.get(repoPath);
-    }
-
-    public boolean hasRepo(String repoPath) {
-        return this.repos.containsKey(repoPath);
-    }
-
     public Map<String, ConfigRepo> getRepos() {
         return this.repos;
     }
 
-    public void updateRepo(String repoPath, ConfigRepo newRepo) {
-        this.repos.put(repoPath, newRepo);
-    }
-    public void deleteRepo(String repoPath) {
-        this.repos.remove(repoPath);
-    }
-
-    public void publishRepoUpdate (ConfigRepo updatedRepo) throws InvalidConfigFileError {
-        acquireLock();
-        this.reloadFromFile();
-        this.updateRepo(updatedRepo.repoPath, updatedRepo);
-        try {
-            this.writeYml();
-            releaseLock();
-        } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
-            releaseLock();
-            throw new InvalidConfigFileError(e.getMessage());
-        }
-    }
-
-    public void publishRepoRemoval (String repoPath) throws InvalidConfigFileError {
-        acquireLock();
-        this.reloadFromFile();
-        this.deleteRepo(repoPath);
-        try {
-            this.writeYml();
-            releaseLock();
-        } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
-            releaseLock();
-            throw new InvalidConfigFileError(e.getMessage());
-        }
-    }
-
-    public void publishBranchUpdate (ConfigRepo updatedRepo, ConfigRepoBranch updatedBranch) throws InvalidConfigFileError {
-        acquireLock();
-        this.reloadFromFile();
-        this.getRepo(updatedRepo.repoPath).updateRepoBranch(updatedBranch.branchName, updatedBranch);
-        try {
-            this.writeYml();
-            releaseLock();
-        } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
-            releaseLock();
-            throw new InvalidConfigFileError(e.getMessage());
-        }
-    }
-
-    public void publishBranchRemoval (ConfigRepo configRepo, String branchName) throws InvalidConfigFileError {
-        acquireLock();
-        this.reloadFromFile();
-        this.getRepo(configRepo.repoPath).deleteRepoBranch(branchName);
-        try {
-            this.writeYml();
-            releaseLock();
-        } catch (FileNotFoundException | InvalidYmlFileError | FileLockedError e) {
-            releaseLock();
-            throw new InvalidConfigFileError(e.getMessage());
-        }
-    }
-
-    public boolean isRepoActive(String repoPath) {
-        ConfigRepo repo = this.getRepo(repoPath);
-        if (repo == null) {
-            return false;
-        }
-
-        return repo.isActive();
-    }
 }

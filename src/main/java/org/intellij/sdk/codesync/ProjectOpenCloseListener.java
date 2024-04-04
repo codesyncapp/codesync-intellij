@@ -22,12 +22,14 @@ import kt.org.intellij.sdk.codesync.tasks.TaskExecutor;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.intellij.sdk.codesync.alerts.ActivityAlerts;
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
-import org.intellij.sdk.codesync.database.Database;
 import org.intellij.sdk.codesync.database.SQLiteConnection;
+import org.intellij.sdk.codesync.database.migrations.MigrateRepo;
+import org.intellij.sdk.codesync.database.migrations.MigrationManager;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.locks.CodeSyncLock;
 import org.intellij.sdk.codesync.state.RepoStatus;
 import org.intellij.sdk.codesync.state.StateUtils;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +64,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     }
     // Create system directories required by the plugin.
     createSystemDirectories();
-    Database.setupDbFilesAndTables(DATABASE_PATH);
     String repoDirPath = ProjectUtils.getRepoPath(project);
     CodeSyncLock codeSyncProjectLock = new CodeSyncLock(
         LockFileType.PROJECT_LOCK,
@@ -82,6 +83,9 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     // Keep a very low expiry to make sure, if user switches between projects then lock does not cause issues.
     Instant expiry = Instant.now().plus(5, ChronoUnit.SECONDS);
     codeSyncProjectLock.acquireLock(project.getName(), expiry);
+
+    // Run migrations
+    MigrationManager.getInstance().runMigrationsAsync();
 
     // Populate state
     StateUtils.populateState(project);
@@ -105,12 +109,18 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       // in the IDE open dialog box.
       for (VirtualFile contentRoot: contentRoots) {
 
-        if(Utils.isIndividualFileOpen(contentRoot.getPath())){
+        if (Utils.isIndividualFileOpen(contentRoot.getPath())){
           continue;
         }
 
         String repoPath = FileUtils.normalizeFilePath(contentRoot.getPath());
         String repoName = contentRoot.getName();
+
+        // Ignore repos that are being migrated.
+        if (MigrateRepo.getInstance().getReposBeingMigrated().contains(repoPath)) {
+          continue;
+        }
+
         RepoStatus repoStatus = StateUtils.getRepoStatus(repoPath);
         if (repoStatus == RepoStatus.DISCONNECTED) {
           CodeSyncSetup.reconnectRepoAsync(project, repoPath, repoName);
@@ -149,7 +159,6 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
             repoPath = ProjectUtils.getRepoPath(virtualFile, project);
           } catch (FileNotInModuleError error) {
             // Ignore events not belonging to current project.
-            CodeSyncLogger.logConsoleMessage("Ignoring event because event does not belong to any of the module files.");
             return;
           }
 
@@ -191,7 +200,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
       public void documentChanged(@NotNull DocumentEvent event) {
         if (!project.isDisposed()){
 
-          // Abort if account is has been deactivated.
+          // Abort if account has been deactivated.
           if (StateUtils.getGlobalState().isAccountDeactivated) {
             return;
           }
@@ -219,7 +228,7 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     try{
       SQLiteConnection.getInstance().disconnect();
     } catch (SQLException e){
-      CodeSyncLogger.error("Error while disconnecting database: " + e.getMessage());
+      CodeSyncLogger.error("Error while disconnecting database: " + CommonUtils.getStackTrace(e));
     }
 
     // Release all the locks acquired by this project.

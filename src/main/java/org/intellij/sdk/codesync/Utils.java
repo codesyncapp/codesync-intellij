@@ -9,9 +9,8 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import kt.org.intellij.sdk.codesync.tasks.TaskExecutor;
 import name.fraser.neil.plaintext.diff_match_patch;
-import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
+import org.intellij.sdk.codesync.database.models.Repo;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
-import org.intellij.sdk.codesync.files.ConfigFile;
 import org.intellij.sdk.codesync.repoManagers.DeletedRepoManager;
 import org.intellij.sdk.codesync.repoManagers.OriginalsRepoManager;
 import org.intellij.sdk.codesync.repoManagers.ShadowRepoManager;
@@ -20,6 +19,7 @@ import org.json.simple.JSONObject;
 
 import java.io.*;
 import java.nio.file.*;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -35,9 +35,12 @@ public class Utils {
             return true;
         }
         try {
-            ConfigFile configFile = new ConfigFile(CONFIG_PATH);
-            return !configFile.isRepoActive(repoPath);
-        } catch (InvalidConfigFileError e) {
+            Repo repo = Repo.getTable().find(repoPath);
+            return repo == null || !repo.isActive();
+        } catch (SQLException error) {
+            CodeSyncLogger.error(
+                String.format("Error fetching repo from database. Error: %s", CommonUtils.getStackTrace(error))
+            );
             return true;
         }
     }
@@ -247,7 +250,6 @@ public class Utils {
             repoPath = ProjectUtils.getRepoPath(file, project);
         } catch (FileNotInModuleError error) {
             // Ignore events not belonging to current project.
-            CodeSyncLogger.logConsoleMessage("Ignoring event because event does not belong to any of the module files.");
             return;
         }
 
@@ -315,8 +317,9 @@ public class Utils {
             myWriter.write(currentText);
             myWriter.close();
         } catch (IOException e) {
-            CodeSyncLogger.error(String.format("Error updating the shadow file. Error: %s", e.getMessage()));
-            e.printStackTrace();
+            CodeSyncLogger.error(
+                String.format("Error updating the shadow file. Error: %s", CommonUtils.getStackTrace(e))
+            );
         }
         diff_match_patch dmp = new diff_match_patch();
         LinkedList<diff_match_patch.Patch> patches = dmp.patch_make(shadowText, currentText);

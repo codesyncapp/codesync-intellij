@@ -16,13 +16,18 @@ import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.commands.ReloadStateCommand;
 import org.intellij.sdk.codesync.commands.ResumeCodeSyncCommand;
+import org.intellij.sdk.codesync.database.models.Repo;
+import org.intellij.sdk.codesync.database.models.RepoBranch;
+import org.intellij.sdk.codesync.database.models.RepoFile;
+import org.intellij.sdk.codesync.database.models.User;
+import org.intellij.sdk.codesync.enums.RepoState;
 import org.intellij.sdk.codesync.exceptions.*;
+import org.intellij.sdk.codesync.exceptions.database.UserNotFound;
 import org.intellij.sdk.codesync.exceptions.file.UserFileError;
 import org.intellij.sdk.codesync.exceptions.network.RepoUpdateError;
 import org.intellij.sdk.codesync.exceptions.network.ServerConnectionError;
 import org.intellij.sdk.codesync.exceptions.repo.RepoNotActive;
 import org.intellij.sdk.codesync.files.*;
-import org.intellij.sdk.codesync.models.UserAccount;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.RepoStatus;
 import org.intellij.sdk.codesync.state.StateUtils;
@@ -45,6 +50,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -57,7 +63,7 @@ public class CodeSyncSetup {
     /*
     This can be called to disconnect an already connected repo.
      */
-    public static void disconnectRepo(Project project, String repoPath, String repoName) throws InvalidConfigFileError, RepoNotActive, UserFileError, ServerConnectionError, RepoUpdateError, SQLiteDBConnectionError, SQLiteDataError {
+    public static void disconnectRepo(Project project, String repoPath, String repoName) throws RepoNotActive, UserFileError, ServerConnectionError, RepoUpdateError, SQLException, UserNotFound {
         // Show confirmation message.
         boolean shouldDisconnect = CodeSyncMessages.showYesNoMessage(
                 "Are you sure?",
@@ -67,68 +73,61 @@ public class CodeSyncSetup {
 
         // User confirmed to disconnect the repo.
         if (shouldDisconnect) {
-            ConfigFile configFile = new ConfigFile(CONFIG_PATH);
-
-            if (!configFile.isRepoActive(repoPath)) {
+            Repo repo = Repo.getTable().find(repoPath);
+            if (repo == null || !repo.isActive()) {
                 throw new RepoNotActive(String.format("Repo '%s' is not active and can not be disconnected.", repoName));
             }
+            User user = repo.getUser();
 
-            ConfigRepo configRepo = configFile.getRepo(repoPath);
+            if (user == null) {
+                throw new UserNotFound("User is missing in the database.");
+            }
 
             JSONObject payload = new JSONObject();
             payload.put("is_in_sync", false);
-            updateRepo(configRepo.id, configRepo.email, repoName, payload);
+            updateRepo(repo.getServerRepoId(), user.getEmail(), repoName, payload);
 
-            configRepo.isDisconnected = true;
-            configFile.publishRepoUpdate(configRepo);
+            repo.setState(RepoState.DISCONNECTED);
+            repo.save();
 
             StateUtils.reloadState(project);
             NotificationManager.getInstance().notifyInformation(Notification.REPO_UNSYNCED, project);
         }
     }
 
-    public static void reconnectRepo(Project project, String repoPath, String repoName) throws InvalidConfigFileError, ServerConnectionError, RepoUpdateError, SQLiteDBConnectionError, SQLiteDataError {
-        ConfigFile configFile = new ConfigFile(CONFIG_PATH);
-        ConfigRepo configRepo = configFile.getRepo(repoPath);
+    public static void reconnectRepo(Project project, String repoPath, String repoName) throws ServerConnectionError, RepoUpdateError, SQLException, UserNotFound {
+        Repo repo = Repo.getTable().find(repoPath);
+        User user = repo != null ? repo.getUser() : null;
 
-        if (!configRepo.isSynced() || !configRepo.hasValidEmail() || !configRepo.hasValidId()) {
+        if (repo == null || repo.getUserId() == null || repo.getServerRepoId() == null || !repo.hasSyncedBranches()) {
             // If repo is not being synced then start the sync from scratch.
             setupCodeSyncRepoAsync(project, repoPath, repoName, true, false);
         } else {
+            if (user == null) {
+                throw new UserNotFound("User is missing in the database.");
+            }
             JSONObject payload = new JSONObject();
             payload.put("is_in_sync", true);
-            updateRepo(configRepo.id, configRepo.email, repoName, payload);
+            updateRepo(repo.getServerRepoId(), user.getEmail(), repoName, payload);
 
-            configRepo.isDisconnected = false;
-            configFile.publishRepoUpdate(configRepo);
+            repo.setState(RepoState.SYNCED);
+            repo.save();
 
             StateUtils.reloadState(project);
             NotificationManager.getInstance().notifyInformation(Notification.REPO_RECONNECTED, project);
         }
     }
 
-    public static void updateRepo(Integer repoId, String userEmail, String repoName, JSONObject payload) throws SQLiteDBConnectionError, SQLiteDataError, ServerConnectionError, RepoUpdateError {
-        UserAccount userAccount;
-        try {
-            userAccount = new UserAccount();
-        } catch (SQLiteDBConnectionError e) {
-            throw new SQLiteDBConnectionError(
-                String.format(
-                    "Repo '%s' could not be updated because there was an SQLite database error. Error: %s",
-                    repoName, e.getMessage()
-                )
-            );
-        }
-        userAccount = userAccount.getUser(userEmail);
-        if (userAccount == null) {
+    public static void updateRepo(Integer repoId, String userEmail, String repoName, JSONObject payload) throws SQLiteDataError, ServerConnectionError, RepoUpdateError {
+        String accessToken = User.getTable().getAccessToken(userEmail);
+        if (accessToken == null) {
             throw new SQLiteDataError(
                 String.format(
-                    "Repo '%s' could not be updated because user data is missing from SQLite database.",
+                    "Repo '%s' could not be updated because user access token is missing from SQLite database.",
                     repoName
                 )
             );
         }
-        String accessToken = userAccount.getAccessToken();
         CodeSyncClient codeSyncClient = new CodeSyncClient();
 
         if (!codeSyncClient.isServerUp()) {
@@ -164,8 +163,7 @@ public class CodeSyncSetup {
                 if (shouldReconnect) {
                     try {
                         CodeSyncSetup.reconnectRepo(project, repoPath, repoName);
-                    } catch (InvalidConfigFileError | ServerConnectionError | RepoUpdateError | SQLiteDBConnectionError |
-                             SQLiteDataError error) {
+                    } catch (ServerConnectionError | RepoUpdateError | SQLException | UserNotFound error) {
                         NotificationManager.getInstance().notifyError(Notification.REPO_RECONNECT_FAILED, project);
                         NotificationManager.getInstance().notifyError(error.getMessage(), project);
                         CodeSyncLogger.critical(
@@ -202,9 +200,9 @@ public class CodeSyncSetup {
 
     public static void setupCodeSyncRepo(Project project, String repoPath, String repoName, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean skipSyncPrompt, boolean isSyncingBranch) {
         try {
-            ConfigFile configFile = new ConfigFile(CONFIG_PATH);
+            Repo repo = Repo.getTable().find(repoPath);
 
-            if (!configFile.isRepoActive(repoPath) || isSyncingBranch) {
+            if (repo == null || !repo.isActive() || !repo.hasSyncedBranches() || isSyncingBranch) {
                 String branchName = GitUtils.getBranchName(repoPath);
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CHECK_USER_ACCESS);
                 boolean hasAccessToken = checkUserAccess(project, repoPath, repoName, branchName, skipSyncPrompt, isSyncingBranch);
@@ -243,8 +241,13 @@ public class CodeSyncSetup {
                         project
                 );
             }
-        } catch (InvalidConfigFileError error) {
-            CodeSyncLogger.critical(String.format("Config file error, %s.\n", error.getMessage()));
+        } catch (SQLException error) {
+            CodeSyncLogger.critical(
+                String.format(
+                    "Error while getting repo from database. Error: %s",
+                    CommonUtils.getStackTrace(error)
+                )
+            );
         }
     }
 
@@ -308,13 +311,7 @@ public class CodeSyncSetup {
     This will also trigger the authentication flow if user does not have access token setup.
      */
     public static boolean checkUserAccess(Project project, String repoPath, String repoName, String branchName, boolean skipSyncPrompt, boolean isSyncingBranch) {
-        String accessToken;
-        try {
-            UserAccount userAccount = new UserAccount();
-            accessToken = userAccount.getActiveAccessToken();
-        } catch (SQLiteDBConnectionError e) {
-            accessToken = null;
-        }
+        String accessToken = User.getTable().getAccessToken();
 
         // User already has access token, no need to proceed.
         if (accessToken != null) {
@@ -325,22 +322,18 @@ public class CodeSyncSetup {
             }
         }
 
-        CodeSyncLogger.debug(
-                "[INTELLIJ_AUTH]: Login prompt displayed to the user."
-        );
+        CodeSyncLogger.debug("[INTELLIJ_AUTH]: Login prompt displayed to the user.");
 
         boolean shouldSignup = CodeSyncMessages.showYesNoMessage(
-                "Do you want to login or sign up to use CodeSync?",
-                "To stream your code to the cloud, you'll need to authenticate.",
-                project
+            "Do you want to login or sign up to use CodeSync?",
+            "To stream your code to the cloud, you'll need to authenticate.",
+            project
         );
 
         // If user said no to signup request the return here.
         if (!shouldSignup) {
             // TODO: We should add logic here to not ask the user again next time he opens the project.
-            CodeSyncLogger.debug(
-                    "[INTELLIJ_AUTH]: User declined login prompt."
-            );
+            CodeSyncLogger.debug("[INTELLIJ_AUTH]: User declined login prompt.");
             return false;
         }
 
@@ -351,13 +344,11 @@ public class CodeSyncSetup {
             CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
             BrowserUtil.browse(server.getAuthorizationUrl());
 
-            CodeSyncLogger.debug(
-                    "[INTELLIJ_AUTH]: User redirected to the login page."
-            );
+            CodeSyncLogger.debug("[INTELLIJ_AUTH]: User redirected to the login page.");
         } catch (Exception exc) {
-            exc.printStackTrace();
             CodeSyncLogger.critical(String.format(
-                "[INTELLIJ_AUTH_ERROR]: IntelliJ Login Error, an error occurred during user authentication. Error: %s", exc.getMessage()
+                "[INTELLIJ_AUTH]: An error occurred during user authentication. Error: %s",
+                CommonUtils.getStackTrace(exc)
             ));
             NotificationManager.getInstance().notifyError("There was a problem with login, please try again later.", project);
         }
@@ -449,25 +440,6 @@ public class CodeSyncSetup {
 
         String branchName = GitUtils.getBranchName(repoPath);
 
-        ConfigFile configFile;
-        try {
-            configFile = new ConfigFile(CONFIG_PATH);
-        } catch (InvalidConfigFileError e) {
-            e.printStackTrace();
-
-            // Show error message.
-            if (!isSyncingBranch) {
-                NotificationManager.getInstance().notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
-            } else {
-                NotificationManager.getInstance().notifyInformation(
-                    String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
-                );
-            }
-
-            // Can not proceed. This should never happen as the same check is applied at the start.
-            return false;
-        }
-
         Map<String, Integer> branchFiles = new HashMap<>();
         JSONObject filesData = new JSONObject();
 
@@ -494,60 +466,15 @@ public class CodeSyncSetup {
             item.put("created_at", CodeSyncDateUtils.getPosixTime((String) fileInfo.get("creationTime")));
             filesData.put(relativeFilePath, item);
         }
-        ConfigRepo configRepo;
-        if(!configFile.isRepoActive(repoPath)) {
-            configRepo = new ConfigRepo(repoPath);
-            configRepo.updateRepoBranch(branchName, new ConfigRepoBranch(branchName, branchFiles));
-            configFile.updateRepo(repoPath, configRepo);
-            try {
-                configFile.publishRepoUpdate(configRepo);
-            } catch (InvalidConfigFileError e) {
-                e.printStackTrace();
 
-                // Show error message.
-                if (!isSyncingBranch) {
-                    NotificationManager.getInstance().notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
-                } else {
-                    NotificationManager.getInstance().notifyInformation(
-                            String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
-                    );
-                }
-
-                // Can not proceed. This should never happen as the same check is applied at the start.
-                return false;
-            }
-        } else {
-            configRepo = configFile.getRepo(repoPath);
-            if(!configRepo.containsBranch(branchName)) {
-                ConfigRepoBranch configRepoBranch = new ConfigRepoBranch(branchName, branchFiles);
-                try {
-                    configFile.publishBranchUpdate(configRepo, configRepoBranch);
-                } catch (InvalidConfigFileError e) {
-                    e.printStackTrace();
-
-                    // Show error message.
-                    if (!isSyncingBranch) {
-                        NotificationManager.getInstance().notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
-                    } else {
-                        NotificationManager.getInstance().notifyInformation(
-                                String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
-                        );
-                    }
-
-                    // Can not proceed. This should never happen as the same check is applied at the start.
-                    return false;
-                }
-            }
-        }
-
-        String accessToken = UserAccount.getAccessTokenByEmail();
+        String accessToken = User.getTable().getAccessToken();
         if (accessToken == null) {
             // Show error message.
             if (!isSyncingBranch) {
                 NotificationManager.getInstance().notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
             } else {
                 NotificationManager.getInstance().notifyInformation(
-                        String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
+                    String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
                 );
             }
 
@@ -585,20 +512,10 @@ public class CodeSyncSetup {
             // Show error message.
             if (!isSyncingBranch) {
                 NotificationManager.getInstance().notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
-                try {
-                    configFile.publishRepoRemoval(repoPath);
-                } catch (InvalidConfigFileError e) {
-                    CodeSyncLogger.debug("Error processing config file after repo init failed");
-                }
             } else {
                 NotificationManager.getInstance().notifyInformation(
                         String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
                 );
-                try {
-                    configFile.publishBranchRemoval(configRepo, repoPath);
-                } catch (InvalidConfigFileError e) {
-                    CodeSyncLogger.debug("Error processing config file after repo init failed");
-                }
             }
             return false;
         }
@@ -612,19 +529,8 @@ public class CodeSyncSetup {
                     (String) userObject.get("iam_secret_key")
             );
         } catch (ClassCastException err) {
-            try {
-                if (isSyncingBranch) {
-                    configFile.publishBranchRemoval(configRepo, branchName);
-                } else {
-                    configFile.publishRepoRemoval(repoPath);
-                }
-            } catch (InvalidConfigFileError error) {
-                CodeSyncLogger.error(String.format(
-                    "Error removing repo from config file after init error. Error: %s", error.getMessage()
-                ));
-            }
             CodeSyncLogger.critical(String.format(
-                    "Error parsing the response of /init endpoint. Error: %s", err.getMessage()
+                "Error parsing the response of /init endpoint. Error: %s", CommonUtils.getStackTrace(err)
             ));
 
             return false;
@@ -642,41 +548,34 @@ public class CodeSyncSetup {
                     email
                 );
 
-                try {
-                    if (isSyncingBranch) {
-                        configFile.publishBranchRemoval(configRepo, branchName);
-                    } else {
-                        configFile.publishRepoRemoval(repoPath);
-                    }
-                } catch (InvalidConfigFileError error) {
-                    CodeSyncLogger.error(String.format(
-                        "Error removing repo from config file after init error. Error: %s", error.getMessage()
-                    ));
-                }
-
                 return false;
             }
 
             codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CONFIG_UPDATE);
             filePathAndIds = new ObjectMapper().readValue(filePathAndIdsObject.toJSONString(), new TypeReference<Map<String, Integer>>(){});
-            // Save File IDs
-            saveFileIds(branchName, email, repoId, filePathAndIds, configRepo, configFile);
+            // Persists repo data on the database.
+            saveToDatabase(email, repoId, repoName, repoPath, branchName, filePathAndIds);
         } catch (ClassCastException | JsonProcessingException err) {
             CodeSyncLogger.critical(
-                    String.format("Error parsing the response of /init endpoint. Error: %s", err.getMessage()),
-                    email
+                String.format(
+                    "Error parsing the response of /init endpoint. Error: %s",
+                    CommonUtils.getStackTrace(err)
+                ),
+                email
             );
 
-            try {
-                if (isSyncingBranch) {
-                    configFile.publishBranchRemoval(configRepo, branchName);
-                } else {
-                    configFile.publishRepoRemoval(repoPath);
-                }
-            } catch (InvalidConfigFileError error) {
-                CodeSyncLogger.error(String.format(
-                    "Error removing repo from config file after init error. Error: %s", error.getMessage()
-                ));
+            return false;
+        } catch (SQLException error) {
+            CodeSyncLogger.error(String.format(
+                "Error saving repo data on the database. Error: %s", CommonUtils.getStackTrace(error)
+            ));
+
+            if (!isSyncingBranch) {
+                NotificationManager.getInstance().notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
+            } else {
+                NotificationManager.getInstance().notifyInformation(
+                    String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
+                );
             }
 
             return false;
@@ -692,17 +591,17 @@ public class CodeSyncSetup {
             }
             fileUrls = new ObjectMapper().readValue(urls.toJSONString(), new TypeReference<Map<String, Object>>(){});
 
-            S3FileUploader s3FileUploader = new S3FileUploader(configRepo.repoPath, branchName, fileUrls);
+            S3FileUploader s3FileUploader = new S3FileUploader(repoPath, branchName, fileUrls);
             s3FileUploader.saveURLs();
         } catch (ClassCastException | JsonProcessingException err) {
             CodeSyncLogger.critical(
-                String.format("Error parsing the response of /init endpoint. Error: %s", err.getMessage()),
+                String.format("Error parsing the response of /init endpoint. Error: %s", CommonUtils.getStackTrace(err)),
                 email
             );
             return false;
         } catch (InvalidYmlFileError | FileNotFoundException error) {
             CodeSyncLogger.critical(
-                String.format("Error creating S3 upload queue file. Error: %s", error.getMessage()),
+                String.format("Error creating S3 upload queue file. Error: %s", CommonUtils.getStackTrace(error)),
                 email
             );
             return false;
@@ -713,52 +612,54 @@ public class CodeSyncSetup {
     }
 
     public static void saveIamUser(String email, String iamAccessKey, String iamSecretKey) {
-        //TODO
-        //Previously user file was being created if did not exist, should we do same for database file?
-        //DB File and table will be created anyways on startup.
-        UserAccount userAccount;
         try {
-            userAccount = new UserAccount();
-        } catch (SQLiteDBConnectionError e) {
+            User user = User.getTable().find(email);
+            if (user != null) {
+                user.setAccessKey(iamAccessKey);
+                user.setSecretKey(iamSecretKey);
+            } else {
+                user = new User(email, null, iamAccessKey, iamSecretKey, true);
+            }
+            user.save();
+        } catch (SQLException e) {
             CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: auth SQLite Database error. Error: %s", e.getMessage())
-            );
-            return;
-        }
-
-        try {
-            userAccount.setActiveUser(email, iamAccessKey, iamSecretKey);
-        } catch (SQLiteDBConnectionError e) {
-            CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: Could not write user to database due to database connection error. Error %s", e.getMessage())
-            );
-        } catch (SQLiteDataError e) {
-            CodeSyncLogger.critical(
-                    String.format("[INTELLI_REPO_INIT_ERROR]: Could not write user to database due to SQL error file. Error %s", e.getMessage())
+                String.format(
+                    "[INTELLI_REPO_INIT_ERROR]: Auth SQLite Database error. Error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
             );
         }
     }
 
-    public static void saveFileIds(
-            String branchName, String userEmail, Integer repoId, Map<String, Integer> filePathAndIds,
-            ConfigRepo configRepo, ConfigFile configFile
-    ) {
-        ConfigRepoBranch configRepoBranch = new ConfigRepoBranch(branchName, filePathAndIds);
-        configRepo.id = repoId;
-        configRepo.email = userEmail;
-        configRepo.isDisconnected = false;
-        configRepo.isDeleted = false;
-        configRepo.pauseNotification = false;
-
+    /*
+    Save repo data to the database.
+     */
+    public static void saveToDatabase(
+        String email, Integer serverRepoId, String repoName, String repoPath, String branchName, Map<String, Integer> filePathAndIds
+    ) throws SQLException {
+        User user;
         try {
-            configRepo.updateRepoBranch(branchName, configRepoBranch);
-            configFile.publishRepoUpdate(configRepo);
-        } catch (InvalidConfigFileError error) {
-            CodeSyncLogger.critical(
-                String.format("[INTELLI_REPO_INIT_ERROR]: Could not update config file. Error %s", error.getMessage()),
-                userEmail
+            user = User.getTable().get(email);
+        } catch (UserNotFound e) {
+            CodeSyncLogger.error(
+                "[INTELLI_REPO_INIT_ERROR]: Error while saving repo data. Could not find the user in the database."
             );
+
+            return;
         }
+
+        Repo repo = new Repo(serverRepoId, repoName, repoPath, user.getId(), RepoState.SYNCED);
+        repo.save();
+        RepoBranch repoBranch = new RepoBranch(branchName, repo.getId());
+        repoBranch.save();
+        ArrayList<RepoFile> repoFiles = new ArrayList<>();
+
+        for (Map.Entry<String, Integer> fileEntry: filePathAndIds.entrySet()) {
+            repoFiles.add(new RepoFile(fileEntry.getKey(), repoBranch.getId(), fileEntry.getValue()));
+        }
+
+        RepoFile.getTable().bulkInsert(repoFiles);
+
     }
 
     public static String createSyncIgnore(String repoPath) {

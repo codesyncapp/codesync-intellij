@@ -12,4 +12,7 @@ public interface Configuration {
     public abstract String getPluginUserLogStream();
     public abstract String getPluginUserAccessKey();
     public abstract String getPluginUserSecretKey();
+    public abstract String getIDEName();
+    public abstract String getPluginVersion();
+    public abstract boolean isTestMode();
 }

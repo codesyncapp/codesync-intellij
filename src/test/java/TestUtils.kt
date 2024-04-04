@@ -1,5 +1,12 @@
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.util.io.FileUtil
+import org.intellij.sdk.codesync.database.SQLiteConnection
+import org.intellij.sdk.codesync.database.models.Repo
+import org.intellij.sdk.codesync.database.models.RepoBranch
+import org.intellij.sdk.codesync.database.models.RepoFile
+import org.intellij.sdk.codesync.database.models.User
+import org.intellij.sdk.codesync.database.tables.MigrationsTable
+import java.nio.file.Path
 import java.nio.file.Paths
 
 object CodeSyncTestUtils {
@@ -9,6 +16,10 @@ object CodeSyncTestUtils {
 
     fun getTestDataPath(): String {
         return DIRECTORY_PATH.toString();
+    }
+
+    fun getTestFilePath(fileName: String): Path {
+        return Paths.get(DIRECTORY_PATH.toString(), "files", fileName)
     }
 
     fun getTestDBFilePath(): String {
@@ -21,5 +32,20 @@ object CodeSyncTestUtils {
 
     fun getTempPath(): String {
         return FileUtil.toCanonicalPath("${PathManager.getTempPath()}/")
+    }
+
+    fun deleteTables() {
+        val tables = arrayOf(
+            User.getTable().tableName,
+            Repo.getTable().tableName,
+            RepoBranch.getTable().tableName,
+            RepoFile.getTable().tableName,
+            MigrationsTable.getInstance().tableName,
+        )
+        SQLiteConnection.getInstance().connection.createStatement().use { statement ->
+            for (table in tables) {
+                statement.execute("DROP TABLE IF EXISTS $table;")
+            }
+        }
     }
 }

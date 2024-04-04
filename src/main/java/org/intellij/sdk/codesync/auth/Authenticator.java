@@ -3,24 +3,24 @@ package org.intellij.sdk.codesync.auth;
 import com.auth0.jwt.interfaces.Claim;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
+import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.commands.ClearReposToIgnoreCache;
+import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
 import org.intellij.sdk.codesync.exceptions.RequestError;
-import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
-import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
-import org.intellij.sdk.codesync.models.UserAccount;
+import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.json.simple.JSONObject;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Map;
 
 import com.auth0.jwt.*;
 import com.auth0.jwt.exceptions.JWTDecodeException;
-import com.auth0.jwt.interfaces.DecodedJWT;
 
 import org.intellij.sdk.codesync.clients.ClientUtils;
 import static org.intellij.sdk.codesync.Constants.*;
@@ -50,11 +50,10 @@ public class Authenticator extends HttpServlet {
         CodeSyncLogger.debug("[INTELLIJ_AUTH]: User successfully authenticated, now saving auth token.");
 
         try {
-            DecodedJWT jwt = JWT.decode(idToken);
-            claims = jwt.getClaims();
+            claims = JWT.decode(idToken).getClaims();
         } catch (JWTDecodeException exception){
             CodeSyncLogger.critical(
-                    String.format("[INTELLIJ_AUTH_ERROR]: Error while decoding jwt. Token: '%s'", idToken)
+                String.format("[INTELLIJ_AUTH_ERROR]: Error while decoding jwt. Token: '%s'", idToken)
             );
             return false;
         }
@@ -73,41 +72,36 @@ public class Authenticator extends HttpServlet {
 
         if (jsonResponse.containsKey("error")) {
             CodeSyncLogger.critical(
-                    String.format("[INTELLIJ_AUTH_ERROR]: Error while creating the user. server error: '%s'", jsonResponse.get("error"))
+                String.format("[INTELLIJ_AUTH_ERROR]: Error while creating the user. server error: '%s'", jsonResponse.get("error"))
             );
             return false;
         }
-        //TODO
-        //Previously user file was being created if did not exist, should we do same for database file?
-        //DB File and table will be created anyways on startup.
-        UserAccount userAccount;
-        try {
-            userAccount = new UserAccount();
-        } catch (SQLiteDBConnectionError error) {
-            error.printStackTrace();
-            CodeSyncLogger.critical(
-                    String.format("[INTELLIJ_AUTH_ERROR]: SQLite Database Connection Error. Error: %s", error.getMessage())
-            );
-            return false;
-        }
+
         String userEmail = claims.get("email").asString();
 
         // Clear any cache that depends on user authentication status.
         new ClearReposToIgnoreCache().execute();
         try {
-            userAccount.setActiveUser(userEmail, accessToken);
-        } catch (SQLiteDBConnectionError e) {
+            User user = User.getTable().find(userEmail);
+            if (user != null) {
+                user.setAccessToken(accessToken);
+            } else {
+                user = new User(userEmail, accessToken, null, null, true);
+            }
+            user.save();
+
+            // We need this to mark all other users as inactive.
+            user.makeActive();
+        } catch (SQLException e) {
             CodeSyncLogger.error(
-                    String.format("[INTELLIJ_AUTH_ERROR]: Could not write due to SQLite Connection Error. Error: %s", e.getMessage())
-            );
-            return false;
-        } catch (SQLiteDataError e) {
-            CodeSyncLogger.error(
-                    String.format("[INTELLIJ_AUTH_ERROR]: Could not write due to SQL Error. Error: %s", e.getMessage())
+                String.format(
+                    "[INTELLIJ_AUTH]: Could not write due to SQLite Error. Error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
             );
             return false;
         }
-
+        NotificationManager.getInstance().notifyInformation("You have been logged in successfully.");
         CodeSyncLogger.debug("[INTELLIJ_AUTH]: User completed login flow.");
         return true;
     }
