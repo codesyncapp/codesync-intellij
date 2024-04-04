@@ -1,5 +1,6 @@
 package org.intellij.sdk.codesync.database.migration
 
+import CodeSyncTestUtils.deleteTables
 import CodeSyncTestUtils.getTestFilePath
 import org.intellij.sdk.codesync.Constants
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup
@@ -11,10 +12,7 @@ import org.intellij.sdk.codesync.database.tables.RepoFileTable
 import org.intellij.sdk.codesync.database.tables.RepoTable
 import org.intellij.sdk.codesync.database.tables.UserTable
 import org.intellij.sdk.codesync.enums.RepoState
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import java.nio.file.Paths
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -44,8 +42,13 @@ class MigrationManagerTest {
             getTestFilePath("user-for-migration.yml").toFile(),
             Paths.get(Constants.USER_FILE_PATH).toFile()
         )
-        // Delete the database if exists
-        org.apache.commons.io.FileUtils.deleteQuietly(Paths.get(Constants.DATABASE_PATH).toFile())
+
+        // validate the tables are not present.
+        assert(!MigrationsTable.getInstance().exists())
+        assert(!RepoTable.getInstance().exists())
+        assert(!RepoBranchTable.getInstance().exists())
+        assert(!RepoFileTable.getInstance().exists())
+        assert(!UserTable.getInstance().exists())
 
         // Run the migration.
         MigrationManager.getInstance().runMigrations()
@@ -249,6 +252,13 @@ class MigrationManagerTest {
         @BeforeAll
         fun setup(): Unit {
             CodeSyncSetup.createSystemDirectories()
+            deleteTables()
+        }
+
+        @JvmStatic
+        @AfterAll
+        fun cleanup(): Unit {
+            deleteTables()
         }
     }
 }

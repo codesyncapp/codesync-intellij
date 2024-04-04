@@ -1,12 +1,13 @@
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.util.io.FileUtil
-import org.apache.commons.io.FileUtils
-import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup.createSystemDirectories
-import org.intellij.sdk.codesync.configuration.ConfigurationFactory
+import org.intellij.sdk.codesync.database.SQLiteConnection
+import org.intellij.sdk.codesync.database.models.Repo
+import org.intellij.sdk.codesync.database.models.RepoBranch
+import org.intellij.sdk.codesync.database.models.RepoFile
+import org.intellij.sdk.codesync.database.models.User
+import org.intellij.sdk.codesync.database.tables.MigrationsTable
 import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 object CodeSyncTestUtils {
     //TODO Test files/paths should also be accessed from configuration files.
@@ -31,5 +32,20 @@ object CodeSyncTestUtils {
 
     fun getTempPath(): String {
         return FileUtil.toCanonicalPath("${PathManager.getTempPath()}/")
+    }
+
+    fun deleteTables() {
+        val tables = arrayOf(
+            User.getTable().tableName,
+            Repo.getTable().tableName,
+            RepoBranch.getTable().tableName,
+            RepoFile.getTable().tableName,
+            MigrationsTable.getInstance().tableName,
+        )
+        SQLiteConnection.getInstance().connection.createStatement().use { statement ->
+            for (table in tables) {
+                statement.execute("DROP TABLE IF EXISTS $table;")
+            }
+        }
     }
 }
