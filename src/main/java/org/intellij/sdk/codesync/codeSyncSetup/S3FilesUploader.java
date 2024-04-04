@@ -61,7 +61,6 @@ public class S3FilesUploader {
     Process al s3 YML files and upload pending files to S3.
     */
     private void processFiles () {
-        Integer i = 1/0;
         for (S3FileUploader s3FileUploader: this.s3FileUploaderList) {
             String filePath = s3FileUploader.getQueueFilePath();
             if (!filesBeingProcessed.contains(filePath)){
