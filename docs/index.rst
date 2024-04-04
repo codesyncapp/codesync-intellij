@@ -48,3 +48,9 @@ This is the one that you will be mostly using, if you edit this configuration th
 1. ``dev``: This one means locally running server and webapp will be used.
 2. ``prod``: This one mean production server and webapp will be used.
 3. ``test``: This one is only for unit/integration tests.
+
+Running Tests
+=============
+You can run the tests by running the ``codesync-intellij [test].run`` task from the Gradle tool window.
+
+Note: All tests require the environment variable ``env=test`` to be set.
