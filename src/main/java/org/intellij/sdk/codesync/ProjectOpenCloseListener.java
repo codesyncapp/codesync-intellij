@@ -85,6 +85,9 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     codeSyncProjectLock.acquireLock(project.getName(), expiry);
 
     // Run migrations
+    // This will be removed after we are sure that migrations are done for all users.
+    // We need these removed for performance reasons.
+    MigrationManager.getInstance().populateCache();
     MigrationManager.getInstance().runMigrationsAsync();
 
     // Populate state

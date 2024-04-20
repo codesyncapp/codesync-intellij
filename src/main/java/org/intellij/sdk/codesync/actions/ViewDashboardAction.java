@@ -9,8 +9,8 @@ import static org.intellij.sdk.codesync.Constants.WEBAPP_DASHBOARD_URL;
 public class ViewDashboardAction extends BaseModuleAction {
 
     @Override
-    public void update(AnActionEvent e) {
-        if (this.isAccountDeactivated()) {
+    public void update(@NotNull AnActionEvent e) {
+        if (this.isAccountDeactivated() || !this.isAuthenticated()) {
             e.getPresentation().setEnabled(false);
         }
     }

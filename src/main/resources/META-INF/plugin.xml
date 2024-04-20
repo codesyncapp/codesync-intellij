@@ -31,7 +31,9 @@
     <strong>Seamless IDE Integration</strong>: Effortlessly merge CodeSync into your JetBrains IDE environment, complementing and enriching your existing coding workflow.
   </li>
   <li>
-    <strong>Flexible Hosting Options</strong>: Adapt CodeSync to your team&#39;s needs with cloud-based hosting or self-hosted options on your AWS account.
+    <strong>Data Privacy</strong>: The CodeSync IDE plugin collects and sends the following data: code, diff timestamps, repository names, file paths, timezone to show activity alert, etc.
+    <p>CodeSync is SOC-2 compliant and ensures the highest standards of security, privacy and encryption. Contact us for our SOC-2 report.</p>
+    <p>We support both cloud and self-hosting via AWS. If you’d like your data and infrastructure to be on your own AWS account, contact us for a free trial of the self-hosted option.</p>
   </li>
 </ul>
 <p>

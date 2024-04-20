@@ -32,4 +32,9 @@ public abstract class BaseModuleAction extends AnAction {
         PluginState pluginState = StateUtils.getGlobalState();
         return pluginState.isAccountDeactivated;
     }
+
+    public boolean isAuthenticated() {
+        PluginState pluginState = StateUtils.getGlobalState();
+        return pluginState.isAuthenticated;
+    }
 }
