@@ -231,4 +231,15 @@ public class MigrateRepo implements Migration {
         // Clear repos being migrated set.
         reposBeingMigrated.clear();
     }
+
+    public void populateReposBeingSynced() {
+        try {
+            ConfigFile configFile = new ConfigFile(CONFIG_PATH);
+            for (ConfigRepo configRepo: configFile.getRepos().values()) {
+                reposBeingMigrated.add(configRepo.repoPath);
+            }
+        } catch (InvalidConfigFileError e) {
+            CodeSyncLogger.error("[DATABASE_MIGRATION] Error while populating repos being synced: " + e.getMessage());
+        }
+    }
 }

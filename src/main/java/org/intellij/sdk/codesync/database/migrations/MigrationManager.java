@@ -25,6 +25,13 @@ public class MigrationManager {
         thread.start();
     }
 
+    /*
+    Populate the cache with the repos being synced.
+     */
+    public void populateCache() {
+        MigrateRepo.getInstance().populateReposBeingSynced();
+    }
+
     public void runMigrations() {
         MigrateUser.getInstance().migrate();
         MigrateRepo.getInstance().migrate();
