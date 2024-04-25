@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] 2024-04-25
+- Moved to SQLite backed storage for storing metadata instead of YML based file storage.
+- General performance improvements.
+- Improved error handling and logging.
+- Added support for IntelliJ 2024.2
+- Fixed bugs with CodeSync menu items.
+
 ## [3.33.1] 2024-03-06
 - Added a fix to handle error_code only if a 402 status_code is received.
 

@@ -96,24 +96,16 @@
     <change-notes><![CDATA[
     <h2>New Features</h2>
       <ul>
-        <li>Updated file sync message from "Syncing Files" to "CodeSync: Syncing Files..."</li>
-        <li>Added marking of git commit hash along with repo init.</li>
-        <li>Added background S3 file upload capability for single new files.</li>
+        <li>Added background S3 file upload capability for file uploads.</li>
         <li>Added the ability for users to reconnect account.</li>
         <li>Async file upload to speed up repo setup.</li>
-        <li>Handling for disabled accounts and the ability to enable it again.</li>
-        <li>Integration with Github pull request to watch pull request playback.</li>
-        <li>Restricted users on free plan to only one private repository</li>
-        <li>Adding more than one private repo on free plan will trigger error: "In the Free Plan, you can have just one private repository."</li>
+        <li>Moved to SQLite backed storage for storing metadata instead of YML based file storage.</li>
+        <li>General performance improvements.</li>
+        <li>Improved error handling and logging.</li>
     <h2>Bug Fixes</h2>
       <ul>
-        <li>Fixed an error in handle buffer. Added checks for null values.</li>
-        <li>Updated messaging for repo disconnect confirmation prompt.</li>
-        <li>Only process diffs of the authenticated user.</li>
-        <li>Disabled config file reset logic in case of yaml error.</li>
-        <li>Reload state to make sure the plugin is in the correct state after the repo sync.</li>
-        <li>Added a fix to handle exceptions independently for different flows inside handle buffer.</li>
-        <li>Added support for IntelliJ idea 2024.1</li>
+        <li>Fixed bugs with CodeSync menu items.</li>
+        <li>Fixed issues that users were unable to see changes to the files after switching to a new branch.</li>
       </ul>
     ]]>
     </change-notes>
