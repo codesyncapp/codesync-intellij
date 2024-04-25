@@ -9,14 +9,12 @@ import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.actions.BaseModuleAction;
 import org.intellij.sdk.codesync.commands.ClearReposToIgnoreCache;
 import org.intellij.sdk.codesync.commands.ReloadStateCommand;
-import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.server.CodeSyncReactivateAccountServer;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.sql.SQLException;
 
 import static org.intellij.sdk.codesync.Constants.Notification.ACCOUNT_REACTIVATE_BUTTON;
 
@@ -72,40 +70,16 @@ public class AuthAction extends BaseModuleAction {
 
         PluginState pluginState = StateUtils.getGlobalState();
 
-        CodeSyncAuthServer server;
         try {
-            server =  CodeSyncAuthServer.getInstance();
-            String targetURL = server.getAuthorizationUrl();
             if (pluginState.isAuthenticated) {
                 // Clear any cache that depends on user authentication status.
                 new ClearReposToIgnoreCache().execute();
-
-                try {
-                    User.getTable().markAllInActive();
-                } catch (SQLException error){
-                    NotificationManager.getInstance().notifyError(
-                        "An error occurred trying to logout the user, please tyr again later.", project
-                    );
-                    CodeSyncLogger.error(
-                        String.format(
-                            "[INTELLIJ_AUTH_ERROR]: Could not write to database due to database error. Error: %s",
-                            CommonUtils.getStackTrace(error)
-                        )
-                    );
-                    return;
-                }
-
-                // Reload the state now.
-                StateUtils.reloadState(project);
-
-                NotificationManager.getInstance().notifyInformation(
-                    "You have been logged out successfully.", project
-                );
+                BrowserUtil.browse(CodeSyncAuthServer.getInstance().getLogoutURL());
             } else {
                 CodeSyncLogger.debug("[INTELLIJ_AUTH]: User initiated login flow.");
-                BrowserUtil.browse(targetURL);
-                CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
+                BrowserUtil.browse(CodeSyncAuthServer.getInstance().getLoginURL());
             }
+            CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
         } catch (Exception exc) {
             CodeSyncLogger.critical(
                 String.format(

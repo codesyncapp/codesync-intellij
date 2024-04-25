@@ -12,6 +12,7 @@ import org.intellij.sdk.codesync.commands.Command;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -48,27 +49,49 @@ public class CodeSyncAuthServer {
         ServletHandler servletHandler = new ServletHandler();
         server.setHandler(servletHandler);
 
-        servletHandler.addServletWithMapping(Authenticator.class, "/login-success");
+        servletHandler.addServletWithMapping(Authenticator.class, "/login-callback");
+        servletHandler.addServletWithMapping(Authenticator.class, "/logout-callback");
 
         server.start();
     }
 
-    public String getServerURL(){
-        return String.format("%slogin-success", this.server.getURI().toString());
+    public String getServerURL(String path) {
+        return Paths.get(this.server.getURI().toString(), path).toString();
     }
 
-    public String getAuthorizationUrl() {
+    public String getLoginURL() {
         try {
-            URIBuilder uriBuilder = new URIBuilder(CODESYNC_AUTHORIZE_URL);
-            uriBuilder.addParameter("redirect_uri", getServerURL());
-            uriBuilder.addParameter("source", DIFF_SOURCE);
+            URIBuilder uriBuilder = new URIBuilder(WEBAPP_AUTHORIZE_URL);
+            uriBuilder.addParameter("utm_medium", "plugin");
+            uriBuilder.addParameter("utm_source", DIFF_SOURCE);
             uriBuilder.addParameter("v", PLUGIN_VERSION);
+            uriBuilder.addParameter("login-callback", getServerURL("login-callback"));
 
             return uriBuilder.toString();
         } catch (URISyntaxException e) {
             CodeSyncLogger.critical(
                 String.format(
-                    "[INTELLIJ_AUTH]: Invalid `CODESYNC_AUTHORIZE_URL` settings. Error: %s",
+                    "[INTELLIJ_AUTH]: Invalid `WEBAPP_AUTHORIZE_URL` settings. Error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
+            );
+            return null;
+        }
+    }
+
+    public String getLogoutURL() {
+        try {
+            URIBuilder uriBuilder = new URIBuilder(WEBAPP_LOGOUT_URL);
+            uriBuilder.addParameter("utm_medium", "plugin");
+            uriBuilder.addParameter("utm_source", DIFF_SOURCE);
+            uriBuilder.addParameter("v", PLUGIN_VERSION);
+            uriBuilder.addParameter("logout-callback", getServerURL("logout-callback"));
+
+            return uriBuilder.toString();
+        } catch (URISyntaxException e) {
+            CodeSyncLogger.critical(
+                String.format(
+                    "[INTELLIJ_AUTH]: Invalid `CODESYNC_LOGOUT_URL` settings. Error: %s",
                     CommonUtils.getStackTrace(e)
                 )
             );

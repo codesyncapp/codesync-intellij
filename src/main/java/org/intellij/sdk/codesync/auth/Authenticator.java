@@ -28,17 +28,49 @@ import static org.intellij.sdk.codesync.Constants.*;
 
 public class Authenticator extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String path = request.getRequestURI();
+        if (path.equals("/login-callback")) {
+            loginHandler(request, response);
+        } else if (path.equals("/logout-callback")) {
+            logoutHandler(request, response);
+        }
+        // Execute all registered post authentication commands.
+        CodeSyncAuthServer.executePostAuthCommands();
+    }
+
+    private void loginHandler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String accessToken = request.getParameter("access_token");
         String idToken = request.getParameter("id_token");
         createUser(accessToken, idToken);
 
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
-
-        // Execute all registered post authentication commands.
-        CodeSyncAuthServer.executePostAuthCommands();
-
         response.getWriter().print("<body><h1 class=\"\" style=\"text-align: center;\" >You are logged in, you can close this window now.</h1></body>\n");
+
+        NotificationManager.getInstance().notifyInformation("You have been logged in successfully.");
+    }
+
+    private void logoutHandler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            User.getTable().markAllInActive();
+        } catch (SQLException error){
+            NotificationManager.getInstance().notifyError(
+                "An error occurred trying to logout the user, please tyr again later."
+            );
+            CodeSyncLogger.error(
+                String.format(
+                    "[INTELLIJ_AUTH_ERROR]: Could not write to database due to database error. Error: %s",
+                    CommonUtils.getStackTrace(error)
+                )
+            );
+            return;
+        }
+
+        response.setContentType("text/html");
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.getWriter().print("<body><h1 class=\"\" style=\"text-align: center;\" >You are logged out, you can close this window now.</h1></body>\n");
+
+        NotificationManager.getInstance().notifyInformation("You have been logged out successfully.");
     }
 
     /*
