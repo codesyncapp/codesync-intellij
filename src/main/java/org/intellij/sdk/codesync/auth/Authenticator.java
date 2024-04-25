@@ -4,6 +4,7 @@ import com.auth0.jwt.interfaces.Claim;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
+import org.intellij.sdk.codesync.clients.CodeSyncClient;
 import org.intellij.sdk.codesync.commands.ClearReposToIgnoreCache;
 import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
@@ -53,6 +54,8 @@ public class Authenticator extends HttpServlet {
     private void logoutHandler(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             User.getTable().markAllInActive();
+            // Close all websocket connections.
+            CodeSyncClient.closeWebSocketConnections();
         } catch (SQLException error){
             NotificationManager.getInstance().notifyError(
                 "An error occurred trying to logout the user, please tyr again later."
@@ -69,7 +72,6 @@ public class Authenticator extends HttpServlet {
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
         response.getWriter().print("<body><h1 class=\"\" style=\"text-align: center;\" >You are logged out, you can close this window now.</h1></body>\n");
-
         NotificationManager.getInstance().notifyInformation("You have been logged out successfully.");
     }
 

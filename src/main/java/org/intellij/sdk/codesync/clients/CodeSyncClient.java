@@ -110,6 +110,15 @@ public class CodeSyncClient {
         }
     }
 
+    /*
+    Close all web socket connections, this is useful while logging out.
+     */
+    public static void closeWebSocketConnections() {
+        for (CodeSyncWebSocketClient codeSyncWebSocketClient: codeSyncWebSocketClients.values()) {
+            codeSyncWebSocketClient.disconnect();
+        }
+    }
+
     public Integer uploadFile(String accessToken, Repo repo, DiffFile diffFile, File originalsFile) throws FileInfoError, InvalidJsonError, RequestError, InvalidUsage {
         JSONObject payload = new JSONObject();
         Map<String, Object> fileInfo;

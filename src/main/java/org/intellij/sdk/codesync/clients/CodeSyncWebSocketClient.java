@@ -6,6 +6,7 @@ import org.intellij.sdk.codesync.Constants;
 import org.intellij.sdk.codesync.files.DiffFile;
 import org.intellij.sdk.codesync.exceptions.*;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -25,19 +26,15 @@ public class CodeSyncWebSocketClient {
     URI uri;
     WebSocketClientEndpoint webSocketClientEndpoint;
     boolean isConnected = false;
-    String token = null;
+    String token;
 
     boolean isConnected(){
-        if(isConnected && this.webSocketClientEndpoint.userSession != null){
-            return true;
-        }
-
-        return false;
+        return isConnected && this.webSocketClientEndpoint.userSession != null;
     }
 
     public CodeSyncWebSocketClient(String token, String uri) {
+        this.token = token;
         try {
-            this.token = token;
             this.uri = new URIBuilder(uri).addParameter("token", token).addParameter("source", IDE_NAME).build();
         } catch (URISyntaxException e) {
             e.printStackTrace();
@@ -70,6 +67,13 @@ public class CodeSyncWebSocketClient {
 
     public void disconnect () {
         this.isConnected = false;
+        try {
+            this.webSocketClientEndpoint.userSession.close();
+        } catch (IOException e) {
+            CodeSyncLogger.error(
+                String.format("Error while closing the websocket connection. %s", CommonUtils.getStackTrace(e))
+            );
+        }
     }
 
     public void authenticate(AuthenticationHandler authenticationHandler) {

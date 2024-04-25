@@ -14,7 +14,6 @@ public class RepoBranch extends Model {
     private String name;
     private Integer repoId, id;
 
-
     public RepoBranch(Integer id, String name, Integer repoId) {
         this.id = id;
         this.name = name;

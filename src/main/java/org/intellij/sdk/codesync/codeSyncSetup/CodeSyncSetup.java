@@ -14,6 +14,7 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.auth.CodeSyncAuthServer;
 import org.intellij.sdk.codesync.clients.CodeSyncClient;
+import org.intellij.sdk.codesync.commands.CloseAuthServerCommand;
 import org.intellij.sdk.codesync.commands.ReloadStateCommand;
 import org.intellij.sdk.codesync.commands.ResumeCodeSyncCommand;
 import org.intellij.sdk.codesync.database.models.Repo;
@@ -342,6 +343,7 @@ public class CodeSyncSetup {
             server =  CodeSyncAuthServer.getInstance();
             CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(project, repoPath, repoName, skipSyncPrompt, isSyncingBranch));
             CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
+            CodeSyncAuthServer.registerPostAuthCommand(new CloseAuthServerCommand(server));
             BrowserUtil.browse(server.getLoginURL());
 
             CodeSyncLogger.debug("[INTELLIJ_AUTH]: User redirected to the login page.");

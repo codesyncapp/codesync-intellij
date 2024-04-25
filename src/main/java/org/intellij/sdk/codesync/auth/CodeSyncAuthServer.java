@@ -35,6 +35,20 @@ public class CodeSyncAuthServer {
         return singletonInstance;
     }
 
+    /*
+    Close the server to clear up resources.
+     */
+    public void close() {
+        try {
+            server.stop();
+        } catch (Exception error) {
+            CodeSyncLogger.error(String.format(
+                "Error while stopping auth server. Error: %s", CommonUtils.getStackTrace(error)
+            ));
+        } finally {
+            singletonInstance = null;
+        }
+    }
     public void start() throws Exception {
         int maxThreads = 20;
         int minThreads = 1;
