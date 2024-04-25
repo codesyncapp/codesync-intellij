@@ -342,7 +342,7 @@ public class CodeSyncSetup {
             server =  CodeSyncAuthServer.getInstance();
             CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(project, repoPath, repoName, skipSyncPrompt, isSyncingBranch));
             CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
-            BrowserUtil.browse(server.getAuthorizationUrl());
+            BrowserUtil.browse(server.getLoginURL());
 
             CodeSyncLogger.debug("[INTELLIJ_AUTH]: User redirected to the login page.");
         } catch (Exception exc) {

@@ -62,7 +62,7 @@ public class ResumeCodeSyncCommand implements Command {
                 );
 
                 CodeSyncAuthServer codeSyncAuthServer = CodeSyncAuthServer.getInstance();
-                BrowserUtil.browse(codeSyncAuthServer.getAuthorizationUrl());
+                BrowserUtil.browse(codeSyncAuthServer.getLoginURL());
                 CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(
                     project, this.repoPath, this.repoName, this.skipSyncPrompt, this.isSyncingBranch, true
                 ));
