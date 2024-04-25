@@ -81,10 +81,11 @@ public class CodeSyncAuthServer {
 
     public String getLogoutURL() {
         try {
-            URIBuilder uriBuilder = new URIBuilder(CODESYNC_LOGOUT_URL);
-            uriBuilder.addParameter("source", DIFF_SOURCE);
+            URIBuilder uriBuilder = new URIBuilder(WEBAPP_LOGOUT_URL);
+            uriBuilder.addParameter("utm_medium", "plugin");
+            uriBuilder.addParameter("utm_source", DIFF_SOURCE);
             uriBuilder.addParameter("v", PLUGIN_VERSION);
-            uriBuilder.addParameter("redirect_uri", getServerURL("logout-callback"));
+            uriBuilder.addParameter("logout-callback", getServerURL("logout-callback"));
 
             return uriBuilder.toString();
         } catch (URISyntaxException e) {

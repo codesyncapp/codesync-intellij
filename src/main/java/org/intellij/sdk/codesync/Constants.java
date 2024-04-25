@@ -91,6 +91,7 @@ public final class Constants {
     public static final String FILE_PLAYBACK_LINK = String.format("%s/files", WEB_APP_URL) + "/%s/history?" + GA4_PARAMS;
     public static final String SETTINGS_PAGE_URL = String.format("%s/settings", WEB_APP_URL);
     public static final String WEBAPP_AUTHORIZE_URL = String.format("%s/signup", WEB_APP_URL);
+    public static final String WEBAPP_LOGOUT_URL = String.format("%s/logout", WEB_APP_URL);
 
 
     public static final String CLIENT_LOGS_GROUP_NAME = configuration.getLogGroupName();

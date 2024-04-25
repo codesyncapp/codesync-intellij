@@ -75,12 +75,11 @@ public class AuthAction extends BaseModuleAction {
                 // Clear any cache that depends on user authentication status.
                 new ClearReposToIgnoreCache().execute();
                 BrowserUtil.browse(CodeSyncAuthServer.getInstance().getLogoutURL());
-
             } else {
                 CodeSyncLogger.debug("[INTELLIJ_AUTH]: User initiated login flow.");
                 BrowserUtil.browse(CodeSyncAuthServer.getInstance().getLoginURL());
-                CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
             }
+            CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
         } catch (Exception exc) {
             CodeSyncLogger.critical(
                 String.format(
