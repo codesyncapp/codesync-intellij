@@ -9,6 +9,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.apache.http.client.utils.URIBuilder;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.commands.Command;
+import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 
 import java.net.URISyntaxException;
@@ -86,6 +87,7 @@ public class CodeSyncAuthServer {
             uriBuilder.addParameter("utm_source", DIFF_SOURCE);
             uriBuilder.addParameter("v", PLUGIN_VERSION);
             uriBuilder.addParameter("logout-callback", getServerURL("logout-callback"));
+            uriBuilder.addParameter("access_token", User.getTable().getAccessToken());
 
             return uriBuilder.toString();
         } catch (URISyntaxException e) {

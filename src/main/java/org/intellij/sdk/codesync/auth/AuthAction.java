@@ -77,21 +77,6 @@ public class AuthAction extends BaseModuleAction {
             if (pluginState.isAuthenticated) {
                 // Clear any cache that depends on user authentication status.
                 new ClearReposToIgnoreCache().execute();
-                try {
-                    User.getTable().markAllInActive();
-                } catch (SQLException error){
-                    NotificationManager.getInstance().notifyError(
-                        "An error occurred trying to logout the user, please tyr again later."
-                    );
-                    CodeSyncLogger.error(
-                        String.format(
-                            "[INTELLIJ_AUTH_ERROR]: Could not write to database due to database error. Error: %s",
-                            CommonUtils.getStackTrace(error)
-                        )
-                    );
-                    return;
-                }
-                StateUtils.reloadState(project);
                 BrowserUtil.browse(CodeSyncAuthServer.getInstance().getLogoutURL());
             } else {
                 CodeSyncLogger.debug("[INTELLIJ_AUTH]: User initiated login flow.");
