@@ -67,13 +67,6 @@ public class CodeSyncWebSocketClient {
 
     public void disconnect () {
         this.isConnected = false;
-        try {
-            this.webSocketClientEndpoint.userSession.close();
-        } catch (IOException e) {
-            CodeSyncLogger.error(
-                String.format("Error while closing the websocket connection. %s", CommonUtils.getStackTrace(e))
-            );
-        }
     }
 
     public void authenticate(AuthenticationHandler authenticationHandler) {

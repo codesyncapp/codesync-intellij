@@ -8,7 +8,6 @@ import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.actions.BaseModuleAction;
 import org.intellij.sdk.codesync.commands.ClearReposToIgnoreCache;
-import org.intellij.sdk.codesync.commands.CloseAuthServerCommand;
 import org.intellij.sdk.codesync.commands.ReloadStateCommand;
 import org.intellij.sdk.codesync.server.CodeSyncReactivateAccountServer;
 import org.intellij.sdk.codesync.state.PluginState;
@@ -81,7 +80,6 @@ public class AuthAction extends BaseModuleAction {
                 BrowserUtil.browse(CodeSyncAuthServer.getInstance().getLoginURL());
             }
             CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
-            CodeSyncAuthServer.registerPostAuthCommand(new CloseAuthServerCommand(CodeSyncAuthServer.getInstance()));
         } catch (Exception exc) {
             CodeSyncLogger.critical(
                 String.format(

@@ -67,7 +67,6 @@ public class ResumeCodeSyncCommand implements Command {
                     project, this.repoPath, this.repoName, this.skipSyncPrompt, this.isSyncingBranch, true
                 ));
                 CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
-                CodeSyncAuthServer.registerPostAuthCommand(new CloseAuthServerCommand(codeSyncAuthServer));
 
                 CodeSyncLogger.debug(
                     "[INTELLIJ_AUTH]: User redirected again to the login page because of invalid access token."
