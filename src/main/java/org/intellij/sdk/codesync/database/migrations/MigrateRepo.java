@@ -200,9 +200,12 @@ public class MigrateRepo implements Migration {
             switch (checkMigrationState()) {
                 case NOT_STARTED:
                 case ERROR:
+                    CodeSyncLogger.info("[DATABASE_MIGRATION] [START] Repo table migration started.");
                     setMigrationState(MigrationState.IN_PROGRESS);
                     createTables();
+                    CodeSyncLogger.info("[DATABASE_MIGRATION] Tables created.");
                     migrateData();
+                    CodeSyncLogger.info("[DATABASE_MIGRATION] Data migrated. Setting Migration state to DONE.");
                     setMigrationState(MigrationState.DONE);
                     CodeSyncLogger.info("[DATABASE_MIGRATION] [DONE] Repo table migration complete.");
                     break;

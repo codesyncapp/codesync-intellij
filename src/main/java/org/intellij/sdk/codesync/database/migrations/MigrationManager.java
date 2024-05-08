@@ -1,6 +1,9 @@
 package org.intellij.sdk.codesync.database.migrations;
 
+import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.state.StateUtils;
+
+import java.util.Timer;
 
 /*
 Manager for handling migrations.
@@ -18,11 +21,17 @@ public class MigrationManager {
     }
 
     public void runMigrationsAsync() {
-        Thread thread = new Thread(() -> {
-            MigrationManager.getInstance().runMigrations();
-            StateUtils.reloadState(StateUtils.getGlobalState().project);
-        });
-        thread.start();
+        Timer timer = new Timer(true);
+        CodeSyncLogger.debug("[DATABASE_MIGRATION] Running migrations async");
+        timer.schedule(new java.util.TimerTask() {
+            @Override
+            public void run() {
+                CodeSyncLogger.debug("[DATABASE_MIGRATION] Running migrations");
+                MigrationManager.getInstance().runMigrations();
+                CodeSyncLogger.debug("[DATABASE_MIGRATION] Migrations complete");
+                StateUtils.reloadState(StateUtils.getGlobalState().project);
+            }
+        }, 0);
     }
 
     /*
