@@ -10,6 +10,8 @@ import org.intellij.sdk.codesync.exceptions.database.UserNotFound;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /*
     This class is model for Repo table, and will contain all accessor and utility methods for managing Repo.
@@ -18,6 +20,11 @@ public class Repo extends Model {
     private String name, path;
     private Integer id, userId, serverRepoId;
     private RepoState state;
+
+    // Attributes to be used as cache layer and reduce database queries.
+    private User user = null;
+    private Map<String, RepoBranch> repoBranchMap = new HashMap<>();
+    private Integer branchCount = null;
 
     /*
     This constructor is used to create a Repo object with the given parameters.
@@ -117,18 +124,33 @@ public class Repo extends Model {
     Utility method to get the user object from the database.
      */
     public User getUser() throws SQLException, UserNotFound {
-        return UserTable.getInstance().get(this.userId);
+        if (user == null) {
+            user = UserTable.getInstance().get(this.userId);
+        }
+        return user;
     }
 
     /*
     Utility method to get the branch object from the database.
      */
     public RepoBranch getBranch(String branchName) throws SQLException, RepoBranchNotFound {
-        return RepoBranchTable.getInstance().get(branchName, this.id);
+        if (!repoBranchMap.containsKey(branchName)) {
+            repoBranchMap.put(branchName, RepoBranchTable.getInstance().get(branchName, this.id));
+        }
+
+        return repoBranchMap.get(branchName);
+    }
+
+    public Integer getBranchCount() throws SQLException {
+        if (branchCount == null) {
+            branchCount = RepoBranchTable.getInstance().getBranchCount(this.id);
+        }
+
+        return branchCount;
     }
 
     public boolean hasSyncedBranches() throws SQLException {
-        return RepoBranchTable.getInstance().getBranchCount(this.id) > 0;
+        return getBranchCount() > 0;
     }
 
     /*
@@ -137,5 +159,4 @@ public class Repo extends Model {
     public boolean isActive() {
         return this.state == RepoState.SYNCED && this.userId != null && this.serverRepoId != null;
     }
-
 }

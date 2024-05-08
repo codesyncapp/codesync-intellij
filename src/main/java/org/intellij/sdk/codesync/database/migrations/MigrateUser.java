@@ -113,9 +113,13 @@ public class MigrateUser implements Migration {
             switch (checkMigrationState()) {
                 case NOT_STARTED:
                 case ERROR:
+                    CodeSyncLogger.info("[DATABASE_MIGRATION] [START] Migrating User table.");
                     setMigrationState(MigrationState.IN_PROGRESS);
+                    CodeSyncLogger.info("[DATABASE_MIGRATION] Creating User table.");
                     createUserTable();
+                    CodeSyncLogger.info("[DATABASE_MIGRATION] Migrating User table data.");
                     migrateData();
+                    CodeSyncLogger.info("[DATABASE_MIGRATION] [DONE] User table migration complete.");
                     setMigrationState(MigrationState.DONE);
                     CodeSyncLogger.info("[DATABASE_MIGRATION] [DONE] User table migration complete.");
                     break;

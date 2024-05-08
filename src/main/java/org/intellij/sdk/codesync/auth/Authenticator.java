@@ -69,7 +69,6 @@ public class Authenticator extends HttpServlet {
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
         response.getWriter().print("<body><h1 class=\"\" style=\"text-align: center;\" >You are logged out, you can close this window now.</h1></body>\n");
-
         NotificationManager.getInstance().notifyInformation("You have been logged out successfully.");
     }
 
