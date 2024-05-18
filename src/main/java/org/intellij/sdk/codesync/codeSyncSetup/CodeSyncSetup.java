@@ -306,6 +306,42 @@ public class CodeSyncSetup {
     }
 
     /*
+    This will check if user is logged in or not and will display
+    login prompt if user is not authenticated or has a missing access token.
+     */
+    public static void checkUserAuthStatus(Project project) {
+        String accessToken = User.getTable().getAccessToken();
+        if (accessToken != null) {
+            // If user has an access token then return here.
+            // Note: We do not check the validity of access token here,
+            // that part is handled when user tries to sync a repo.
+            return;
+        }
+        CodeSyncLogger.debug("[INTELLIJ_AUTH]: Login prompt displayed to the user.");
+        boolean shouldSignup = CodeSyncMessages.showYesNoMessage(
+            "Do you want to login or sign up to use CodeSync?",
+            "To stream your code to the cloud, you'll need to authenticate.",
+            project
+        );
+
+        // If user said no to signup request the return here.
+        if (shouldSignup) {
+            try {
+                CodeSyncAuthServer server =  CodeSyncAuthServer.getInstance();
+                CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
+                BrowserUtil.browse(server.getLoginURL());
+                CodeSyncLogger.debug("[INTELLIJ_AUTH]: User redirected to the login page.");
+            } catch (Exception exc) {
+                CodeSyncLogger.critical(String.format(
+                    "[INTELLIJ_AUTH]: An error occurred during user authentication. Error: %s",
+                    CommonUtils.getStackTrace(exc)
+                ));
+                NotificationManager.getInstance().notifyError("There was a problem with login, please try again later.", project);
+            }
+        }
+    }
+
+    /*
     Check if the user has proper access for repo initialization, or not.
 
     This will also trigger the authentication flow if user does not have access token setup.
@@ -593,6 +629,14 @@ public class CodeSyncSetup {
 
             S3FileUploader s3FileUploader = new S3FileUploader(repoPath, branchName, fileUrls);
             s3FileUploader.saveURLs();
+
+            // Trigger the task to upload the file to S3.
+            CodeSyncLogger.info(String.format(
+                "[S3_FILE_UPLOAD]: Processing file: %s",
+                s3FileUploader.getQueueFilePath()
+            ));
+            S3FilesUploader.registerFileBeingProcessed(s3FileUploader.getQueueFilePath());
+            s3FileUploader.triggerAsyncTask(StateUtils.getGlobalState().project);
         } catch (ClassCastException | JsonProcessingException err) {
             CodeSyncLogger.critical(
                 String.format("Error parsing the response of /init endpoint. Error: %s", CommonUtils.getStackTrace(err)),

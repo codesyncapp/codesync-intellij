@@ -138,8 +138,8 @@ public class PopulateBuffer {
             return;
         }
 
-
         try {
+            CodeSyncLogger.info("Triggering S3 File Uploader in handle buffer daemon.");
             S3FilesUploader.triggerS3Uploads(project);
         } catch (Exception e) {
             CodeSyncLogger.error(String.format("S3 file upload failed with error: %s", CommonUtils.getStackTrace(e)));

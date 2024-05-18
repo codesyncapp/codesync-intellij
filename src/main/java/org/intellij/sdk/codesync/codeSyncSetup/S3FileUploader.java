@@ -67,14 +67,20 @@ public class S3FileUploader {
                 continue;
             }
             try {
+                CodeSyncLogger.info(String.format("[S3_FILE_UPLOAD]: Uploading file '%s' to S3.", fileUrl.getKey()));
                 codeSyncClient.uploadToS3(originalsFile, (Map<String, Object>) fileUrl.getValue());
+                CodeSyncLogger.info(String.format("[S3_FILE_UPLOAD]: Uploaded file '%s' to S3.", fileUrl.getKey()));
 
                 // File uploaded with success, so delete it from the originals.
                 originalsRepoManager.deleteFile(originalsFile.getPath());
             } catch (RequestError error) {
                 this.failedFilePathsAndURLs.put(fileUrl.getKey(), fileUrl.getValue());
                 CodeSyncLogger.critical(
-                    String.format("[S3_FILE_UPLOAD]: Could not upload file to S3. Error %s", error.getMessage())
+                    String.format(
+                        "[S3_FILE_UPLOAD]: Could not upload file '%s' to S3. Error %s",
+                        fileUrl.getKey(),
+                        error.getMessage()
+                    )
                 );
             } catch (ClassCastException error) {
                 CodeSyncLogger.critical(
@@ -107,6 +113,8 @@ public class S3FileUploader {
                     )
                 );
             }
+
+            S3FilesUploader.removeFileBeingProcessed(this.getQueueFilePath());
         } else {
             this.s3UploadQueueFile.removeFile();
         }
@@ -114,10 +122,13 @@ public class S3FileUploader {
 
     public void triggerAsyncTask(Project project) {
         if (!this.isValid()) {
+            CodeSyncLogger.info(String.format(
+                "[S3_FILE_UPLOAD]: File '%s' is not valid. Skipping upload.",
+                this.getQueueFilePath()
+            ));
             this.s3UploadQueueFile.removeFile();
             return;
         }
-        S3FilesUploader.registerFileBeingProcessed(this.getQueueFilePath());
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "CodeSync: Uploading files…") {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {

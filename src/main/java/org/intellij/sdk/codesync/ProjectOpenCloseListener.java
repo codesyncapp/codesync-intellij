@@ -101,6 +101,9 @@ public class ProjectOpenCloseListener implements ProjectManagerListener {
     // Start alerts daemon
     ActivityAlerts.startActivityAlertDaemon(project);
 
+    // Check if user needs to authenticate
+    CodeSyncSetup.checkUserAuthStatus(project);
+
     // Start the task executor.
     TaskExecutor.INSTANCE.start();
 
