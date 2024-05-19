@@ -25,6 +25,10 @@ public class S3FilesUploader {
         filesBeingProcessed.add(filePath);
     }
 
+    public static void removeFileBeingProcessed(String filePath) {
+        filesBeingProcessed.remove(filePath);
+    }
+
     public static void triggerS3Uploads (Project project) {
         S3FilesUploader s3FilesUploader = new S3FilesUploader(Paths.get(S3_UPLOAD_QUEUE_DIR), project);
         s3FilesUploader.processFiles();
@@ -64,8 +68,11 @@ public class S3FilesUploader {
         for (S3FileUploader s3FileUploader: this.s3FileUploaderList) {
             String filePath = s3FileUploader.getQueueFilePath();
             if (!filesBeingProcessed.contains(filePath)){
-                s3FileUploader.triggerAsyncTask(project);
+                CodeSyncLogger.info(String.format("[S3_FILE_UPLOAD]: Processing file: %s", filePath));
                 registerFileBeingProcessed(filePath);
+                s3FileUploader.triggerAsyncTask(project);
+            } else {
+                CodeSyncLogger.info(String.format("[S3_FILE_UPLOAD]: File is already being processed: %s", filePath));
             }
         }
     }

@@ -57,7 +57,7 @@ public class CodeSyncAuthServer {
     }
 
     public String getServerURL(String path) {
-        return Paths.get(this.server.getURI().toString(), path).toString();
+        return this.server.getURI().resolve(path).toString();
     }
 
     public String getLoginURL() {

@@ -32,7 +32,7 @@ public class StateUtils {
 
         try {
             User user = User.getTable().getActive();
-            globalState.isAuthenticated = user != null;
+            globalState.isAuthenticated = user != null && user.getAccessToken() != null;
             if (user != null) {
                 globalState.userEmail = user.getEmail();
             }

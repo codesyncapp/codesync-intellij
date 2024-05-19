@@ -559,7 +559,7 @@ public class HandleBuffer {
             return false;
         }
 
-        CodeSyncLogger.info("Uploading new file: %s .\n", diffFile.fileRelativePath);
+        CodeSyncLogger.info(String.format("Uploading new file: %s", diffFile.fileRelativePath));
         try {
             Integer fileId = client.uploadFile(accessToken, repo, diffFile, originalsFile);
             repoBranch.updateFileId(diffFile.fileRelativePath, fileId);

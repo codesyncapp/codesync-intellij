@@ -4,6 +4,7 @@ import kotlin.Pair;
 
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.codeSyncSetup.S3FileUploader;
+import org.intellij.sdk.codesync.codeSyncSetup.S3FilesUploader;
 import org.intellij.sdk.codesync.database.models.Repo;
 import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.*;
@@ -204,6 +205,14 @@ public class CodeSyncClient {
                 filePathAndURLs.put(diffFile.fileRelativePath, preSignedURLData);
                 S3FileUploader s3FileUploader = new S3FileUploader(repo.getPath(), diffFile.branch, filePathAndURLs);
                 s3FileUploader.saveURLs();
+
+                // Trigger the task to upload the file to S3.
+                CodeSyncLogger.info(String.format(
+                    "[S3_FILE_UPLOAD]: Processing file: %s",
+                    s3FileUploader.getQueueFilePath()
+                ));
+                S3FilesUploader.registerFileBeingProcessed(s3FileUploader.getQueueFilePath());
+                s3FileUploader.triggerAsyncTask(StateUtils.getGlobalState().project);
             }
         } catch (ClassCastException error) {
             CodeSyncLogger.logConsoleMessage("Could not upload the file.");
