@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 // Copyright 2000-2020 JetBrains s.r.o. and other contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 plugins {
@@ -7,13 +9,23 @@ plugins {
 }
 
 group 'com.codesync'
-version '4.2.0'
+version '4.3.0'
 
 
 compileJava.options.encoding = "UTF-8"
 compileTestJava.options.encoding = "UTF-8"
 
-sourceCompatibility = 1.8
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_1_8
+  targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.withType(KotlinCompile).configureEach {
+  kotlinOptions {
+    jvmTarget = "1.8"
+  }
+}
 
 repositories {
   mavenCentral()
