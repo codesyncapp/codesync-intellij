@@ -5,11 +5,10 @@ import org.intellij.sdk.codesync.database.migrations.MigrationManager
 import org.intellij.sdk.codesync.database.tables.RepoFileTable
 import org.intellij.sdk.codesync.enums.RepoState
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 
 class RepoFileTest {
@@ -109,13 +108,13 @@ class RepoFileTest {
         assert(repoFile.id != null)
 
         // Validate record in the database
-        assertNotNull(RepoFile.getTable().find(repoFile.path, repoFile.repoBranchId))
+        Assertions.assertNotNull(RepoFile.getTable().find(repoFile.path, repoFile.repoBranchId))
 
         // Delete the record
         repoFile.delete()
 
         // Validate record not in the database
-        assertNull(RepoFile.getTable().find(repoFile.path, repoFile.repoBranchId))
+        Assertions.assertNull(RepoFile.getTable().find(repoFile.path, repoFile.repoBranchId))
     }
 
     /*

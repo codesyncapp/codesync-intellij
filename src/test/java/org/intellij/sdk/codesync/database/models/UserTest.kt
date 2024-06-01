@@ -2,12 +2,7 @@ package org.intellij.sdk.codesync.database.models
 
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup
 import org.intellij.sdk.codesync.database.migrations.MigrationManager
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import org.junit.jupiter.api.*
 
 
 class UserTest {
@@ -109,16 +104,16 @@ class UserTest {
         user2.save()
 
         // Make sure the user is saved in the database.
-        assertTrue { user1.isActive }
-        assertFalse { user2.isActive }
+        Assertions.assertTrue { user1.isActive }
+        Assertions.assertFalse { user2.isActive }
 
         user2.makeActive()
 
         // Fetch again from database.
         val user1FromDB = User.getTable().get(user1.id)
         val user2FromDB = User.getTable().get(user2.id)
-        assertTrue { user2FromDB.isActive }
-        assertFalse { user1FromDB.isActive }
+        Assertions.assertTrue { user2FromDB.isActive }
+        Assertions.assertFalse { user1FromDB.isActive }
     }
 
     companion object {
