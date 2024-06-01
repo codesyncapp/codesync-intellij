@@ -25,7 +25,7 @@ public class DeactivatedAccountNotification {
         this.project = project;
         this.notificationManager = NotificationManager
             .getInstance()
-            .addActions(Collections.singletonList(new AnAction(buttonText) {
+            .addAction(new AnAction(buttonText) {
                 @Override
                 public void actionPerformed(@NotNull AnActionEvent e) {
                     try {
@@ -38,7 +38,7 @@ public class DeactivatedAccountNotification {
                         ));
                     }
                 }
-            }));
+            });
     }
 
     public void showAlert() {

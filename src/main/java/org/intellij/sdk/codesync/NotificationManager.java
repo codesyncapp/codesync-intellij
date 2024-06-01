@@ -17,7 +17,7 @@ import static org.intellij.sdk.codesync.Constants.Notification.*;
 
 public class NotificationManager {
     NotificationGroup notificationGroup;
-    List<? extends AnAction> actions = new ArrayList<>();
+    List<AnAction> actions = new ArrayList<>();
 
     public static NotificationManager getInstance(String notificationGroupId) {
         return new NotificationManager(notificationGroupId);
@@ -31,8 +31,8 @@ public class NotificationManager {
         this.notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup(notificationGroupId);
     }
 
-    public NotificationManager addActions(@NotNull List<? extends AnAction> actions) {
-        this.actions = actions;
+    public NotificationManager addAction(@NotNull AnAction action) {
+        this.actions.add(action);
         return this;
     }
 
@@ -59,7 +59,10 @@ public class NotificationManager {
             .createNotification(content, notificationType)
             .setTitle(getTitle(notificationType))
             .setIcon(CodeSyncIcons.codeSyncIcon);
-        notification.addActions(this.actions);
+
+        for (AnAction action : this.actions) {
+            notification.addAction(action);
+        }
         notification.notify(project);
     }
 

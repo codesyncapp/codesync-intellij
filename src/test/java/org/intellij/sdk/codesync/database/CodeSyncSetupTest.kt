@@ -3,9 +3,9 @@ package org.intellij.sdk.codesync.database
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup
 import org.intellij.sdk.codesync.database.migrations.MigrationManager
 import org.intellij.sdk.codesync.database.models.User
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import kotlin.test.assertTrue
 
 class CodeSyncSetupTest {
     @Test
@@ -14,9 +14,9 @@ class CodeSyncSetupTest {
         CodeSyncSetup.saveIamUser(email, "ACCESS", "SECRET")
 
         val userFromDB = User.getTable().get(email)
-        assertTrue { userFromDB.isActive }
-        assertTrue { userFromDB.accessKey == "ACCESS" }
-        assertTrue { userFromDB.secretKey == "SECRET" }
+        Assertions.assertTrue { userFromDB.isActive }
+        Assertions.assertTrue { userFromDB.accessKey == "ACCESS" }
+        Assertions.assertTrue { userFromDB.secretKey == "SECRET" }
     }
 
     companion object {

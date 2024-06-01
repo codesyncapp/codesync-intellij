@@ -3,11 +3,7 @@ package org.intellij.sdk.codesync.database
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup
 import org.intellij.sdk.codesync.database.migrations.MigrationManager
 import org.intellij.sdk.codesync.database.models.User
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import kotlin.test.*
+import org.junit.jupiter.api.*
 
 
 class DatabaseTest {
@@ -27,7 +23,7 @@ class DatabaseTest {
         user.save()
 
         // Make sure id attribute is populated after saving the user.
-        assertNotNull(user.id)
+        Assertions.assertNotNull(user.id)
 
         // Close the database connection.
         SQLiteConnection.getInstance().disconnect()

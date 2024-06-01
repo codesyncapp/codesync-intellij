@@ -1,4 +1,4 @@
-name: Plugin Build and Test
+name: Build and Test
 
 on: [push]
 
@@ -9,11 +9,11 @@ jobs:
       env: test
     steps:
       - uses: actions/checkout@v3
-      - name: Set up JDK 11
+      - name: Set up Java 21 (Amazon Corretto)
         uses: actions/setup-java@v3
         with:
-          java-version: '11'
-          distribution: 'temurin'
+          java-version: '21'
+          distribution: 'corretto'
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2
         with:
@@ -25,11 +25,11 @@ jobs:
       env: test
     steps:
       - uses: actions/checkout@v3
-      - name: Set up JDK 11
+      - name: Set up Java 21 (Amazon Corretto)
         uses: actions/setup-java@v3
         with:
-          java-version: '11'
-          distribution: 'temurin'
+          java-version: '21'
+          distribution: 'corretto'
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2
         with:
@@ -41,11 +41,11 @@ jobs:
       env: test
     steps:
       - uses: actions/checkout@v3
-      - name: Set up JDK 11
+      - name: Set up Java 21 (Amazon Corretto)
         uses: actions/setup-java@v3
         with:
-          java-version: '11'
-          distribution: 'temurin'
+          java-version: '21'
+          distribution: 'corretto'
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2
         with:

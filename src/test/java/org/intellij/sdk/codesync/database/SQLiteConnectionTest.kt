@@ -3,14 +3,13 @@ package org.intellij.sdk.codesync.database
 import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup
 import org.intellij.sdk.codesync.database.migrations.MigrationManager
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class SQLiteConnectionTest {
     @AfterEach
-    fun AfterEach(){
+    fun afterEach(){
         //1. Disconnect database
         SQLiteConnection.getInstance().disconnect()
     }
@@ -21,16 +20,16 @@ class SQLiteConnectionTest {
         val connection = SQLiteConnection.getInstance().connection
 
         // Checking if connection is open.
-        assertTrue(!connection.isClosed)
+        Assertions.assertTrue(!connection.isClosed)
 
         // Closing existing connection.
         SQLiteConnection.getInstance().disconnect()
 
         // Checking if connection was closed.
-        assertTrue(connection.isClosed)
+        Assertions.assertTrue(connection.isClosed)
 
         // Getting new instance and seeing if it is open.
-        assertFalse(SQLiteConnection.getInstance().connection.isClosed)
+        Assertions.assertFalse(SQLiteConnection.getInstance().connection.isClosed)
 
         // Closing new instance.
         SQLiteConnection.getInstance().disconnect()

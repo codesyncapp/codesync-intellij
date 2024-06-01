@@ -19,11 +19,11 @@ Java Version
 Java version required for this plugin can be found by looking at the `sourceCompatibility` attribute inside `build.gradle` file.
 Make sure your system has that version installed before you start the development. You can se this from `Project Structure` in main menu commonly named `File`.
 
-Java JDK to use is ``openjdk-20`` i.e. ``Oracle OpenJDK version 20``
+Java JDK to use is ``corretto-21`` i.e. ``Amazon Corretto version 21``
 
 Gradle JVM
 ----------
-You need to set Gradle JVM to ``azul-16`` and that can be set by opening "Preferences..." and then going to
+You need to set Gradle JVM to ``Project SDK`` or same as the above Java JDK i.e. ``corretto-21`` and that can be set by opening "Preferences..." and then going to
 
 
 ``Build, Execution, Development > Build Tools > Gradle``

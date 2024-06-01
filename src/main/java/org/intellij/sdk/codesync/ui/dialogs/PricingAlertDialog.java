@@ -9,8 +9,8 @@ import org.intellij.sdk.codesync.Constants.NotificationButton;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;

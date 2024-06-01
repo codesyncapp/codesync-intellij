@@ -11,11 +11,11 @@ import org.apache.http.message.BasicHttpResponse
 import org.apache.http.message.BasicStatusLine
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError
 import org.json.simple.JSONObject
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Answers
 import org.mockito.Mockito.*
-import kotlin.test.assertEquals
 
 class ClientUtilsTest {
 
@@ -41,8 +41,8 @@ class ClientUtilsTest {
 
             //First call resulting in successfully request.
             var actualResponse = ClientUtils.sendPost(API, "ACCESS_TOKEN")
-            assertEquals(successfullyExpectedJSONResponse, actualResponse.jsonResponse.toString())
-            assertEquals(200, actualResponse.statusCode)
+            Assertions.assertEquals(successfullyExpectedJSONResponse, actualResponse.jsonResponse.toString())
+            Assertions.assertEquals(200, actualResponse.statusCode)
 
             //Second call resulting in failed request.
             assertThrows<StatusCodeError> {

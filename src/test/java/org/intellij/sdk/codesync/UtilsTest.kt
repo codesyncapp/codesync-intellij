@@ -1,11 +1,10 @@
 package org.intellij.sdk.codesync
 
 import CodeSyncTestUtils
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.nio.file.Files
 import java.nio.file.Paths
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class UtilsTest {
 
@@ -27,10 +26,10 @@ class UtilsTest {
             println(e.message)
         }
 
-        assertFalse(Utils.isIndividualFileOpen(directory.toString()))
-        assertTrue(Utils.isIndividualFileOpen(file.toString()))
-        assertFalse(Utils.isIndividualFileOpen(directoryNamedLikeFile.toString()))
-        assertTrue(Utils.isIndividualFileOpen(fileNamedLikeDirectory.toString()))
+        Assertions.assertFalse(Utils.isIndividualFileOpen(directory.toString()))
+        Assertions.assertTrue(Utils.isIndividualFileOpen(file.toString()))
+        Assertions.assertFalse(Utils.isIndividualFileOpen(directoryNamedLikeFile.toString()))
+        Assertions.assertTrue(Utils.isIndividualFileOpen(fileNamedLikeDirectory.toString()))
 
         try {
             Files.delete(directory)

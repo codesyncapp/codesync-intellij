@@ -1,9 +1,9 @@
 package org.intellij.sdk.codesync.auth
 
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import kotlin.test.assertTrue
 
 class AuthenticatorTest {
 
@@ -19,7 +19,7 @@ class AuthenticatorTest {
 
     @Test
     fun validateCreateUser(){
-        assertTrue(true);
+        Assertions.assertTrue(true);
     }
 
 }
