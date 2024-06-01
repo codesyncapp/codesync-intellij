@@ -14,7 +14,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.scanner.ScannerException;
+import org.yaml.snakeyaml.error.YAMLException;
 
 import static org.intellij.sdk.codesync.Constants.DIFF_SIZE_LIMIT;
 
@@ -35,8 +35,10 @@ public class DiffFile {
         Yaml yaml = new Yaml();
         try {
             obj = yaml.load(this.contents);
-        } catch (ScannerException e) {
-            CodeSyncLogger.debug(String.format("Invalid diff file. File Contents: %s", this.contents));
+        } catch (YAMLException error) {
+            CodeSyncLogger.debug(String.format(
+                "Invalid diff file '%s'. File contents: %s", this.originalDiffFile.getPath(), this.contents
+            ));
             return;
         }
 

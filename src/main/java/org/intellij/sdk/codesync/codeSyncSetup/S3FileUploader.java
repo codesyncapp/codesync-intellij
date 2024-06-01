@@ -95,6 +95,7 @@ public class S3FileUploader {
 
     // Process and upload files to S3.
     private void processFiles() {
+        CodeSyncLogger.info("[S3_FILE_UPLOAD]: Uploading S3 files.");
         this.uploadToS3(
             this.s3UploadQueueFile.getRepoPath(),
             this.s3UploadQueueFile.getBranch(),
