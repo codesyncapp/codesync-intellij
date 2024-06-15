@@ -1,6 +1,5 @@
 package org.intellij.sdk.codesync;
 
-import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
@@ -67,34 +66,31 @@ public class CodeSyncStartupActivity implements StartupActivity {
         // Start the task executor.
         TaskExecutor.INSTANCE.start();
 
-        StartupManagerEx.getInstance(project).runAfterOpened(() -> {
-            if (project.isDisposed()) return;
-            VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
+        if (project.isDisposed()) return;
+        VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
 
-            // Populate state for all the opened modules. Module is the term used for projects opened using "Attach" option
-            // in the IDE open dialog box.
-            for (VirtualFile contentRoot : contentRoots) {
-                if (Utils.isIndividualFileOpen(contentRoot.getPath())) {
-                    continue;
-                }
-
-                String repoPath = FileUtils.normalizeFilePath(contentRoot.getPath());
-                String repoName = contentRoot.getName();
-
-                // Ignore repos that are being migrated.
-                if (MigrateRepo.getInstance().getReposBeingMigrated().contains(repoPath)) {
-                    continue;
-                }
-
-                RepoStatus repoStatus = StateUtils.getRepoStatus(repoPath);
-                if (repoStatus == RepoStatus.DISCONNECTED) {
-                    CodeSyncSetup.reconnectRepoAsync(project, repoPath, repoName);
-                } else {
-                    CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, false, false);
-                }
+        // Populate state for all the opened modules. Module is the term used for projects opened using "Attach" option
+        // in the IDE open dialog box.
+        for (VirtualFile contentRoot : contentRoots) {
+            if (Utils.isIndividualFileOpen(contentRoot.getPath())) {
+                continue;
             }
-        });
 
+            String repoPath = FileUtils.normalizeFilePath(contentRoot.getPath());
+            String repoName = contentRoot.getName();
+
+            // Ignore repos that are being migrated.
+            if (MigrateRepo.getInstance().getReposBeingMigrated().contains(repoPath)) {
+                continue;
+            }
+
+            RepoStatus repoStatus = StateUtils.getRepoStatus(repoPath);
+            if (repoStatus == RepoStatus.DISCONNECTED) {
+                CodeSyncSetup.reconnectRepoAsync(project, repoPath, repoName);
+            } else {
+                CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, false, false);
+            }
+        }
         project.getMessageBus().connect().subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
             @Override
             public void after(@NotNull List<? extends VFileEvent> events) {
