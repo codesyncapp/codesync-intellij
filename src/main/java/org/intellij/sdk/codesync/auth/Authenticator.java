@@ -2,6 +2,8 @@ package org.intellij.sdk.codesync.auth;
 
 import com.auth0.jwt.interfaces.Claim;
 
+import com.intellij.ide.BrowserUtil;
+import org.apache.http.client.utils.URIBuilder;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.commands.ClearReposToIgnoreCache;
@@ -9,6 +11,7 @@ import org.intellij.sdk.codesync.database.models.User;
 import org.intellij.sdk.codesync.exceptions.InvalidJsonError;
 import org.intellij.sdk.codesync.exceptions.RequestError;
 import org.intellij.sdk.codesync.exceptions.response.StatusCodeError;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.json.simple.JSONObject;
 
@@ -16,6 +19,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.Map;
 
@@ -45,12 +49,76 @@ public class Authenticator extends HttpServlet {
 
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
-        response.getWriter().print("<body><h1 class=\"\" style=\"text-align: center;\" >You are logged in, you can close this window now.</h1></body>\n");
-
+        try {
+            BrowserUtil.browse(getWebAppAuthCallback("login"));
+        } catch (URISyntaxException e) {
+            CodeSyncLogger.critical(
+                String.format(
+                    "[INTELLIJ_AUTH]: Invalid `WEB_APP_URL` settings. Error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
+            );
+            response.getWriter().print("<body><h1 class=\"\" style=\"text-align: center;\" >You are logged in, you can close this window now.</h1></body>\n");
+        }
         NotificationManager.getInstance().notifyInformation("You have been logged in successfully.");
     }
 
+    private String getWebAppAuthCallback(String type) throws URISyntaxException {
+        URIBuilder uriBuilder = new URIBuilder(WEB_APP_URL);
+        uriBuilder.addParameter("utm_medium", "plugin");
+        uriBuilder.addParameter("utm_source", DIFF_SOURCE);
+        uriBuilder.addParameter("v", PLUGIN_VERSION);
+        uriBuilder.addParameter("type", type);
+        return uriBuilder.toString();
+    }
+
     private void logoutHandler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String accessToken = request.getParameter("access_token");
+        response.setContentType("text/html");
+        response.setStatus(HttpServletResponse.SC_OK);
+
+        JSONObject jsonResponse;
+        try {
+            jsonResponse = ClientUtils.sendPost(API_USERS, accessToken).getJsonResponse();
+        } catch (RequestError | InvalidJsonError | StatusCodeError error) {
+            CodeSyncLogger.critical(
+                String.format(
+                    "[INTELLIJ_AUTH_ERROR]: Error while logging out the user. access token: '%s'",
+                    accessToken
+                )
+            );
+            response.getWriter().print(
+                "<body><h1 class=\"\" style=\"text-align: center;\">Token verification failed.</h1></body>\n"
+            );
+            return;
+        }
+
+        if (jsonResponse.containsKey("error")) {
+            CodeSyncLogger.critical(
+                String.format(
+                    "[INTELLIJ_AUTH_ERROR]: Error while logging out the user. server error: '%s'",
+                    jsonResponse.get("error")
+                )
+            );
+
+            response.getWriter().print(
+                "<body><h1 class=\"\" style=\"text-align: center;\">Token verification failed.</h1></body>\n"
+            );
+
+            return;
+        }
+
+        JSONObject user = (JSONObject) jsonResponse.get("user");
+        String userEmail = user == null ? null : user.get("email").toString();
+        String activeUserEmail = StateUtils.getGlobalState().userEmail;
+
+        if (userEmail ==  null || !userEmail.contentEquals(activeUserEmail)) {
+            // User is not the active user, so we don't need to logout.
+            response.getWriter().print(
+                "<body><h1 class=\"\" style=\"text-align: center;\">Your plugin and web user does not match.</h1></body>\n"
+            );
+        }
+
         try {
             User.getTable().markAllInActive();
         } catch (SQLException error){
@@ -66,9 +134,18 @@ public class Authenticator extends HttpServlet {
             return;
         }
 
-        response.setContentType("text/html");
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.getWriter().print("<body><h1 class=\"\" style=\"text-align: center;\" >You are logged out, you can close this window now.</h1></body>\n");
+        try {
+            BrowserUtil.browse(getWebAppAuthCallback("logout"));
+        } catch (URISyntaxException e) {
+            CodeSyncLogger.critical(
+                String.format(
+                    "[INTELLIJ_AUTH]: Invalid `WEB_APP_URL` settings. Error: %s",
+                    CommonUtils.getStackTrace(e)
+                )
+            );
+            response.getWriter().print("<body><h1 class=\"\" style=\"text-align: center;\" >You are logged out, you can close this window now.</h1></body>\n");
+        }
+
         NotificationManager.getInstance().notifyInformation("You have been logged out successfully.");
     }
 

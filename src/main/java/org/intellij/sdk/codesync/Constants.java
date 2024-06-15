@@ -17,7 +17,7 @@ public final class Constants {
     private static final String CODESYNC_DOMAIN = configuration.getCodeSyncDomain();
     private static final String CODESYNC_HOST = configuration.getCodeSyncHost();
     private static final String CODESYNC_APP = configuration.getCodeSyncAppURL();
-    private static final String WEB_APP_URL = configuration.getCodeSyncWebAppURL();
+    public static final String WEB_APP_URL = configuration.getCodeSyncWebAppURL();
 
     public static final String USER_HOME = System.getProperty("user.home");
     public static final String CODESYNC_ROOT = Paths.get(USER_HOME, CODESYNC_DIR_NAME).toString();
