@@ -87,6 +87,8 @@ public class CodeSyncStartupActivity implements StartupActivity {
             RepoStatus repoStatus = StateUtils.getRepoStatus(repoPath);
             if (repoStatus == RepoStatus.DISCONNECTED) {
                 CodeSyncSetup.reconnectRepoAsync(project, repoPath, repoName);
+            } else if (repoStatus == RepoStatus.SYNCED_VIA_PARENT) {
+                NotificationManager.getInstance().notifyInformation("You are good to go! Your repo is synced with the parent repo.", project);
             } else {
                 CodeSyncSetup.setupCodeSyncRepoAsync(project, repoPath, repoName, false, false);
             }

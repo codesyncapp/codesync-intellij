@@ -6,4 +6,5 @@ public enum RepoStatus {
     DISCONNECTED,
     UNKNOWN,
     SYNC_IN_PROGRESS,
+    SYNCED_VIA_PARENT,
 }

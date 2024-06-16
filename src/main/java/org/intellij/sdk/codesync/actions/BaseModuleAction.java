@@ -12,11 +12,21 @@ import org.intellij.sdk.codesync.utils.ProjectUtils;
 
 
 public abstract class BaseModuleAction extends AnAction {
+    /*
+    Get the repo status of the module. This function is used to get the repo status of the repo.
+     */
     public RepoStatus getRepoStatus(VirtualFile moduleRoot) {
         String repoPath = FileUtils.normalizeFilePath(moduleRoot.getPath());
         return StateUtils.getRepoStatus(repoPath);
     }
 
+    /*
+    Get the repo status of the module containing given file.
+     */
+    public RepoStatus getRepoStatus(VirtualFile virtualFile, Project project) throws FileNotInModuleError {
+        PluginState pluginState = ProjectUtils.getModuleState(virtualFile, project);
+        return pluginState != null ? pluginState.repoStatus : RepoStatus.UNKNOWN;
+    }
     public boolean isRepoInSync (VirtualFile virtualFile, Project project) throws FileNotInModuleError {
         PluginState pluginState = ProjectUtils.getModuleState(virtualFile, project);
         return pluginState != null && pluginState.isRepoInSync;
