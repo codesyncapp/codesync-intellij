@@ -93,7 +93,7 @@ public class CodeSyncAuthServer {
         } catch (URISyntaxException e) {
             CodeSyncLogger.critical(
                 String.format(
-                    "[INTELLIJ_AUTH]: Invalid `CODESYNC_LOGOUT_URL` settings. Error: %s",
+                    "[INTELLIJ_AUTH]: Invalid `WEBAPP_LOGOUT_URL` settings. Error: %s",
                     CommonUtils.getStackTrace(e)
                 )
             );
