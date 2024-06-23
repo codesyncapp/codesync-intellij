@@ -59,17 +59,17 @@ public class RepoPlaybackAction extends BaseModuleAction {
     private void setButtonRepresentation(AnActionEvent e, RepoStatus repoStatus) {
         switch (repoStatus) {
             case SYNCED_VIA_PARENT:
-                e.getPresentation().setDescription("View parent repo on web");
+                e.getPresentation().setText("View Parent Repo on Web");
                 e.getPresentation().setDescription("View parent repo on web");
                 e.getPresentation().setEnabled(true);
                 break;
             case IN_SYNC:
-                e.getPresentation().setDescription("View repo playback");
+                e.getPresentation().setText("View Repo Playback");
                 e.getPresentation().setDescription("View repo playback");
                 e.getPresentation().setEnabled(true);
                 break;
             case SYNC_IN_PROGRESS:
-                e.getPresentation().setDescription("Sync in progress...");
+                e.getPresentation().setText("Sync in Progress...");
                 e.getPresentation().setDescription("Sync in progress...");
                 e.getPresentation().setEnabled(false);
                 break;

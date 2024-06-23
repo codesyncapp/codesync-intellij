@@ -130,6 +130,10 @@ public class CodeSyncSetupAction extends BaseModuleAction {
     }
     private void setButtonRepresentation(AnActionEvent e, RepoStatus repoStatus) {
         switch (repoStatus) {
+            case SYNCED_VIA_PARENT:
+                e.getPresentation().setText("Disconnect Parent Repo");
+                e.getPresentation().setDescription("Disconnect parent repo");
+                break;
             case IN_SYNC:
                  e.getPresentation().setText("Disconnect Repo");
                  e.getPresentation().setDescription("Disconnect repo");
@@ -142,10 +146,6 @@ public class CodeSyncSetupAction extends BaseModuleAction {
                 e.getPresentation().setText("Connecting Repo");
                 e.getPresentation().setDescription("Connecting repo");
                 e.getPresentation().setEnabled(false);
-                break;
-            case SYNCED_VIA_PARENT:
-                e.getPresentation().setDescription("Disconnect parent repo");
-                e.getPresentation().setDescription("Disconnect parent repo");
                 break;
             case NOT_SYNCED:
             case UNKNOWN:
