@@ -9,9 +9,7 @@ import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.actions.BaseModuleAction;
 import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.intellij.sdk.codesync.database.migrations.MigrateRepo;
-import org.intellij.sdk.codesync.exceptions.InvalidConfigFileError;
-import org.intellij.sdk.codesync.exceptions.SQLiteDBConnectionError;
-import org.intellij.sdk.codesync.exceptions.SQLiteDataError;
+import org.intellij.sdk.codesync.database.models.Repo;
 import org.intellij.sdk.codesync.exceptions.base.BaseException;
 import org.intellij.sdk.codesync.exceptions.base.BaseNetworkException;
 import org.intellij.sdk.codesync.exceptions.database.UserNotFound;
@@ -85,6 +83,18 @@ public class CodeSyncSetupAction extends BaseModuleAction {
         RepoStatus repoStatus = getRepoStatus(repoRoot);
 
         switch (repoStatus){
+            case SYNCED_VIA_PARENT:
+                try {
+                    Repo repo = Repo.getTable().getParentRepo(repoPath);
+                    CodeSyncSetup.disconnectRepo(project, repo.getPath(), repo.getName());
+                } catch (BaseException | BaseNetworkException | SQLException ex) {
+                    NotificationManager.getInstance().notifyError(Notification.REPO_UNSYNC_FAILED, project);
+                    NotificationManager.getInstance().notifyError(ex.getMessage(), project);
+                    CodeSyncLogger.error(
+                        String.format("Error getting parent repo from database. Error: %s", CommonUtils.getStackTrace(ex))
+                    );
+                }
+                break;
             case IN_SYNC:
                 try {
                     CodeSyncSetup.disconnectRepo(project, repoPath, repoName);
@@ -120,6 +130,10 @@ public class CodeSyncSetupAction extends BaseModuleAction {
     }
     private void setButtonRepresentation(AnActionEvent e, RepoStatus repoStatus) {
         switch (repoStatus) {
+            case SYNCED_VIA_PARENT:
+                e.getPresentation().setText("Disconnect Parent Repo");
+                e.getPresentation().setDescription("Disconnect parent repo");
+                break;
             case IN_SYNC:
                  e.getPresentation().setText("Disconnect Repo");
                  e.getPresentation().setDescription("Disconnect repo");

@@ -10,6 +10,7 @@ import org.intellij.sdk.codesync.ui.notifications.DeactivatedAccountNotification
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
+import org.intellij.sdk.codesync.enums.RepoState;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -111,8 +112,22 @@ public class StateUtils {
             pluginState.repoStatus = RepoStatus.UNKNOWN;
             pluginState.isRepoInSync = false;
         } catch (RepoNotFound e) {
-            pluginState.repoStatus = RepoStatus.NOT_SYNCED;
-            pluginState.isRepoInSync = false;
+            Repo repo = null;
+            try {
+                repo = Repo.getTable().getParentRepo(repoPath);
+            } catch (SQLException ex) {
+                CodeSyncLogger.error(
+                    String.format("Error getting parent repo from database. Error: %s", CommonUtils.getStackTrace(ex))
+                );
+            }
+            if (repo != null && repo.getState() == RepoState.SYNCED) {
+                pluginState.repoStatus = RepoStatus.SYNCED_VIA_PARENT;
+                pluginState.isRepoInSync = true;
+            } else {
+                // If parent repo is not synced, then the child repo is also not synced.
+                pluginState.repoStatus = RepoStatus.NOT_SYNCED;
+                pluginState.isRepoInSync = false;
+            }
         }
 
         projectStateMap.put(repoPath, pluginState);

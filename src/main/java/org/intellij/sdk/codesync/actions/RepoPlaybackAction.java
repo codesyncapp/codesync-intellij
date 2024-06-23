@@ -10,6 +10,9 @@ import org.intellij.sdk.codesync.NotificationManager;
 import org.intellij.sdk.codesync.database.models.Repo;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.exceptions.database.RepoNotFound;
+import org.intellij.sdk.codesync.state.PluginState;
+import org.intellij.sdk.codesync.state.RepoStatus;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
@@ -34,6 +37,7 @@ public class RepoPlaybackAction extends BaseModuleAction {
             return;
         }
 
+        RepoStatus repoStatus = RepoStatus.UNKNOWN;
         // Check if any of the modules inside this project are synced with codesync or not.
         // We will show repo playback button if even a single repo is synced.
         VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
@@ -42,20 +46,40 @@ public class RepoPlaybackAction extends BaseModuleAction {
             // this is needed because without the file we can not determine the correct repo to show.
             try {
                 VirtualFile virtualFile = e.getRequiredData(CommonDataKeys.PSI_FILE).getVirtualFile();
-                e.getPresentation().setEnabled(
-                    this.isRepoInSync(virtualFile, project)
-                );
+                repoStatus = this.getRepoStatus(virtualFile, project);
             } catch (AssertionError | FileNotInModuleError error) {
-                e.getPresentation().setEnabled(false);
+                // Ignore, this means that the file is not in any module.
             }
         } else if (contentRoots.length == 1) {
-            // If there is only one module then we can simply show the repo playback for the only repo present.
-            // Disable the button if repo is not in sync.
-            e.getPresentation().setEnabled(
-                this.isRepoInSync(contentRoots[0])
-            );
-        } else {
-            e.getPresentation().setEnabled(false);
+            repoStatus = this.getRepoStatus(contentRoots[0]);
+        }
+        this.setButtonRepresentation(e, repoStatus);
+    }
+
+    private void setButtonRepresentation(AnActionEvent e, RepoStatus repoStatus) {
+        switch (repoStatus) {
+            case SYNCED_VIA_PARENT:
+                e.getPresentation().setText("View Parent Repo on Web");
+                e.getPresentation().setDescription("View parent repo on web");
+                e.getPresentation().setEnabled(true);
+                break;
+            case IN_SYNC:
+                e.getPresentation().setText("View Repo Playback");
+                e.getPresentation().setDescription("View repo playback");
+                e.getPresentation().setEnabled(true);
+                break;
+            case SYNC_IN_PROGRESS:
+                e.getPresentation().setText("Sync in Progress...");
+                e.getPresentation().setDescription("Sync in progress...");
+                e.getPresentation().setEnabled(false);
+                break;
+            case DISCONNECTED:
+            case NOT_SYNCED:
+            case UNKNOWN:
+                e.getPresentation().setDescription("View repo playback");
+                e.getPresentation().setDescription("View repo playback");
+                e.getPresentation().setEnabled(false);
+                break;
         }
     }
 
@@ -106,34 +130,55 @@ public class RepoPlaybackAction extends BaseModuleAction {
             );
             return;
         }
+
         Repo repo;
-        try {
-            repo  = Repo.getTable().get(repoPath);
-        } catch (SQLException error) {
-            NotificationManager.getInstance().notifyError(
-                "An error occurred trying to perform repo playback action. Could not get repo record from the database.", project
-            );
-            CodeSyncLogger.critical(String.format(
-                "An error occurred trying to perform repo playback action. Error while fetching repo record. Error: %s",
-                CommonUtils.getStackTrace(error)
-            ));
+        // If repo is synced via parent repo then update repoPath to parent repo path.
+        PluginState repoState = StateUtils.getState(repoPath);
+        if (repoState != null && repoState.repoStatus == RepoStatus.SYNCED_VIA_PARENT) {
+            try {
+                repo = Repo.getTable().getParentRepo(repoPath);
+            } catch (SQLException ex) {
+                NotificationManager.getInstance().notifyError(
+                    "An error occurred trying to perform repo playback action. Could not get parent repo record from the database.",
+                    project
+                );
+                CodeSyncLogger.error(String.format(
+                    "An error occurred trying to perform repo playback action. Error while fetching parent repo record. Error: %s",
+                    CommonUtils.getStackTrace(ex)
+                ));
 
-            return;
-        } catch (RepoNotFound ex) {
-            NotificationManager.getInstance().notifyError(
-                String.format(
-                    "An error occurred trying to perform repo playback action. Because Repo '%s' is not being synced.",
-                    repoName
-                ),
-                project
-            );
-            CodeSyncLogger.warning(String.format(
-                "An error occurred trying to perform repo playback action. Repo '%s' not found in the database.",
-                repoPath
-            ));
+                return;
+            }
+        } else {
+            try {
+                repo  = Repo.getTable().get(repoPath);
+            } catch (SQLException error) {
+                NotificationManager.getInstance().notifyError(
+                    "An error occurred trying to perform repo playback action. Could not get repo record from the database.", project
+                );
+                CodeSyncLogger.critical(String.format(
+                    "An error occurred trying to perform repo playback action. Error while fetching repo record. Error: %s",
+                    CommonUtils.getStackTrace(error)
+                ));
 
-            return;
+                return;
+            } catch (RepoNotFound ex) {
+                NotificationManager.getInstance().notifyError(
+                    String.format(
+                        "An error occurred trying to perform repo playback action. Because Repo '%s' is not being synced.",
+                        repoName
+                    ),
+                    project
+                );
+                CodeSyncLogger.warning(String.format(
+                    "An error occurred trying to perform repo playback action. Repo '%s' not found in the database.",
+                    repoPath
+                ));
+
+                return;
+            }
         }
+
         BrowserUtil.browse(String.format(REPO_PLAYBACK_LINK, repo.getServerRepoId()));
     }
 }

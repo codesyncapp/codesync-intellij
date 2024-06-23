@@ -5,6 +5,7 @@ import org.intellij.sdk.codesync.database.models.Repo;
 import org.intellij.sdk.codesync.database.queries.RepoQueries;
 import org.intellij.sdk.codesync.enums.RepoState;
 import org.intellij.sdk.codesync.exceptions.database.RepoNotFound;
+import org.intellij.sdk.codesync.utils.ProjectUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -147,5 +148,19 @@ public class RepoTable extends DBTable {
                 this.repoQueries.getUpdateQuery(repo.getPath(), repo.getUserId(), repo.getState().toString())
             );
         }
+    }    /*
+    Utility method to check if the given repo path is a subdirectory of some already synced repo.
+    It returns the parent repo with give repo path as a subdirectory.
+     */
+    public Repo getParentRepo(String repoPath) throws SQLException {
+        ArrayList<Repo> repos = findAll();
+        for (Repo repo : repos) {
+            if (ProjectUtils.isChild(repoPath, repo.getPath())) {
+                return repo;
+            }
+        }
+        return null;
     }
+
+
 }

@@ -7,9 +7,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.sdk.codesync.CodeSyncLogger;
 import org.intellij.sdk.codesync.NotificationManager;
+import org.intellij.sdk.codesync.database.models.Repo;
 import org.intellij.sdk.codesync.database.models.RepoFile;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
 import org.intellij.sdk.codesync.exceptions.database.RepoFileNotFound;
+import org.intellij.sdk.codesync.state.PluginState;
+import org.intellij.sdk.codesync.state.RepoStatus;
+import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.GitUtils;
@@ -36,14 +40,31 @@ public class FilePlaybackAction extends BaseModuleAction {
             return;
         }
 
+        RepoStatus repoStatus = RepoStatus.UNKNOWN;
+
         // Only enable file playback button when some file is opened in the editor.
         try {
             VirtualFile virtualFile = e.getRequiredData(CommonDataKeys.PSI_FILE).getVirtualFile();
-            e.getPresentation().setEnabled(
-                this.isRepoInSync(virtualFile, project)
-            );
+            repoStatus = this.getRepoStatus(virtualFile, project);
         } catch (AssertionError | FileNotInModuleError error) {
-            e.getPresentation().setEnabled(false);
+            // Ignore, this means that the file is not in any module.
+        }
+
+        this.setButtonRepresentation(e, repoStatus);
+    }
+
+    private void setButtonRepresentation(AnActionEvent e, RepoStatus repoStatus) {
+        switch (repoStatus) {
+            case SYNCED_VIA_PARENT:
+            case IN_SYNC:
+                e.getPresentation().setEnabled(true);
+                break;
+            case SYNC_IN_PROGRESS:
+            case DISCONNECTED:
+            case NOT_SYNCED:
+            case UNKNOWN:
+                e.getPresentation().setEnabled(false);
+                break;
         }
     }
 
@@ -80,6 +101,26 @@ public class FilePlaybackAction extends BaseModuleAction {
 
         String branchName = GitUtils.getBranchName(repoPath);
         RepoFile repoFile;
+
+        PluginState repoState = StateUtils.getState(repoPath);
+        // If repo is synced via parent repo then update repoPath to parent repo path.
+        if (repoState != null && repoState.repoStatus == RepoStatus.SYNCED_VIA_PARENT) {
+            try {
+                Repo repo = Repo.getTable().getParentRepo(repoPath);
+                repoPath = repo.getPath();
+            } catch (SQLException ex) {
+                NotificationManager.getInstance().notifyError(
+                    "An error occurred trying to perform repo playback action. Could not get parent repo record from the database.",
+                    project
+                );
+                CodeSyncLogger.error(String.format(
+                    "An error occurred trying to perform repo playback action. Error while fetching parent repo record. Error: %s",
+                    CommonUtils.getStackTrace(ex)
+                ));
+
+                return;
+            }
+        }
 
         try {
             repoFile = RepoFile.getTable().get(repoPath, branchName, relativeFilePath);
