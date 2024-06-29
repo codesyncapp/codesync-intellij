@@ -89,6 +89,9 @@ dependencies {
     exclude group: 'org.slf4j'
   }
 
+  // https://mvnrepository.com/artifact/com.mixpanel/mixpanel-java
+  implementation 'com.mixpanel:mixpanel-java:1.5.2'
+
   // Configuration for tests.
   testImplementation('org.junit.jupiter:junit-jupiter-api:5.4.2')
   testImplementation('org.junit.jupiter:junit-jupiter-engine:5.4.2')

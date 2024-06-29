@@ -18,6 +18,7 @@ import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup;
 import org.intellij.sdk.codesync.database.migrations.MigrateRepo;
 import org.intellij.sdk.codesync.database.migrations.MigrationManager;
 import org.intellij.sdk.codesync.exceptions.common.FileNotInModuleError;
+import org.intellij.sdk.codesync.mixpanel.MixPanelMessageDelivery;
 import org.intellij.sdk.codesync.state.RepoStatus;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.utils.CommonUtils;
@@ -38,6 +39,11 @@ public class CodeSyncStartupActivity implements StartupActivity {
 
     @Override
     public void runActivity(@NotNull Project project) {
+        MixPanelMessageDelivery mixPanelMessageDelivery = new MixPanelMessageDelivery();
+        mixPanelMessageDelivery.sendMessage("This is my first mix panel message");
+        mixPanelMessageDelivery.sendMessage("This is second mix panel message");
+        mixPanelMessageDelivery.sendMessage("This is third mix panel message");
+
         // Create system directories required by the plugin.
         createSystemDirectories();
         String repoDirPath = ProjectUtils.getRepoPath(project);
