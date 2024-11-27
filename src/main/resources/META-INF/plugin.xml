@@ -13,82 +13,89 @@
 
     <!-- Text to display as description on Preferences/Settings | Plugin page -->
     <description><![CDATA[
-<p>CodeSync: Unravel the Story of Your Code in a Glance. CodeSync for JetBrains IDEs uniquely blends the power of playback technology with the convenience of modern IDEs, offering a groundbreaking approach to code management and review. Our advanced playback feature allows developers to navigate through the history of code changes visually, providing an unparalleled understanding of code evolution and enhancing the quality of code reviews.</p>
+<strong>AI-Powered Coding Summaries: Stay Synced Without the Overhead</strong>
+<p>CodeSync's AI-generated summaries offer a fast and efficient way to stay on top of your team's development progress. Whether you're a developer reviewing pull requests or a manager needing daily updates, CodeSync delivers clear, human-readable coding overviews directly from your IDE. No more manual tracking or sifting through code reviews—our summaries keep your entire team aligned, without the distractions. Integrate seamlessly with GitHub and Slack to streamline your workflow. Available now for JetBrains and VS Code!.</p>
 <p>
-  <strong>Key Features</strong>
+	<strong>Key Features</strong>
 </p>
 <ul>
-  <li>
-    <strong>Innovative Code Playback</strong>: Witness the progression of your codebase with our dynamic playback feature, visualizing each change in a user-friendly timeline.
-  </li>
-  <li>
-    <strong>Collaboration Boost</strong>: Facilitate team discussions and education by sharing visual code histories, promoting better understanding and teamwork.
-  </li>
-  <li>
-    <strong>GitHub Pull Request Integration</strong>: Elevate code reviews by replaying GitHub Pull Requests, gaining insight into the developer&#39;s reasoning and approach.
-  </li>
-  <li>
-    <strong>Seamless IDE Integration</strong>: Effortlessly merge CodeSync into your JetBrains IDE environment, complementing and enriching your existing coding workflow.
-  </li>
-  <li>
-    <strong>Data Privacy</strong>: The CodeSync IDE plugin collects and sends the following data: code, diff timestamps, repository names, file paths, timezone to show activity alert, etc.
-    <p>CodeSync is SOC-2 compliant and ensures the highest standards of security, privacy and encryption. Contact us for our SOC-2 report.</p>
-    <p>We support both cloud and self-hosting via AWS. If you’d like your data and infrastructure to be on your own AWS account, contact us for a free trial of the self-hosted option.</p>
-  </li>
+	<li>
+		<strong>AI-Generated Pull Request Summaries:</strong> Get concise, actionable overviews of pull requests, making code reviews quicker and easier. Reduce time spent digging into details by seeing the bigger picture immediately.
+
+	</li>
+	<li>
+		<strong>Daily Team Summaries in Slack:</strong> Keep everyone aligned with non-intrusive daily summaries posted in team channels. Perfect for quick stand-ups or catching up after a busy day.
+
+	</li>
+	<li>
+		<strong>Seamless GitHub Integration:</strong> Automatically generate summaries for every commit and pull request, so you never miss key changes or updates in your codebase.
+
+	</li>
+	<li>
+		<strong>Developer-Friendly:</strong> Stay in your flow—access pull request summaries and progress updates directly in your IDE without switching tools or reviewing long code histories.
+
+	</li>
+	<li>
+		<strong>Manager and Executive Reporting:</strong> Get high-level overviews of team progress. Track deliverables, spot blockers, and review progress toward business outcomes with biweekly and quarterly reports.
+	</li>
 </ul>
 <p>
-  <strong>Getting Started</strong>
-</p>
-<ol>
-  <li>
-    <strong>Effortless Installation</strong>: Click &#39;Install&#39; to integrate CodeSync into your JetBrains IDE.
-  </li>
-  <li>
-    <strong>Customize Your Experience</strong>: Choose your preferred hosting method and configure settings to suit your workflow.
-  </li>
-  <li>
-    <strong>Revitalize Code Reviews</strong>: If you’re part of a team, utilize the GitHub PR integration and playback feature for more insightful and efficient code analysis.
-  </li>
-</ol>
-<p>
-  <strong>Documentation and Support</strong>
+	<strong>Benefits for Each Persona</strong>
 </p>
 <ul>
-  <li>Detailed <a href="https://www.codesync.com/install">User Guides</a>
-  </li>
-  <li>Helpful <a href="https://www.codesync.com/install">Tutorials and FAQs</a>
-  </li>
-  <li>Responsive <a href="https://calendly.com/codesync/codesync-demo">Customer Support</a>
-  </li>
+	<li>
+		<strong>Developers:</strong>
+		<em>Quick insights at your fingertips, without leaving your IDE.</em> Focus on coding, not status updates. Let CodeSync handle the summaries, so you can spend less time managing pull requests and more time building great software.
+
+	</li>
+	<li>
+		<strong>Managers:</strong>
+		<em>AI-powered summaries save you from manually following up with the team.</em> Get clear, actionable reports on team progress without diving into the code. Stay aligned with project timelines, identify blockers early, and keep communication efficient.
+
+	</li>
+	<li>
+		<strong>Executives:</strong>
+		<em>Turn raw data into valuable business insights effortlessly.</em> Understand development progress at a glance. Quarterly reports tie technical achievements directly to business outcomes, giving you a clear picture of ROI and team efficiency.
+
+	</li>
 </ul>
 <p>
-  <strong>User Testimonials</strong>
-</p>
-<p>&quot;CodeSync&#39;s playback feature has revolutionized how we approach code reviews and retrospectives.&quot; - <em>
-    <em>Laura Nguyen, Software Engineer</em>
-  </em>
-</p>
-<p>&quot;Being able to visually track our code&#39;s evolution has greatly enhanced our team&#39;s understanding and collaboration.&quot; - <em>
-    <em>Ryan Patel, DevOps Manager</em>
-  </em>
+	<strong>Data Security</strong>
+	<p>We support both cloud and self-hosting via AWS (on-prem). If you’d like your data and infrastructure to be within your own AWS account,
+		<a href="mailto:hello@codesync.com">contact us</a> for a free trial of the on-prem option.
+	</p>
+	<p>CodeSync is SOC-2 compliant and ensures the highest standards of security, privacy and encryption. Contact us for our SOC-2 report.</p>
+	<p>The CodeSync IDE plugin collects and sends the following data: code, diff timestamps, repository names, file paths, timezone to show activity alert, etc.
+		<br>
+    </p>
+    <p>
+        <a href="https://www.codesync.com/request-a-demo">Try CodeSync’s AI-powered summaries today</a> and streamline your workflow!
+    </p>
+    <p>
+        <em>Free for 14 days. Available for JetBrains IDEs and VS Code.</em>
+    </p>
 </p>
 <p>
-  <strong>Stay Informed</strong>
+    <strong>Stay Informed</strong>
 </p>
 <ul>
-  <li>Connect with us on <a href="https://discord.com/invite/3daCMNZNTa">Discord</a> and <a href="https://www.linkedin.com/company/codesyncapp/">LinkedIn</a>. </li>
-  <li>Reach out with questions, comments or feedback at <a href="hello@codesync.com"></a></a>. </li>
+    <li>Connect with us on
+        <a href="https://discord.com/invite/3daCMNZNTa">Discord</a> and
+        <a href="https://www.linkedin.com/company/codesyncapp/">LinkedIn</a>.
+    </li>
+    <li>Reach out with questions, comments or feedback at hello@codesync.com.</li>
 </ul>
 <p>
-  <strong>Visuals</strong>
+    <strong>Visuals</strong>
 </p>
 <p>
-  <img src="https://codesync-images.s3.amazonaws.com/playback-dark-theme.gif" alt="Repo Playback (Replaying your changes)">
+    <video width="600" controls>
+        <source src="https://codesync-images.s3.amazonaws.com/public/homePage/ai_powered.mp4" type="video/mp4" />
+Your browser does not support the video tag.
+    </video>
 </p>
 <p>
-  <em>
     <em>Discover the power of visual code analysis with CodeSync. Install now for a transformative coding experience!</em>
-  </em>
 </p>
     ]]>
     </description>
