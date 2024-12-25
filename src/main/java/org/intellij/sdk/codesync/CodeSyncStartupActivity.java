@@ -57,9 +57,6 @@ public class CodeSyncStartupActivity implements StartupActivity {
         // Schedule buffer handler.
         HandleBuffer.scheduleBufferHandler(project);
 
-        // Start alerts daemon
-        ActivityAlerts.startActivityAlertDaemon(project);
-
         // Check if user needs to authenticate
         CodeSyncSetup.checkUserAuthStatus(project);
 
