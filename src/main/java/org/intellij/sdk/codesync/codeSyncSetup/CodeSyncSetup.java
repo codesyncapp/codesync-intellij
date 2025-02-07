@@ -31,6 +31,7 @@ import org.intellij.sdk.codesync.files.*;
 import org.intellij.sdk.codesync.state.PluginState;
 import org.intellij.sdk.codesync.state.RepoStatus;
 import org.intellij.sdk.codesync.state.StateUtils;
+import org.intellij.sdk.codesync.ui.dialogs.RepoOrgSelectorDialog;
 import org.intellij.sdk.codesync.ui.dialogs.RepoPublicPrivateDialog;
 import org.intellij.sdk.codesync.ui.messages.CodeSyncMessages;
 import org.intellij.sdk.codesync.ui.progress.CodeSyncProgressIndicator;
@@ -44,6 +45,7 @@ import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.intellij.sdk.codesync.utils.GitUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
+import sun.tools.jconsole.Messages;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -212,7 +214,7 @@ public class CodeSyncSetup {
                 }
 
                 if (skipSyncPrompt) {
-                    syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, isSyncingBranch);
+                    connectRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, isSyncingBranch);
                     return;
                 }
 
@@ -231,7 +233,7 @@ public class CodeSyncSetup {
                     );
 
                     if (shouldSyncRepo) {
-                        syncRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, false);
+                        connectRepo(repoPath, repoName, branchName, project, codeSyncProgressIndicator, false);
                         reposBeingSynced.remove(repoPath);
                     }
                 }
@@ -392,7 +394,7 @@ public class CodeSyncSetup {
         return false;
     }
 
-    public static void syncRepo(String repoPath, String repoName, String branchName, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean isSyncingBranch) {
+    public static void connectRepo(String repoPath, String repoName, String branchName, Project project, CodeSyncProgressIndicator codeSyncProgressIndicator, boolean isSyncingBranch) {
         // create .syncignore file.
         String syncIgnoreFilePath = createSyncIgnore(repoPath);
 
@@ -513,27 +515,52 @@ public class CodeSyncSetup {
                     String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
                 );
             }
-
             // Can not proceed. This should never happen as the same check is applied at the start.
             return false;
         }
         CodeSyncClient codeSyncClient = new CodeSyncClient();
-        JSONObject payload = new JSONObject();
-        if (!isSyncingBranch) {
-            CommonUtils.invokeAndWait(
-                () -> {
-                    RepoPublicPrivateDialog repoPublicPrivateDialog = new RepoPublicPrivateDialog(project);
-                    boolean isPublic = repoPublicPrivateDialog.showAndGet();
-                    payload.put("is_public", isPublic);
+        Integer orgId = null;
+        Integer teamId = null;
+        JSONObject orgResponse = codeSyncClient.getRepoAvailableOrganizations(accessToken, repoName);
+        if (orgResponse != null && !orgResponse.containsKey("error")) {
+            List<Map<String, Object>> userOrgs = (List<Map<String, Object>>) orgResponse.get("orgs");
+            if (!userOrgs.isEmpty()) {
+                List<String> orgNames = new ArrayList<>();
+                for (Map<String, Object> org : userOrgs) {
+                    orgNames.add((String) org.get("name"));
+                }
+                CommonUtils.invokeAndWait(
+                    () -> {
+                        RepoOrgSelectorDialog repoOrgSelectorDialog = new RepoOrgSelectorDialog(project, orgNames);
+                        repoOrgSelectorDialog.showAndGet();
+                        String selectedOrg = repoOrgSelectorDialog.getSelectedOrg();
+                        if (!selectedOrg.equals(REPO_IS_PERSONAL) && !selectedOrg.equals(Messages.CANCEL)) {
+                            Optional<Long> selectedOrgId = userOrgs.stream()
+                                    .filter(org -> selectedOrg.equals(org.get("name")))
+                                    .map(org -> (Long) org.get("id")) // Cast to Integer
+                                    .findFirst();
+                        }
+                        return selectedOrg;
+                    },
+                    ModalityState.defaultModalityState()
+                );
+            }
 
-                    return isPublic;
-                },
-                ModalityState.defaultModalityState()
-            );
-        } else {
-            payload.put("is_public", false);
+            JSONObject teamsResponse = codeSyncClient.getRepoAvailableOrganizations(accessToken, repoName);
         }
 
+        JSONObject payload = new JSONObject();
+//        if (!isSyncingBranch) {
+//            CommonUtils.invokeAndWait(
+//                () -> {
+//                    RepoPublicPrivateDialog repoPublicPrivateDialog = new RepoPublicPrivateDialog(project);
+//                    boolean isPublic = repoPublicPrivateDialog.showAndGet();
+//                    return isPublic;
+//                },
+//                ModalityState.defaultModalityState()
+//            );
+//        }
+        payload.put("is_public", false);
         payload.put("name", repoName);
         payload.put("branch", branchName);
         payload.put("files_data", filesData.toJSONString());

@@ -74,12 +74,12 @@ public final class Constants {
 
     public static final String API_ENDPOINT = String.format("%s/v1", CODESYNC_HOST);
     public static final String API_INIT = String.format("%s/init?source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
-    public static final String API_USERS = String.format("%s/users?&source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
+    public static final String API_USERS = String.format("%s/users?source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String CODESYNC_REPO_URL = String.format("%s/repos", API_ENDPOINT);
     public static final String FILES_API_ENDPOINT = String.format("%s/files?source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String TEAM_ACTIVITY_ENDPOINT = String.format("%s/team_activity?tz=%s&source=%s&v=%s", API_ENDPOINT, DEFAULT_TIMEZONE, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String USER_SUBSCRIPTION_ENDPOINT = String.format("%s/pricing/subscription", API_ENDPOINT);
-
+    public static final String USER_ORGANIZATIONS = String.format("%s/orgs?source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String API_HEALTHCHECK = String.format("%s/healthcheck?source=%s&v=%s", CODESYNC_HOST, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String CODESYNC_AUTHORIZE_URL = String.format("%s/authorize", CODESYNC_HOST);
     public static final String CODESYNC_LOGOUT_URL = String.format("%s/auth-logout", CODESYNC_HOST);
@@ -118,6 +118,7 @@ public final class Constants {
     public static final String VIEW_ACTIVITY = "View Activity";
     public static final String REMIND_LATER = "Remind Later";
     public static final String SKIP_TODAY = "Skip Today";
+    public static final String REPO_IS_PERSONAL = "Repo is personal";
 
     public static final String S3_FILE_UPLOAD_LOCK_KEY = "s3_file_upload";
 

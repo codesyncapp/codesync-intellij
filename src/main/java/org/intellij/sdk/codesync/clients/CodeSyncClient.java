@@ -338,4 +338,21 @@ public class CodeSyncClient {
         }
     }
 
+    public JSONObject getRepoAvailableOrganizations(String accessToken, String repoName) {
+        JSONResponse jsonResponse;
+        String url = String.format("%s&repo_name=%s", USER_ORGANIZATIONS, repoName);
+        try {
+            jsonResponse = ClientUtils.sendGet(url, accessToken);
+        } catch (RequestError | InvalidJsonError error) {
+            CodeSyncLogger.critical(String.format("Error while getting user organizations, %s", error.getMessage()));
+            return null;
+        } catch (StatusCodeError statusCodeError) {
+            // In case of error status code, repo upload should stop.
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("error", statusCodeError.getMessage());
+            return errorResponse;
+        }
+        return jsonResponse.getJsonResponse();
+    }
+
 }
