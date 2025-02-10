@@ -33,6 +33,7 @@ import org.intellij.sdk.codesync.state.RepoStatus;
 import org.intellij.sdk.codesync.state.StateUtils;
 import org.intellij.sdk.codesync.ui.dialogs.RepoOrgSelectorDialog;
 import org.intellij.sdk.codesync.ui.dialogs.RepoPublicPrivateDialog;
+import org.intellij.sdk.codesync.ui.dialogs.RepoTeamSelectorDialog;
 import org.intellij.sdk.codesync.ui.messages.CodeSyncMessages;
 import org.intellij.sdk.codesync.ui.progress.CodeSyncProgressIndicator;
 import org.intellij.sdk.codesync.ui.progress.InitRepoMilestones;
@@ -45,7 +46,6 @@ import org.intellij.sdk.codesync.alerts.PricingAlerts;
 import org.intellij.sdk.codesync.utils.GitUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
-import sun.tools.jconsole.Messages;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -54,10 +54,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.intellij.sdk.codesync.Constants.*;
+import static org.intellij.sdk.codesync.Constants.NotificationButton.CANCEL;
+import static org.intellij.sdk.codesync.Constants.NotificationButton.SKIP_THIS_STEP;
 
 public class CodeSyncSetup {
     public static final Set<String> reposBeingSynced = new HashSet<>();
@@ -124,42 +127,42 @@ public class CodeSyncSetup {
         String accessToken = User.getTable().getAccessToken(userEmail);
         if (accessToken == null) {
             throw new SQLiteDataError(
-                String.format(
-                    "Repo '%s' could not be updated because user access token is missing from SQLite database.",
-                    repoName
-                )
+                    String.format(
+                            "Repo '%s' could not be updated because user access token is missing from SQLite database.",
+                            repoName
+                    )
             );
         }
         CodeSyncClient codeSyncClient = new CodeSyncClient();
 
         if (!codeSyncClient.isServerUp()) {
             throw new ServerConnectionError(
-                String.format(
-                    "Repo '%s' could not be updated because we could not connect to the CodeSync servers.",
-                    repoName
-                )
+                    String.format(
+                            "Repo '%s' could not be updated because we could not connect to the CodeSync servers.",
+                            repoName
+                    )
             );
         }
 
         JSONObject response = codeSyncClient.updateRepo(accessToken, repoId, payload);
         if (response.containsKey("error")) {
             throw new RepoUpdateError(
-                String.format(
-                    "Repo '%s' could not be updated server returned an error response. Error: %s",
-                    repoName,
-                    response.get("error")
-                )
+                    String.format(
+                            "Repo '%s' could not be updated server returned an error response. Error: %s",
+                            repoName,
+                            response.get("error")
+                    )
             );
         }
     }
 
     public static void reconnectRepoAsync(Project project, String repoPath, String repoName) {
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, "CodeSync repo management"){
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "CodeSync repo management") {
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 boolean shouldReconnect = CodeSyncMessages.showYesNoMessage(
-                    "Do you want to reconnect this repo?",
-                    String.format("'%s' has been disconnected!", repoName),
-                    project
+                        "Do you want to reconnect this repo?",
+                        String.format("'%s' has been disconnected!", repoName),
+                        project
                 );
 
                 if (shouldReconnect) {
@@ -169,7 +172,7 @@ public class CodeSyncSetup {
                         NotificationManager.getInstance().notifyError(Notification.REPO_RECONNECT_FAILED, project);
                         NotificationManager.getInstance().notifyError(error.getMessage(), project);
                         CodeSyncLogger.critical(
-                            String.format("Could not reconnect the repo. Error: %s", error.getMessage())
+                                String.format("Could not reconnect the repo. Error: %s", error.getMessage())
                         );
                     }
                 }
@@ -180,7 +183,7 @@ public class CodeSyncSetup {
     public static void setupCodeSyncRepoAsync(Project project, String repoPath, String repoName, boolean skipSyncPrompt, boolean isSyncingBranch) {
         // Update state to show repo sync is in progress.
         StateUtils.updateRepoStatus(repoPath, RepoStatus.SYNC_IN_PROGRESS);
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo") {
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 progressIndicator.setIndeterminate(false);
 
@@ -192,7 +195,7 @@ public class CodeSyncSetup {
 
                 // Finished
                 codeSyncProgressIndicator.setMileStone(InitRepoMilestones.END);
-                
+
                 // Reload state according to the current state.
                 // We are reloading here instead of marking it as Done because we want to make sure the state is correct.
                 StateUtils.reloadState(project);
@@ -245,10 +248,10 @@ public class CodeSyncSetup {
             }
         } catch (SQLException error) {
             CodeSyncLogger.critical(
-                String.format(
-                    "Error while getting repo from database. Error: %s",
-                    CommonUtils.getStackTrace(error)
-                )
+                    String.format(
+                            "Error while getting repo from database. Error: %s",
+                            CommonUtils.getStackTrace(error)
+                    )
             );
         }
     }
@@ -256,7 +259,7 @@ public class CodeSyncSetup {
     public static void createSystemDirectories() {
         // Create system folders
         String[] systemFolders = {
-            CODESYNC_ROOT, DIFFS_REPO, ORIGINALS_REPO, SHADOW_REPO, DELETED_REPO, LOCKS_FILE_DIR, S3_UPLOAD_QUEUE_DIR
+                CODESYNC_ROOT, DIFFS_REPO, ORIGINALS_REPO, SHADOW_REPO, DELETED_REPO, LOCKS_FILE_DIR, S3_UPLOAD_QUEUE_DIR
         };
         for (String systemFolder : systemFolders) {
             File folder = new File(systemFolder);
@@ -266,7 +269,7 @@ public class CodeSyncSetup {
                 CONFIG_PATH, USER_FILE_PATH, SEQUENCE_TOKEN_FILE_PATH, PROJECT_LOCK_FILE, HANDLE_BUFFER_LOCK_FILE,
                 POPULATE_BUFFER_LOCK_FILE, ALERTS_FILE_PATH
         };
-        for (String systemFilePath: systemFilePaths) {
+        for (String systemFilePath : systemFilePaths) {
             File systemFile = new File(systemFilePath);
 
             if (!systemFile.exists()) {
@@ -321,22 +324,22 @@ public class CodeSyncSetup {
         }
         CodeSyncLogger.debug("[INTELLIJ_AUTH]: Login prompt displayed to the user.");
         boolean shouldSignup = CodeSyncMessages.showYesNoMessage(
-            "Do you want to login or sign up to use CodeSync?",
-            "To stream your code to the cloud, you'll need to authenticate.",
-            project
+                "Do you want to login or sign up to use CodeSync?",
+                "To stream your code to the cloud, you'll need to authenticate.",
+                project
         );
 
         // If user said no to signup request the return here.
         if (shouldSignup) {
             try {
-                CodeSyncAuthServer server =  CodeSyncAuthServer.getInstance();
+                CodeSyncAuthServer server = CodeSyncAuthServer.getInstance();
                 CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
                 BrowserUtil.browse(server.getLoginURL());
                 CodeSyncLogger.debug("[INTELLIJ_AUTH]: User redirected to the login page.");
             } catch (Exception exc) {
                 CodeSyncLogger.critical(String.format(
-                    "[INTELLIJ_AUTH]: An error occurred during user authentication. Error: %s",
-                    CommonUtils.getStackTrace(exc)
+                        "[INTELLIJ_AUTH]: An error occurred during user authentication. Error: %s",
+                        CommonUtils.getStackTrace(exc)
                 ));
                 NotificationManager.getInstance().notifyError("There was a problem with login, please try again later.", project);
             }
@@ -363,9 +366,9 @@ public class CodeSyncSetup {
         CodeSyncLogger.debug("[INTELLIJ_AUTH]: Login prompt displayed to the user.");
 
         boolean shouldSignup = CodeSyncMessages.showYesNoMessage(
-            "Do you want to login or sign up to use CodeSync?",
-            "To stream your code to the cloud, you'll need to authenticate.",
-            project
+                "Do you want to login or sign up to use CodeSync?",
+                "To stream your code to the cloud, you'll need to authenticate.",
+                project
         );
 
         // If user said no to signup request the return here.
@@ -377,7 +380,7 @@ public class CodeSyncSetup {
 
         CodeSyncAuthServer server;
         try {
-            server =  CodeSyncAuthServer.getInstance();
+            server = CodeSyncAuthServer.getInstance();
             CodeSyncAuthServer.registerPostAuthCommand(new ResumeCodeSyncCommand(project, repoPath, repoName, skipSyncPrompt, isSyncingBranch));
             CodeSyncAuthServer.registerPostAuthCommand(new ReloadStateCommand(project));
             BrowserUtil.browse(server.getLoginURL());
@@ -385,8 +388,8 @@ public class CodeSyncSetup {
             CodeSyncLogger.debug("[INTELLIJ_AUTH]: User redirected to the login page.");
         } catch (Exception exc) {
             CodeSyncLogger.critical(String.format(
-                "[INTELLIJ_AUTH]: An error occurred during user authentication. Error: %s",
-                CommonUtils.getStackTrace(exc)
+                    "[INTELLIJ_AUTH]: An error occurred during user authentication. Error: %s",
+                    CommonUtils.getStackTrace(exc)
             ));
             NotificationManager.getInstance().notifyError("There was a problem with login, please try again later.", project);
         }
@@ -428,27 +431,27 @@ public class CodeSyncSetup {
             }
 
             // Show success message and update state
-            if (!isSyncingBranch){
+            if (!isSyncingBranch) {
                 NotificationManager.getInstance().notifyInformation(Notification.INIT_SUCCESS_MESSAGE, project);
             } else {
                 NotificationManager.getInstance().notifyInformation(
-                    String.format(Notification.BRANCH_INIT_SUCCESS_MESSAGE, branchName), project);
+                        String.format(Notification.BRANCH_INIT_SUCCESS_MESSAGE, branchName), project);
             }
             StateUtils.reloadState(project);
         } else {
             // Show failure message.
-            if (!isSyncingBranch){
+            if (!isSyncingBranch) {
                 NotificationManager.getInstance().notifyError(Notification.INIT_FAILURE_MESSAGE, project);
             } else {
                 NotificationManager.getInstance().notifyError(
-                    String.format(Notification.BRANCH_INIT_FAILURE_MESSAGE, branchName), project
+                        String.format(Notification.BRANCH_INIT_FAILURE_MESSAGE, branchName), project
                 );
             }
         }
     }
 
-    public static void uploadRepoAsync(String repoPath, String repoName, String[] filePaths, Project project, boolean isSyncingBranch){
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo"){
+    public static void uploadRepoAsync(String repoPath, String repoName, String[] filePaths, Project project, boolean isSyncingBranch) {
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Initializing repo") {
             public void run(@NotNull ProgressIndicator progressIndicator) {
                 progressIndicator.setIndeterminate(false);
 
@@ -486,7 +489,7 @@ public class CodeSyncSetup {
                 .map(filePath -> filePath.replaceFirst(Pattern.quote(String.valueOf(File.separatorChar)), ""))
                 .toArray(String[]::new);
 
-        for (String relativeFilePath: relativeFilePaths) {
+        for (String relativeFilePath : relativeFilePaths) {
             branchFiles.put(relativeFilePath, null);
             Map<String, Object> fileInfo;
             try {
@@ -499,7 +502,7 @@ public class CodeSyncSetup {
             }
 
             JSONObject item = new JSONObject();
-            item.put("is_binary",  fileInfo.get("isBinary"));
+            item.put("is_binary", fileInfo.get("isBinary"));
             item.put("size", fileInfo.get("size"));
             item.put("created_at", CodeSyncDateUtils.getPosixTime((String) fileInfo.get("creationTime")));
             filesData.put(relativeFilePath, item);
@@ -512,15 +515,17 @@ public class CodeSyncSetup {
                 NotificationManager.getInstance().notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
             } else {
                 NotificationManager.getInstance().notifyInformation(
-                    String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
+                        String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
                 );
             }
             // Can not proceed. This should never happen as the same check is applied at the start.
             return false;
         }
         CodeSyncClient codeSyncClient = new CodeSyncClient();
-        Integer orgId = null;
-        Integer teamId = null;
+        // Set default values for org_id and team_id parameters
+        AtomicReference<Long> orgId = new AtomicReference<>(-1L); // Mutable container
+        AtomicReference<Long> teamId = new AtomicReference<>(-1L); // Mutable container
+        // Get user organizations in which repo can be added
         JSONObject orgResponse = codeSyncClient.getRepoAvailableOrganizations(accessToken, repoName);
         if (orgResponse != null && !orgResponse.containsKey("error")) {
             List<Map<String, Object>> userOrgs = (List<Map<String, Object>>) orgResponse.get("orgs");
@@ -530,37 +535,61 @@ public class CodeSyncSetup {
                     orgNames.add((String) org.get("name"));
                 }
                 CommonUtils.invokeAndWait(
-                    () -> {
-                        RepoOrgSelectorDialog repoOrgSelectorDialog = new RepoOrgSelectorDialog(project, orgNames);
-                        repoOrgSelectorDialog.showAndGet();
-                        String selectedOrg = repoOrgSelectorDialog.getSelectedOrg();
-                        if (!selectedOrg.equals(REPO_IS_PERSONAL) && !selectedOrg.equals(Messages.CANCEL)) {
-                            Optional<Long> selectedOrgId = userOrgs.stream()
-                                    .filter(org -> selectedOrg.equals(org.get("name")))
-                                    .map(org -> (Long) org.get("id")) // Cast to Integer
-                                    .findFirst();
-                        }
-                        return selectedOrg;
-                    },
-                    ModalityState.defaultModalityState()
+                        () -> {
+                            RepoOrgSelectorDialog repoOrgSelectorDialog = new RepoOrgSelectorDialog(project, orgNames);
+                            repoOrgSelectorDialog.showAndGet();
+                            String selectedOrg = repoOrgSelectorDialog.getSelectedOrg();
+                            if (!selectedOrg.equals(REPO_IS_PERSONAL) && !selectedOrg.equals(CANCEL)) {
+                                orgId.set(
+                                        userOrgs.stream()
+                                                .filter(org -> selectedOrg.equals(org.get("name")))
+                                                .map(org -> (Long) org.get("id"))
+                                                .findFirst()
+                                                .orElse(-1L) // Provide default directly
+                                );
+                            }
+                            return orgId.get();
+                        },
+                        ModalityState.defaultModalityState()
                 );
             }
-
-            JSONObject teamsResponse = codeSyncClient.getRepoAvailableOrganizations(accessToken, repoName);
+            if (orgId.get() != -1L) {
+                // Get organization teams
+                JSONObject teamsResponse = codeSyncClient.getOrgTeams(accessToken, orgId.get());
+                if (teamsResponse != null && !teamsResponse.containsKey("error")) {
+                    List<Map<String, Object>> orgTeams = (List<Map<String, Object>>) teamsResponse.get("teams");
+                    if (!orgTeams.isEmpty()) {
+                        List<String> teamNames = new ArrayList<>();
+                        for (Map<String, Object> team : orgTeams) {
+                            teamNames.add((String) team.get("name"));
+                        }
+                        CommonUtils.invokeAndWait(
+                                () -> {
+                                    RepoTeamSelectorDialog repoTeamSelectorDialog = new RepoTeamSelectorDialog(project, teamNames);
+                                    repoTeamSelectorDialog.showAndGet();
+                                    String selectedTeam = repoTeamSelectorDialog.getSelectedTeam();
+                                    if (!selectedTeam.equals(SKIP_THIS_STEP)) {
+                                        teamId.set(
+                                                orgTeams.stream()
+                                                        .filter(org -> selectedTeam.equals(org.get("name")))
+                                                        .map(org -> (Long) org.get("id"))
+                                                        .findFirst()
+                                                        .orElse(-1L) // Provide default directly
+                                        );
+                                    }
+                                    return teamId.get();
+                                },
+                                ModalityState.defaultModalityState()
+                        );
+                    }
+                }
+            }
         }
 
         JSONObject payload = new JSONObject();
-//        if (!isSyncingBranch) {
-//            CommonUtils.invokeAndWait(
-//                () -> {
-//                    RepoPublicPrivateDialog repoPublicPrivateDialog = new RepoPublicPrivateDialog(project);
-//                    boolean isPublic = repoPublicPrivateDialog.showAndGet();
-//                    return isPublic;
-//                },
-//                ModalityState.defaultModalityState()
-//            );
-//        }
         payload.put("is_public", false);
+        payload.put("org_id", orgId.get() == -1L ? null : orgId.get());
+        payload.put("team_id", teamId.get() == -1L ? null : teamId.get());
         payload.put("name", repoName);
         payload.put("branch", branchName);
         payload.put("files_data", filesData.toJSONString());
@@ -593,7 +622,7 @@ public class CodeSyncSetup {
             );
         } catch (ClassCastException err) {
             CodeSyncLogger.critical(String.format(
-                "Error parsing the response of /init endpoint. Error: %s", CommonUtils.getStackTrace(err)
+                    "Error parsing the response of /init endpoint. Error: %s", CommonUtils.getStackTrace(err)
             ));
 
             return false;
@@ -607,37 +636,38 @@ public class CodeSyncSetup {
 
             if (filePathAndIdsObject == null) {
                 CodeSyncLogger.critical(
-                    "Invalid response from /init endpoint. Missing `file_path_and_id` key.",
-                    email
+                        "Invalid response from /init endpoint. Missing `file_path_and_id` key.",
+                        email
                 );
 
                 return false;
             }
 
             codeSyncProgressIndicator.setMileStone(InitRepoMilestones.CONFIG_UPDATE);
-            filePathAndIds = new ObjectMapper().readValue(filePathAndIdsObject.toJSONString(), new TypeReference<Map<String, Integer>>(){});
+            filePathAndIds = new ObjectMapper().readValue(filePathAndIdsObject.toJSONString(), new TypeReference<Map<String, Integer>>() {
+            });
             // Persists repo data on the database.
             saveToDatabase(email, repoId, repoName, repoPath, branchName, filePathAndIds);
         } catch (ClassCastException | JsonProcessingException err) {
             CodeSyncLogger.critical(
-                String.format(
-                    "Error parsing the response of /init endpoint. Error: %s",
-                    CommonUtils.getStackTrace(err)
-                ),
-                email
+                    String.format(
+                            "Error parsing the response of /init endpoint. Error: %s",
+                            CommonUtils.getStackTrace(err)
+                    ),
+                    email
             );
 
             return false;
         } catch (SQLException error) {
             CodeSyncLogger.error(String.format(
-                "Error saving repo data on the database. Error: %s", CommonUtils.getStackTrace(error)
+                    "Error saving repo data on the database. Error: %s", CommonUtils.getStackTrace(error)
             ));
 
             if (!isSyncingBranch) {
                 NotificationManager.getInstance().notifyInformation(Notification.INIT_ERROR_MESSAGE, project);
             } else {
                 NotificationManager.getInstance().notifyInformation(
-                    String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
+                        String.format(Notification.BRANCH_INIT_ERROR_MESSAGE, branchName), project
                 );
             }
 
@@ -652,28 +682,29 @@ public class CodeSyncSetup {
 
                 return false;
             }
-            fileUrls = new ObjectMapper().readValue(urls.toJSONString(), new TypeReference<Map<String, Object>>(){});
+            fileUrls = new ObjectMapper().readValue(urls.toJSONString(), new TypeReference<Map<String, Object>>() {
+            });
 
             S3FileUploader s3FileUploader = new S3FileUploader(repoPath, branchName, fileUrls);
             s3FileUploader.saveURLs();
 
             // Trigger the task to upload the file to S3.
             CodeSyncLogger.info(String.format(
-                "[S3_FILE_UPLOAD]: Processing file: %s",
-                s3FileUploader.getQueueFilePath()
+                    "[S3_FILE_UPLOAD]: Processing file: %s",
+                    s3FileUploader.getQueueFilePath()
             ));
             S3FilesUploader.registerFileBeingProcessed(s3FileUploader.getQueueFilePath());
             s3FileUploader.triggerAsyncTask(StateUtils.getGlobalState().project);
         } catch (ClassCastException | JsonProcessingException err) {
             CodeSyncLogger.critical(
-                String.format("Error parsing the response of /init endpoint. Error: %s", CommonUtils.getStackTrace(err)),
-                email
+                    String.format("Error parsing the response of /init endpoint. Error: %s", CommonUtils.getStackTrace(err)),
+                    email
             );
             return false;
         } catch (InvalidYmlFileError | FileNotFoundException error) {
             CodeSyncLogger.critical(
-                String.format("Error creating S3 upload queue file. Error: %s", CommonUtils.getStackTrace(error)),
-                email
+                    String.format("Error creating S3 upload queue file. Error: %s", CommonUtils.getStackTrace(error)),
+                    email
             );
             return false;
         }
@@ -694,10 +725,10 @@ public class CodeSyncSetup {
             user.save();
         } catch (SQLException e) {
             CodeSyncLogger.critical(
-                String.format(
-                    "[INTELLI_REPO_INIT_ERROR]: Auth SQLite Database error. Error: %s",
-                    CommonUtils.getStackTrace(e)
-                )
+                    String.format(
+                            "[INTELLI_REPO_INIT_ERROR]: Auth SQLite Database error. Error: %s",
+                            CommonUtils.getStackTrace(e)
+                    )
             );
         }
     }
@@ -706,14 +737,14 @@ public class CodeSyncSetup {
     Save repo data to the database.
      */
     public static void saveToDatabase(
-        String email, Integer serverRepoId, String repoName, String repoPath, String branchName, Map<String, Integer> filePathAndIds
+            String email, Integer serverRepoId, String repoName, String repoPath, String branchName, Map<String, Integer> filePathAndIds
     ) throws SQLException {
         User user;
         try {
             user = User.getTable().get(email);
         } catch (UserNotFound e) {
             CodeSyncLogger.error(
-                "[INTELLI_REPO_INIT_ERROR]: Error while saving repo data. Could not find the user in the database."
+                    "[INTELLI_REPO_INIT_ERROR]: Error while saving repo data. Could not find the user in the database."
             );
 
             return;
@@ -725,7 +756,7 @@ public class CodeSyncSetup {
         repoBranch.save();
         ArrayList<RepoFile> repoFiles = new ArrayList<>();
 
-        for (Map.Entry<String, Integer> fileEntry: filePathAndIds.entrySet()) {
+        for (Map.Entry<String, Integer> fileEntry : filePathAndIds.entrySet()) {
             repoFiles.add(new RepoFile(fileEntry.getKey(), repoBranch.getId(), fileEntry.getValue()));
         }
 
@@ -735,7 +766,8 @@ public class CodeSyncSetup {
 
     public static String createSyncIgnore(String repoPath) {
         File syncIgnoreFile = Paths.get(repoPath, ".syncignore").toFile();
-        File gitIgnoreFile = Paths.get(repoPath, ".gitignore").toFile();;
+        File gitIgnoreFile = Paths.get(repoPath, ".gitignore").toFile();
+        ;
         PluginState pluginState = StateUtils.getState(repoPath);
         Project project = null;
         if (pluginState != null) {
@@ -750,7 +782,7 @@ public class CodeSyncSetup {
         if (!gitIgnoreFile.exists()) {
             // create an empty .syncignore file and let the user populate it.
             try {
-                if (syncIgnoreFile.createNewFile()){
+                if (syncIgnoreFile.createNewFile()) {
                     NotificationManager.getInstance().notifyInformation(
                             ".syncignore file is created, you can now update that file according to your preferences.",
                             project

@@ -355,4 +355,21 @@ public class CodeSyncClient {
         return jsonResponse.getJsonResponse();
     }
 
+    public JSONObject getOrgTeams(String accessToken, Long orgId) {
+        JSONResponse jsonResponse;
+        String url = String.format(ORG_TEAMS, orgId);
+        try {
+            jsonResponse = ClientUtils.sendGet(url, accessToken);
+        } catch (RequestError | InvalidJsonError error) {
+            CodeSyncLogger.critical(String.format("Error while getting org teams, %s", error.getMessage()));
+            return null;
+        } catch (StatusCodeError statusCodeError) {
+            // In case of error status code, repo upload should stop.
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("error", statusCodeError.getMessage());
+            return errorResponse;
+        }
+        return jsonResponse.getJsonResponse();
+    }
+
 }

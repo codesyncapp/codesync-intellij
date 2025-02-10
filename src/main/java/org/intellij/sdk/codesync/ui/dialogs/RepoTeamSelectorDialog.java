@@ -17,20 +17,19 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.intellij.sdk.codesync.Constants.NotificationButton.CANCEL;
-import static org.intellij.sdk.codesync.Constants.REPO_IS_PERSONAL;
+import static org.intellij.sdk.codesync.Constants.NotificationButton.SKIP_THIS_STEP;
 
-public class RepoOrgSelectorDialog extends DialogWrapper {
+public class RepoTeamSelectorDialog extends DialogWrapper {
 
-    private final List<String> orgNames;
-    private String selectedOrg = null;
-    String message = "Would you like to add this repository to an organization?";
-    String title = "Add repository to an organization or keep it personal?";
+    private final List<String> teamNames;
+    private String selectedTeam = null;
+    String message = "Which team should this repository be added to?";
+    String title = "Add repository to your team";
 
-    public RepoOrgSelectorDialog(Project project, List<String> orgNames) {
+    public RepoTeamSelectorDialog(Project project, List<String> teamNames) {
         super(project);
         setTitle(this.title);
-        this.orgNames = orgNames;
+        this.teamNames = teamNames;
         getWindow().addWindowListener(
                 new WindowAdapter() {
                     @Override
@@ -46,7 +45,7 @@ public class RepoOrgSelectorDialog extends DialogWrapper {
                 () -> {
                     init();
                     super.show();
-                    return selectedOrg;
+                    return selectedTeam;
                 },
                 ModalityState.defaultModalityState()
         );
@@ -72,38 +71,28 @@ public class RepoOrgSelectorDialog extends DialogWrapper {
     protected Action @NotNull [] createActions() {
         List<Action> actions = new ArrayList<>();
         // Generate an action for each org name
-        for (String orgName : this.orgNames) {
-            actions.add(new AbstractAction(orgName) {
+        for (String teamName : this.teamNames) {
+            actions.add(new AbstractAction(teamName) {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    selectedOrg = orgName;
+                    selectedTeam = teamName;
                     close(OK_EXIT_CODE);
                 }
             });
         }
 
         // Add a cancel button
-        actions.add(new AbstractAction(REPO_IS_PERSONAL) {
+        actions.add(new AbstractAction(SKIP_THIS_STEP) {
             @Override
             public void actionPerformed(ActionEvent e) {
-                selectedOrg = REPO_IS_PERSONAL;
-                if (isEnabled()) {
-                    close(CANCEL_EXIT_CODE);
-                }
-            }
-        });
-        // Add a cancel button
-        actions.add(new AbstractAction(CANCEL) {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                selectedOrg = CANCEL;
+                selectedTeam = SKIP_THIS_STEP;
                 close(CANCEL_EXIT_CODE);
             }
         });
         return actions.toArray(new Action[0]);
     };
 
-    public String getSelectedOrg() {
-        return selectedOrg;
+    public String getSelectedTeam() {
+        return selectedTeam;
     }
 }
