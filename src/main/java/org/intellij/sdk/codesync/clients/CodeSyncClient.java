@@ -261,7 +261,7 @@ public class CodeSyncClient {
         try {
             jsonResponse = ClientUtils.sendPost(API_INIT, payload, accessToken);
         } catch (RequestError | InvalidJsonError error) {
-            CodeSyncLogger.critical(String.format("Error while repo init, %s", error.getMessage()));
+            CodeSyncLogger.critical(String.format("Error while connecting repo, %s", error.getMessage()));
             return null;
         } catch (StatusCodeError statusCodeError) {
             // if status_code == 402
