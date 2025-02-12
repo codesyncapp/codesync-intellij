@@ -3,6 +3,7 @@ package org.intellij.sdk.codesync.configuration;
 public class ConfigurationFactory {
     final static private String env = "env";
     final static private String dev = "dev";
+    final static private String staging = "staging";
     final static private String prod = "prod";
     final static private String test = "test";
 
@@ -18,6 +19,8 @@ public class ConfigurationFactory {
         switch (env) {
             case dev:
                 return DevConfiguration.getInstance();
+            case staging:
+                return StagingConfiguration.getInstance();
             case prod:
                 return ProdConfiguration.getInstance();
             case test:

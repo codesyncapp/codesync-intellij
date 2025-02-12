@@ -12,6 +12,7 @@ public final class Constants {
     private Constants() {
         // restrict instantiation
     }
+
     // Values that can be overridden via environment based Configuration should go here.
     private static final String CODESYNC_DIR_NAME = configuration.getCodeSyncDirName();
     private static final String CODESYNC_DOMAIN = configuration.getCodeSyncDomain();
@@ -74,12 +75,13 @@ public final class Constants {
 
     public static final String API_ENDPOINT = String.format("%s/v1", CODESYNC_HOST);
     public static final String API_INIT = String.format("%s/init?source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
-    public static final String API_USERS = String.format("%s/users?&source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
+    public static final String API_USERS = String.format("%s/users?source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String CODESYNC_REPO_URL = String.format("%s/repos", API_ENDPOINT);
     public static final String FILES_API_ENDPOINT = String.format("%s/files?source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String TEAM_ACTIVITY_ENDPOINT = String.format("%s/team_activity?tz=%s&source=%s&v=%s", API_ENDPOINT, DEFAULT_TIMEZONE, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String USER_SUBSCRIPTION_ENDPOINT = String.format("%s/pricing/subscription", API_ENDPOINT);
-
+    public static final String USER_ORGANIZATIONS = String.format("%s/orgs?source=%s&v=%s", API_ENDPOINT, DIFF_SOURCE, PLUGIN_VERSION);
+    public static final String ORG_TEAMS = String.format("%s/orgs/%s/teams?source=%s&v=%s", API_ENDPOINT, "%s", DIFF_SOURCE, PLUGIN_VERSION);
     public static final String API_HEALTHCHECK = String.format("%s/healthcheck?source=%s&v=%s", CODESYNC_HOST, DIFF_SOURCE, PLUGIN_VERSION);
     public static final String CODESYNC_AUTHORIZE_URL = String.format("%s/authorize", CODESYNC_HOST);
     public static final String CODESYNC_LOGOUT_URL = String.format("%s/auth-logout", CODESYNC_HOST);
@@ -118,6 +120,7 @@ public final class Constants {
     public static final String VIEW_ACTIVITY = "View Activity";
     public static final String REMIND_LATER = "Remind Later";
     public static final String SKIP_TODAY = "Skip Today";
+    public static final String REPO_IS_PERSONAL = "Repo is personal";
 
     public static final String S3_FILE_UPLOAD_LOCK_KEY = "s3_file_upload";
 
@@ -148,6 +151,7 @@ public final class Constants {
 
         public static final String YES = "Yes";
         public static final String NO = "No";
+
         public static final String SERVICE_NOT_AVAILABLE = "CodeSync Service is unavailable. Please try again in a moment.";
         public static final String UPGRADE_PLAN = String.format("Upgrade your plan: %s", PLANS_URL);
 
@@ -188,11 +192,11 @@ public final class Constants {
         public static final String ACTIVITY_ALERT_HEADER_MESSAGE = "CodeSync | Check your activity!";
         public static final String ACTIVITY_ALERT_MESSAGE = "Let’s take a minute to review today’s coding!";
         public static final String ACTIVITY_ALERT_SECONDARY_MESSAGE =
-            "If you are not available right now then you can either skip for today or review later by clicking the correct button below.";
+                "If you are not available right now then you can either skip for today or review later by clicking the correct button below.";
         public static final String TEAM_ACTIVITY_ALERT_HEADER_MESSAGE = "CodeSync | Check your team's activity!";
         public static final String TEAM_ACTIVITY_ALERT_MESSAGE = "Hope you had a great day! It's time to get in sync with your team's code.";
         public static final String TEAM_ACTIVITY_ALERT_SECONDARY_MESSAGE =
-            "If you are not available right now then you can either skip for today or review later by clicking the correct button below.";
+                "If you are not available right now then you can either skip for today or review later by clicking the correct button below.";
 
         public static final String ACCOUNT_DEACTIVATED = "Your account has been deactivated. Please click 'Reactivate Account' below to resume syncing.";
         public static final String ACCOUNT_REACTIVATE_BUTTON = "Reactivate Account";
@@ -210,11 +214,15 @@ public final class Constants {
         public static final String UPGRADE_PLAN = "Upgrade Plan";
         public static final String UPGRADE_TO_TEAM = "Upgrade to Team Plan";
         public static final String UPGRADE_TO_PRO = "Upgrade to Pro Plan";
+        public static final String CANCEL = "Cancel";
+        public static final String SKIP_THIS_STEP = "Skip this step";
     }
+
     public static final class LogMessageType {
         private LogMessageType() {
             // restrict instantiation
         }
+
         public static final String CRITICAL = "CRITICAL";
         public static final String ERROR = "ERROR";
         public static final String WARNING = "WARNING";
@@ -247,7 +255,7 @@ public final class Constants {
         /*
             Custom error codes for the case: Free Plan restrictions
         */
-        private CustomErrorCodes(){
+        private CustomErrorCodes() {
             // restrict instantiation
         }
 

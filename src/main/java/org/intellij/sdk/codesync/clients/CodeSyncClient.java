@@ -261,7 +261,7 @@ public class CodeSyncClient {
         try {
             jsonResponse = ClientUtils.sendPost(API_INIT, payload, accessToken);
         } catch (RequestError | InvalidJsonError error) {
-            CodeSyncLogger.critical(String.format("Error while repo init, %s", error.getMessage()));
+            CodeSyncLogger.critical(String.format("Error while connecting repo, %s", error.getMessage()));
             return null;
         } catch (StatusCodeError statusCodeError) {
             // if status_code == 402
@@ -336,6 +336,40 @@ public class CodeSyncClient {
             CodeSyncLogger.error(String.format("Error while getting user subscription. %s", error.getMessage()));
             return false;
         }
+    }
+
+    public JSONObject getRepoAvailableOrganizations(String accessToken, String repoName) {
+        JSONResponse jsonResponse;
+        String url = String.format("%s&repo_name=%s", USER_ORGANIZATIONS, repoName);
+        try {
+            jsonResponse = ClientUtils.sendGet(url, accessToken);
+        } catch (RequestError | InvalidJsonError error) {
+            CodeSyncLogger.critical(String.format("Error while getting user organizations, %s", error.getMessage()));
+            return null;
+        } catch (StatusCodeError statusCodeError) {
+            // In case of error status code, repo upload should stop.
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("error", statusCodeError.getMessage());
+            return errorResponse;
+        }
+        return jsonResponse.getJsonResponse();
+    }
+
+    public JSONObject getOrgTeams(String accessToken, Long orgId) {
+        JSONResponse jsonResponse;
+        String url = String.format(ORG_TEAMS, orgId);
+        try {
+            jsonResponse = ClientUtils.sendGet(url, accessToken);
+        } catch (RequestError | InvalidJsonError error) {
+            CodeSyncLogger.critical(String.format("Error while getting org teams, %s", error.getMessage()));
+            return null;
+        } catch (StatusCodeError statusCodeError) {
+            // In case of error status code, repo upload should stop.
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("error", statusCodeError.getMessage());
+            return errorResponse;
+        }
+        return jsonResponse.getJsonResponse();
     }
 
 }
