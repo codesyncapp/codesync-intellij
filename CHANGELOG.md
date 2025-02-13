@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.7.0] - 2025-02-12
 - Adding repository to Org/Team during "Connect Repository"
+- Until build value updated null to support unlimited versions
 
 ## [4.6.0] 2024-12-25
 - Switching off daily-activity-alert since we now have Slack Alerts enabled
