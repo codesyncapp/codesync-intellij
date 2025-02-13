@@ -44,6 +44,7 @@ buildSearchableOptions {
 patchPluginXml {
   version = project.version
   sinceBuild = '203'
+  untilBuild = ''
 }
 
 dependencies {
