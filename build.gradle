@@ -79,7 +79,7 @@ dependencies {
   implementation 'org.eclipse.jetty:jetty-servlet:9.4.3.v20170317'
 
   // https://github.com/auth0/java-jwt
-  implementation 'com.auth0:java-jwt:3.18.1'
+  implementation 'com.auth0:java-jwt:4.4.0'
 
   // https://commons.apache.org/proper/commons-text/dependency-info.html
   implementation 'org.apache.commons:commons-text:1.9'
