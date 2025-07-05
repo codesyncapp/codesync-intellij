@@ -6,7 +6,7 @@
     <id>com.codesync</id>
 
     <!-- Text to display as name on Preferences/Settings | Plugin page -->
-    <name>CodeSync</name>
+    <name>CodeSync AI</name>
 
     <!-- Product and plugin compatibility requirements -->
     <depends>com.intellij.modules.platform</depends>
@@ -14,29 +14,20 @@
     <!-- Text to display as description on Preferences/Settings | Plugin page -->
     <description><![CDATA[
 <strong>AI-Powered Coding Summaries: Stay Synced Without the Overhead</strong>
-<p>CodeSync's AI-generated summaries offer a fast and efficient way to stay on top of your team's development progress. Whether you're a developer reviewing pull requests or a manager needing daily updates, CodeSync delivers clear, human-readable coding overviews directly from your IDE. No more manual tracking or sifting through code reviews—our summaries keep your entire team aligned, without the distractions. Integrate seamlessly with GitHub and Slack to streamline your workflow. Available now for JetBrains and VS Code!.</p>
+<p>Developers and managers can spend 30+ minutes daily on standup updates and sync meetings. CodeSync's AI-generated summaries offer a fast and efficient way to stay on top of your team's development progress. Whether you're a developer keeping in sync with teammates or a manager ensuring the project is on track, CodeSync delivers clear, human-readable coding overviews directly from your IDE. No more manual tracking or sifting through code reviews — our summaries keep your entire team aligned, without the distractions. Integrate seamlessly with Slack to streamline your workflow. Available now for VS Code, JetBrains IDEs, and Cursor!
+</p>
 <p>
 	<strong>Key Features</strong>
 </p>
 <ul>
 	<li>
-		<strong>AI-Generated Pull Request Summaries:</strong> Get concise, actionable overviews of pull requests, making code reviews quicker and easier. Reduce time spent digging into details by seeing the bigger picture immediately.
-
+		<strong>Daily AI Summaries in Slack:</strong> Keep everyone aligned with non-intrusive daily summaries posted in team channels. Perfect for quick stand-ups or catching up after a busy day.
 	</li>
 	<li>
-		<strong>Daily Team Summaries in Slack:</strong> Keep everyone aligned with non-intrusive daily summaries posted in team channels. Perfect for quick stand-ups or catching up after a busy day.
-
+		<strong>Seamless IDE Integration:</strong> Automatically generate summaries based on actual progress made in your IDE, so you never miss key changes or updates in your codebase. No git commits required!
 	</li>
 	<li>
-		<strong>Seamless GitHub Integration:</strong> Automatically generate summaries for every commit and pull request, so you never miss key changes or updates in your codebase.
-
-	</li>
-	<li>
-		<strong>Developer-Friendly:</strong> Stay in your flow—access pull request summaries and progress updates directly in your IDE without switching tools or reviewing long code histories.
-
-	</li>
-	<li>
-		<strong>Manager and Executive Reporting:</strong> Get high-level overviews of team progress. Track deliverables, spot blockers, and review progress toward business outcomes with biweekly and quarterly reports.
+		<strong>Manager and Executive Reporting:</strong> Get high-level biweekly overviews of overall team progress and individual developer snapshots. Track deliverables, spot blockers, and review progress toward business outcomes with biweekly and quarterly reports.
 	</li>
 </ul>
 <p>
@@ -45,12 +36,12 @@
 <ul>
 	<li>
 		<strong>Developers:</strong>
-		<em>Quick insights at your fingertips, without leaving your IDE.</em> Focus on coding, not status updates. Let CodeSync handle the summaries, so you can spend less time managing pull requests and more time building great software.
+		<em>Quick insights at your fingertips, without leaving your IDE.</em> Focus on coding, not status updates. Let CodeSync AI handle the summaries, so you can spend less time in meetings and more time building great software.
 
 	</li>
 	<li>
 		<strong>Managers:</strong>
-		<em>AI-powered summaries save you from manually following up with the team.</em> Get clear, actionable reports on team progress without diving into the code. Stay aligned with project timelines, identify blockers early, and keep communication efficient.
+		<em>AI-powered summaries provide leading indicators of project success, without distracting the team.</em> Get clear, actionable reports on team progress without diving into the code or distracting developers from valuable focus time. Stay aligned with project timelines, identify blockers early, and keep communication efficient.
 
 	</li>
 	<li>
@@ -61,7 +52,7 @@
 </ul>
 <p>
 	<strong>Data Security</strong>
-	<p>We support both cloud and self-hosting via AWS (on-prem). If you’d like your data and infrastructure to be within your own AWS account,
+	<p>We support both cloud and self-hosting via AWS and GCP (on-prem). If you’d like your data and infrastructure to be within your own AWS account,
 		<a href="mailto:hello@codesync.com">contact us</a> for a free trial of the on-prem option.
 	</p>
 	<p>CodeSync is SOC-2 compliant and ensures the highest standards of security, privacy and encryption. Contact us for our SOC-2 report.</p>
@@ -72,7 +63,7 @@
         <a href="https://www.codesync.com/request-a-demo">Try CodeSync’s AI-powered summaries today</a> and streamline your workflow!
     </p>
     <p>
-        <em>Free for 14 days. Available for JetBrains IDEs and VS Code.</em>
+        <em>Free for 30 days, no credit card required.</em>
     </p>
 </p>
 <p>
@@ -92,9 +83,6 @@
     <video width="600" controls src="https://dok9jc9tlzc4t.cloudfront.net/public/slack_demo.mp4" type="video/mp4">
         Your browser does not support the video tag.
     </video>
-</p>
-<p>
-    <em>Discover the power of visual code analysis with CodeSync. Install now for a transformative coding experience!</em>
 </p>
     ]]>
     </description>
