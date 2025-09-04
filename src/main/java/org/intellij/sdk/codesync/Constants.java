@@ -262,6 +262,14 @@ public final class Constants {
         public static final int IS_FROZEN_REPO = 4000;
         public static final int PRIVATE_REPO_COUNT_LIMIT_REACHED = 4006;
     }
+
+    public static final class AlertTitles {
+        public static final String INVALID_PROJECT = "CodeSync: Invalid Project detected.";
+    }
+
+    public static final class AlertMessages {
+        public static final String INVALID_PROJECT = "Please open a valid project to use CodeSync’s services.";
+    }
 }
 
 
