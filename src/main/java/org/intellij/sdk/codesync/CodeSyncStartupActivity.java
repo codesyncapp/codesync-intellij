@@ -24,6 +24,7 @@ import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.ui.Messages;
 
 import java.io.IOException;
 import java.util.List;
@@ -38,6 +39,15 @@ public class CodeSyncStartupActivity implements StartupActivity {
 
     @Override
     public void runActivity(@NotNull Project project) {
+
+        String basePath = project.getBasePath();
+        if (basePath.startsWith("/tmp/")) {
+            Messages.showInfoMessage(
+                    AlertMessages.INVALID_PROJECT,
+                    AlertTitles.INVALID_PROJECT
+            );
+            return;
+        }
         // Create system directories required by the plugin.
         createSystemDirectories();
         String repoDirPath = ProjectUtils.getRepoPath(project);
