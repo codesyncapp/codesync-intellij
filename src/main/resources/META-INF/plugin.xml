@@ -124,7 +124,10 @@
                   topic="com.intellij.openapi.project.ProjectManagerListener"/>
     </projectListeners>
     <actions>
-        <group id="org.intellij.sdk.action.GroupedActions" text="CodeSync" popup="true"
+        <group id="org.intellij.sdk.action.GroupedActions"
+               class="org.intellij.sdk.codesync.actions.CodeSyncActionGroup"
+               text="CodeSync"
+               popup="true"
                icon="CodeSyncIcons.codeSyncIcon">
             <add-to-group group-id="MainMenu" anchor="after" relative-to-action="ToolsMenu"/>
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
