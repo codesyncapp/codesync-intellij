@@ -264,11 +264,12 @@ public final class Constants {
     }
 
     public static final class AlertTitles {
-        public static final String INVALID_PROJECT = "CodeSync: Invalid Project detected.";
+        public static final String CODESYNC = "CodeSync";
     }
 
     public static final class AlertMessages {
-        public static final String INVALID_PROJECT = "Please open a valid project to use CodeSync’s services.";
+        public static final String OPEN_FOLDER = "In order to use CodeSync’s features, you can open a folder.";
+        public static final String ACCOUNT_DEACTIVATED = "Your account is deactivated. In order to use CodeSync’s features, please use an active account.";
     }
 }
 
