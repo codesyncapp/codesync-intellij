@@ -20,6 +20,7 @@ import org.intellij.sdk.codesync.Constants.*;
 public class CodeSyncActionGroup extends DefaultActionGroup {
 
     PluginState pluginState = StateUtils.getGlobalState();
+    private boolean wasAlertShown = false;
 
     private VirtualFile getRepoRoot(AnActionEvent anActionEvent, Project project) {
         VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
@@ -48,10 +49,13 @@ public class CodeSyncActionGroup extends DefaultActionGroup {
         if (StateUtils.getGlobalState().isAccountDeactivated) {
             visible = false;
             // Display alert message
-            Messages.showInfoMessage(
-                    AlertMessages.ACCOUNT_DEACTIVATED,
-                    AlertTitles.CODESYNC
-            );
+            if (!wasAlertShown) {
+                Messages.showInfoMessage(
+                        AlertMessages.ACCOUNT_DEACTIVATED,
+                        AlertTitles.CODESYNC
+                );
+                wasAlertShown = true;
+            }
         }
 
         // Hide group if invalid project path
@@ -68,10 +72,13 @@ public class CodeSyncActionGroup extends DefaultActionGroup {
         if (!repoRoot.isDirectory()) {
             visible = false;
             // Display alert message
-            Messages.showInfoMessage(
-                    AlertMessages.OPEN_FOLDER,
-                    AlertTitles.CODESYNC
-            );
+            if (!wasAlertShown) {
+                Messages.showInfoMessage(
+                        AlertMessages.OPEN_FOLDER,
+                        AlertTitles.CODESYNC
+                );
+                wasAlertShown = true;
+            }
         }
 
         e.getPresentation().setVisible(visible);
