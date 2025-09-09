@@ -24,7 +24,6 @@ import org.intellij.sdk.codesync.utils.CommonUtils;
 import org.intellij.sdk.codesync.utils.FileUtils;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import org.jetbrains.annotations.NotNull;
-import com.intellij.openapi.ui.Messages;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,8 +33,6 @@ import static org.intellij.sdk.codesync.Constants.FILE_RENAME_EVENT;
 import static org.intellij.sdk.codesync.Utils.*;
 import static org.intellij.sdk.codesync.Utils.ChangesHandler;
 import static org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup.createSystemDirectories;
-import org.intellij.sdk.codesync.state.StateUtils;
-import org.intellij.sdk.codesync.state.PluginState;
 
 public class CodeSyncStartupActivity implements StartupActivity {
 
