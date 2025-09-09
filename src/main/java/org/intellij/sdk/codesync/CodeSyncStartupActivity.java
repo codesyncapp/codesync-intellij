@@ -34,20 +34,13 @@ import static org.intellij.sdk.codesync.Constants.FILE_RENAME_EVENT;
 import static org.intellij.sdk.codesync.Utils.*;
 import static org.intellij.sdk.codesync.Utils.ChangesHandler;
 import static org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetup.createSystemDirectories;
+import org.intellij.sdk.codesync.state.StateUtils;
+import org.intellij.sdk.codesync.state.PluginState;
 
 public class CodeSyncStartupActivity implements StartupActivity {
 
     @Override
     public void runActivity(@NotNull Project project) {
-
-        String basePath = project.getBasePath();
-        if (basePath.startsWith("/tmp/")) {
-            Messages.showInfoMessage(
-                    AlertMessages.INVALID_PROJECT,
-                    AlertTitles.INVALID_PROJECT
-            );
-            return;
-        }
         // Create system directories required by the plugin.
         createSystemDirectories();
         String repoDirPath = ProjectUtils.getRepoPath(project);
