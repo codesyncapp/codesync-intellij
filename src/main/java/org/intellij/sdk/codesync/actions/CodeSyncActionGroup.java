@@ -14,7 +14,8 @@ import org.intellij.sdk.codesync.codeSyncSetup.CodeSyncSetupAction;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
-
+import com.intellij.openapi.ui.Messages;
+import org.intellij.sdk.codesync.Constants.*;
 
 public class CodeSyncActionGroup extends DefaultActionGroup {
 
@@ -46,6 +47,11 @@ public class CodeSyncActionGroup extends DefaultActionGroup {
         // Hide group if account is deactivated
         if (StateUtils.getGlobalState().isAccountDeactivated) {
             visible = false;
+            // Display alert message
+            Messages.showInfoMessage(
+                    AlertMessages.ACCOUNT_DEACTIVATED,
+                    AlertTitles.CODESYNC
+            );
         }
 
         // Hide group if invalid project path
@@ -54,15 +60,18 @@ public class CodeSyncActionGroup extends DefaultActionGroup {
         }
 
         VirtualFile repoRoot = this.getRepoRoot(e, project);
-        System.out.println(repoRoot);
         if (repoRoot == null) {
             visible = false;
         }
 
         // A single file is opened, no need to sync it.
-        System.out.println(repoRoot.isDirectory());
         if (!repoRoot.isDirectory()) {
             visible = false;
+            // Display alert message
+            Messages.showInfoMessage(
+                    AlertMessages.OPEN_FOLDER,
+                    AlertTitles.CODESYNC
+            );
         }
 
         e.getPresentation().setVisible(visible);
