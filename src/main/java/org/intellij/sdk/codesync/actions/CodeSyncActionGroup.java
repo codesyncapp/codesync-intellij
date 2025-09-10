@@ -17,10 +17,23 @@ import org.intellij.sdk.codesync.utils.ProjectUtils;
 import com.intellij.openapi.ui.Messages;
 import org.intellij.sdk.codesync.Constants.*;
 
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.StatusBar;
+import com.intellij.openapi.wm.WindowManager;
+
+import org.intellij.sdk.codesync.NotificationManager;
+
 public class CodeSyncActionGroup extends DefaultActionGroup {
 
     PluginState pluginState = StateUtils.getGlobalState();
     private boolean wasAlertShown = false;
+
+    public void showStatusBarMessage(String alertMessage, Project project) {
+        StatusBar statusBar = WindowManager.getInstance().getStatusBar(project);
+        if (statusBar != null) {
+            statusBar.setInfo(alertMessage);
+        }
+    }
 
     private VirtualFile getRepoRoot(AnActionEvent anActionEvent, Project project) {
         VirtualFile[] contentRoots = ProjectUtils.getAllContentRoots(project);
@@ -49,13 +62,7 @@ public class CodeSyncActionGroup extends DefaultActionGroup {
         if (StateUtils.getGlobalState().isAccountDeactivated) {
             visible = false;
             // Display alert message
-            if (!wasAlertShown) {
-                Messages.showInfoMessage(
-                        AlertMessages.ACCOUNT_DEACTIVATED,
-                        AlertTitles.CODESYNC
-                );
-                wasAlertShown = true;
-            }
+            showStatusBarMessage(AlertMessages.ACCOUNT_DEACTIVATED, project);
         }
 
         // Hide group if invalid project path
@@ -72,13 +79,7 @@ public class CodeSyncActionGroup extends DefaultActionGroup {
         if (!repoRoot.isDirectory()) {
             visible = false;
             // Display alert message
-            if (!wasAlertShown) {
-                Messages.showInfoMessage(
-                        AlertMessages.OPEN_FOLDER,
-                        AlertTitles.CODESYNC
-                );
-                wasAlertShown = true;
-            }
+            showStatusBarMessage(AlertMessages.OPEN_FOLDER, project);
         }
 
         e.getPresentation().setVisible(visible);
