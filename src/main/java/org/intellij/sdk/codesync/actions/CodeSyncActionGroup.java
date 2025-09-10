@@ -62,7 +62,7 @@ public class CodeSyncActionGroup extends DefaultActionGroup {
         if (StateUtils.getGlobalState().isAccountDeactivated) {
             visible = false;
             // Display alert message
-            showStatusBarMessage(AlertMessages.ACCOUNT_DEACTIVATED, project);
+            showStatusBarMessage(StatusBarMessages.ACCOUNT_DEACTIVATED, project);
         }
 
         // Hide group if invalid project path
@@ -79,7 +79,7 @@ public class CodeSyncActionGroup extends DefaultActionGroup {
         if (!repoRoot.isDirectory()) {
             visible = false;
             // Display alert message
-            showStatusBarMessage(AlertMessages.OPEN_FOLDER, project);
+            showStatusBarMessage(StatusBarMessages.OPEN_FOLDER, project);
         }
 
         e.getPresentation().setVisible(visible);

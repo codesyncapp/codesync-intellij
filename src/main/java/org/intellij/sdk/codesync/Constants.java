@@ -263,13 +263,9 @@ public final class Constants {
         public static final int PRIVATE_REPO_COUNT_LIMIT_REACHED = 4006;
     }
 
-    public static final class AlertTitles {
-        public static final String CODESYNC = "CodeSync";
-    }
-
-    public static final class AlertMessages {
-        public static final String OPEN_FOLDER = "In order to use CodeSync’s features, you can open a folder.";
-        public static final String ACCOUNT_DEACTIVATED = "Your account is deactivated. In order to use CodeSync’s features, please use an active account.";
+    public static final class StatusBarMessages {
+        public static final String OPEN_FOLDER = "CodeSync Information: In order to use CodeSync’s features, you can open a folder.";
+        public static final String ACCOUNT_DEACTIVATED = "CodeSync Information: Your account is deactivated. In order to use CodeSync’s features, please use an active account.";
     }
 }
 
