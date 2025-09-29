@@ -71,7 +71,7 @@ public class CodeSyncActionGroup extends DefaultActionGroup {
         }
 
         if (project == null) {
-            presentation.setVisible(false);
+            e.getPresentation().setVisible(visible);
             return;
         }
 
