@@ -70,6 +70,11 @@ public class CodeSyncActionGroup extends DefaultActionGroup {
             visible = false;
         }
 
+        if (project == null) {
+            presentation.setVisible(false);
+            return;
+        }
+
         VirtualFile repoRoot = this.getRepoRoot(e, project);
         if (repoRoot == null) {
             visible = false;
