@@ -78,15 +78,13 @@ public class CodeSyncActionGroup extends DefaultActionGroup {
         VirtualFile repoRoot = this.getRepoRoot(e, project);
         if (repoRoot == null) {
             visible = false;
+        } else {
+            // A single file is opened, no need to sync it.
+            if (!repoRoot.isDirectory()) {
+                visible = false;
+                showStatusBarMessage(StatusBarMessages.OPEN_FOLDER, project);
+            }
         }
-
-        // A single file is opened, no need to sync it.
-        if (!repoRoot.isDirectory()) {
-            visible = false;
-            // Display alert message
-            showStatusBarMessage(StatusBarMessages.OPEN_FOLDER, project);
-        }
-
         e.getPresentation().setVisible(visible);
         e.getPresentation().setEnabled(visible);
     }
