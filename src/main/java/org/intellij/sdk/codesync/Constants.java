@@ -201,6 +201,10 @@ public final class Constants {
         public static final String ACCOUNT_DEACTIVATED = "Your account has been deactivated. Please click 'Reactivate Account' below to resume syncing.";
         public static final String ACCOUNT_REACTIVATE_BUTTON = "Reactivate Account";
         public static final String REACTIVATED_SUCCESS = "Successfully reactivated your account";
+
+        // Invalid project related notification messages
+        public static final String INVALID_PROJECT_OPEN_FOLDER = "CodeSync only works with folders. Please open a folder to start syncing.";
+        public static final String INVALID_PROJECT_ACCOUNT_DEACTIVATED = "Your account is deactivated. In order to use CodeSync’s features, please use an active account.";
     }
 
 
@@ -262,11 +266,4 @@ public final class Constants {
         public static final int IS_FROZEN_REPO = 4000;
         public static final int PRIVATE_REPO_COUNT_LIMIT_REACHED = 4006;
     }
-
-    public static final class StatusBarMessages {
-        public static final String OPEN_FOLDER = "CodeSync notification: CodeSync only works with folders. Please open a folder to start syncing.";
-        public static final String ACCOUNT_DEACTIVATED = "CodeSync notification: Your account is deactivated. In order to use CodeSync’s features, please use an active account.";
-    }
 }
-
-
