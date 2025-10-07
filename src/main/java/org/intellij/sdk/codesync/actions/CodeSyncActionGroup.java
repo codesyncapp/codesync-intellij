@@ -16,6 +16,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import org.intellij.sdk.codesync.utils.ProjectUtils;
 import com.intellij.openapi.ui.Messages;
 import org.intellij.sdk.codesync.Constants.*;
+import org.intellij.sdk.codesync.NotificationManager;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.StatusBar;
@@ -57,12 +58,15 @@ public class CodeSyncActionGroup extends DefaultActionGroup {
         Project project = e.getProject();
 
         boolean visible = true;
-
         // Hide group if account is deactivated
         if (StateUtils.getGlobalState().isAccountDeactivated) {
             visible = false;
             // Display alert message
-            showStatusBarMessage(StatusBarMessages.ACCOUNT_DEACTIVATED, project);
+            NotificationManager.getInstance().notifyInformation(
+                    Notification.INVALID_PROJECT_ACCOUNT_DEACTIVATED, project
+            );
+            // Setting wasAlertShown=true so it only shows once
+            wasAlertShown = true;
         }
 
         // Hide group if invalid project path
@@ -70,18 +74,27 @@ public class CodeSyncActionGroup extends DefaultActionGroup {
             visible = false;
         }
 
+        if (project == null) {
+            e.getPresentation().setVisible(visible);
+            return;
+        }
+
         VirtualFile repoRoot = this.getRepoRoot(e, project);
         if (repoRoot == null) {
             visible = false;
+        } else {
+            // A single file is opened, no need to sync it.
+            if (!repoRoot.isDirectory()) {
+                visible = false;
+                if (!wasAlertShown) {
+                    NotificationManager.getInstance().notifyInformation(
+                            Notification.INVALID_PROJECT_OPEN_FOLDER, project
+                    );
+                    // Setting wasAlertShown=true so it only shows once
+                    wasAlertShown = true;
+                }
+            }
         }
-
-        // A single file is opened, no need to sync it.
-        if (!repoRoot.isDirectory()) {
-            visible = false;
-            // Display alert message
-            showStatusBarMessage(StatusBarMessages.OPEN_FOLDER, project);
-        }
-
         e.getPresentation().setVisible(visible);
         e.getPresentation().setEnabled(visible);
     }
